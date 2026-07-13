@@ -1,7 +1,7 @@
 
-#include "mino/bit/bit_array.hpp"
+#include "mino/core/bit/bit_array.hpp"
 
-namespace mino::bit {
+namespace mino::core::bit {
 
 //-------------------------------------
 // 기본 생성자
@@ -320,4 +320,4 @@ void bit_array::dump() const {
 }
 
  
-} // namespace mino::bit  
+} // namespace mino::core::bit

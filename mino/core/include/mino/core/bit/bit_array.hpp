@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cassert>
 #include <cstdint>
@@ -13,7 +13,7 @@
 #include <string>
 #include <iomanip>
 
-namespace mino::bit {
+namespace mino::core::bit {
 
 // 비트 배열 클래스
 class  bit_array {
@@ -81,4 +81,4 @@ protected:
 
 }; // class bit_array
 
-} // namespace mino::bit 
+} // namespace mino::core::bit
