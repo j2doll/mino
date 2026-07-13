@@ -1,0 +1,31 @@
+# .editorconfig
+root = true
+
+# Apply to all files
+[*]
+charset = utf-8     
+end_of_line = lf # Line endings for Linux (LF)
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{c,cpp,cxx,h,hpp}]
+# Apply to source and header files only
+[*.{c,cpp,cxx,h,hpp}]
+indent_style = space
+indent_size = 4
+charset = utf-8       
+end_of_line = lf # Line endings for Linux (LF)
+
+# Apply to CMake files
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
+charset = utf-8 # UTF-8 BOM is also possible if required
+end_of_line = lf # Line endings for Linux (LF)
+
+# If Windows-only files prefer CRLF, exceptions are possible
+# 
+# [*.sln]
+# end_of_line = crlf
+# [*.vcxproj]
+# end_of_line = crlf
