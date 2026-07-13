@@ -163,6 +163,8 @@ GPATH
 *.tlog
 *.opendb
 
+out/
+
 # VSCode
 .vscode/
 .history/
