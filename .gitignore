@@ -104,6 +104,7 @@ Makefile
 build/
 build-*/
 cmake-build-*/
+build_*/
 
 # Ninja
 .ninja_deps
