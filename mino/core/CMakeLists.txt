@@ -21,8 +21,14 @@ target_include_directories(mino_core
         $<INSTALL_INTERFACE:include>
 )
 
+target_link_libraries(mino_core
+    PUBLIC
+        $<BUILD_INTERFACE:spdlog::spdlog>
+        $<INSTALL_INTERFACE:spdlog::spdlog>
+)
+
 # 3. 설치(Install) 규칙 정의
-install(TARGETS mino_core
+install(TARGETS mino_core spdlog
     EXPORT minoTargets # 중요: 모든 서브 모듈을 하나의 export 묶음(minoTargets)으로 관리
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
