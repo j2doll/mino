@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.24)
 project(mino_core LANGUAGES CXX)
 
 # 1. 라이브러리 타깃 생성
