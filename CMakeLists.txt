@@ -11,11 +11,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# 하위 mino 폴더로 진입
+# 하위 mino 폴더 (라이브러리 소스 코드)
 add_subdirectory(mino) 
 
 # ------------------------------------------------------------------
-# 패키지 수출(Export) 및 CMake 설정 파일 생성
+# 패키지 추출(Export) 및 CMake 설정 파일 생성
 # ------------------------------------------------------------------
 include(CMakePackageConfigHelpers)
 
