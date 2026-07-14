@@ -21,7 +21,7 @@ target_include_directories(mino_network
         $<INSTALL_INTERFACE:include>
 )
 
-# [의존성 연결] 만약 network가 core를 사용한다면 여기서 링크해 줍니다.
+# [의존성] network가 core를 사용한다면 여기서 링크해 줍니다.
 # 이렇게 하면 mino_core의 헤더 경로와 링크 정보가 mino_network로 자동 전파됩니다.
 target_link_libraries(mino_network
     PUBLIC
