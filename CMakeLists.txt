@@ -11,18 +11,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# ------------------------------------------------------------------
-# 외부 의존성 spdlog 설정 (FetchContent + find_package)
-# ------------------------------------------------------------------
-include(FetchContent)
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        v1.17.0
-  FIND_PACKAGE_ARGS CONFIG
-)
-FetchContent_MakeAvailable(spdlog)
-
 # 하위 mino 폴더 (라이브러리 소스 코드)
 add_subdirectory(mino) 
 
