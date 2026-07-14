@@ -14,14 +14,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # ------------------------------------------------------------------
 # 외부 의존성 spdlog 설정 (vcpkg 우선 검색 / 없으면 FetchContent)
 # ------------------------------------------------------------------
-include(FetchContent)
+include(FetchContent) # FetchContent 모듈을 사용하여 외부 라이브러리를 다운로드하고 빌드할 수 있습니다.
+
 FetchContent_Declare(
   spdlog 
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG        v1.17.0
   FIND_PACKAGE_ARGS CONFIG
 )
-FetchContent_MakeAvailable(spdlog)
+FetchContent_MakeAvailable(spdlog) # spdlog가 이미 패키지로 설치되어 있으면 FetchContent를 사용하지 않고, 설치되어 있지 않으면 FetchContent를 통해 다운로드 및 빌드합니다.
 
 # 하위 mino 폴더 (라이브러리 소스 코드)
 add_subdirectory(mino) 
@@ -45,7 +46,7 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-# 3. [수정] 외부 프로젝트용 Config 파일 생성
+# 3. 외부 프로젝트용 Config 파일 생성
 # 외부 프로젝트가 find_package(mino)를 호출했을 때, 
 # 'spdlog'도 자동으로 찾아서 함께 로드하도록 find_dependency를 추가해 줍니다.
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/minoConfig.cmake
