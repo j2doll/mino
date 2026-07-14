@@ -1,42 +1,58 @@
 cmake_minimum_required(VERSION 3.24)
-project(mino_core LANGUAGES CXX)
 
-# 1. 라이브러리 타깃 생성
+# 1. 프로젝트 명과 버전 설정
+#   mino 의 하위 모듈 mino_core
+project(mino_core VERSION 1.0.0 LANGUAGES CXX)
+
+# 2. C++ 표준 정보 설정
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) 
+
+# 3. 사용하는 패키지 정보
+#   패키지 찾기 또는 설치는 상위 CMakeLists.txt에서 처리하도록 설정.
+find_package(spdlog CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+
+# 4. 라이브러리 생성 및 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
 add_library(mino_core STATIC ${SRC_FILES})
 if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
- 
-# 2. 헤더 파일 경로 지정
-# 빌드할 때 환경과 나중에 install되어 배포되었을 때의 환경을 구분합니다.
+
+# 5. 헤더 파일 경로 지정
+# 빌드할 때 환경과 나중에 install되어 배포되었을 때의 환경을 구분.
 target_include_directories(mino_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
+# 6. 사용하는 외부 라이브러리 링크
 target_link_libraries(mino_core
     PUBLIC
         $<BUILD_INTERFACE:spdlog::spdlog>
         $<INSTALL_INTERFACE:spdlog::spdlog>
+        $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
+        $<INSTALL_INTERFACE:nlohmann_json::nlohmann_json>
 )
 
-# 3. 설치(Install) 규칙 정의
-install(TARGETS mino_core spdlog
+# 7. 설치(Install) 규칙 정의
+install(TARGETS mino_core spdlog nlohmann_json 
     EXPORT minoTargets # 중요: 모든 서브 모듈을 하나의 export 묶음(minoTargets)으로 관리
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
-# 4. 공개 헤더 파일 설치 (폴더 통째로 복사)
-# include/mino/core/ 형태를 유지하기 위해 include/ 내부의 mino 폴더를 타깃으로 잡습니다.
+# 8. 공개 헤더 파일 설치 (폴더 통째로 복사)
+# include/mino/core/ 형태를 유지하기 위해 include/ 내부의 mino 폴더를 타깃으로 설정.
 install(DIRECTORY include/mino
     DESTINATION include
 )
