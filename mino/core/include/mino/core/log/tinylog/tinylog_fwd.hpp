@@ -3,7 +3,8 @@
 // tinylog 전방 선언
 namespace mino::core::log::tinylog {
 
-    // 1. 열거형 전방 선언 (실제 구현부에서 특정 타입을 지정했다면 : int 등을 맞춰주세요)
+    // 1. 열거형 전방 선언
+    // (실제 구현부에서 특정 타입을 지정했다면 : int 등을 맞춰주세요)
     enum class log_level;
     enum class encoding_type;
     enum class eol_type;
@@ -14,10 +15,13 @@ namespace mino::core::log::tinylog {
     struct rolling_file_sink_config;
 
     // 3. 클래스 전방 선언
+
+    // 3-1. 싱크
     class sink;
     class console_sink;
     class rolling_file_sink;
 
+    // 3-2. 로거
     class logger;
 
 } // namespace mino::core::log::tinylog
