@@ -187,4 +187,4 @@ namespace mino::core::container
         overflow_policy policy_;
     };
 
-}  
+} // namespace mino::core::container 

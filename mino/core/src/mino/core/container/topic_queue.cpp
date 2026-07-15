@@ -1,29 +1,32 @@
-
 #include "mino/core/container/topic_queue.hpp"
+#include "mino/core/log/tinylog/tinylog.hpp"
 
 namespace mino::core::container {
 
-    topic_queue::subscriber_channel::subscriber_channel(callback_t cb)
-        : callback(std::move(cb)), cv(std::make_unique<std::condition_variable>()) {
+    topic_queue::subscriber_channel::subscriber_channel(callback_t cb) :
+        callback(std::move(cb)),
+        cv(std::make_unique<std::condition_variable>())
+    {
     }
 
-    topic_queue& topic_queue::get_instance() {
+    topic_queue& topic_queue::get_instance()
+    {
         static topic_queue instance;
         return instance;
     }
 
     topic_queue::topic_queue()
-        : is_running_(false), is_cleanup_finished_(true)
-        // , logger_(spdlog::default_logger())
     {
-    }
+        is_running_ = false;
+        is_cleanup_finished_ = true;
+        logger_ = nullptr;
+    } 
 
     topic_queue::~topic_queue() {
         stop();
     }
 
-    /*
-    void topic_queue::set_logger(std::shared_ptr<spdlog::logger> logger) {
+    void topic_queue::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
         std::unique_lock<std::shared_mutex> lock(state_mutex_);
         if (logger) {
             logger_ = logger;
@@ -53,24 +56,25 @@ namespace mino::core::container {
     void topic_queue::log_critical(const std::string& msg) {
         if (logger_) logger_->critical(msg);
     }
-    //*/
 
     queue_state topic_queue::get_state() const {
         std::shared_lock<std::shared_mutex> lock(state_mutex_);
-        if (is_running_) return queue_state::running;
-        if (!is_cleanup_finished_) return queue_state::stopping;
+        if (is_running_)
+            return queue_state::running;
+        if (!is_cleanup_finished_)
+            return queue_state::stopping;
         return queue_state::stopped;
     }
 
     bool topic_queue::subscribe(const std::string& topic, callback_t callback) {
         std::unique_lock<std::shared_mutex> lock(state_mutex_);
         if (is_running_ || !is_cleanup_finished_) {
-            // 💡 영어 로그로 변경
-            // log_warn("Subscription failed: Queue must be in STOPPED state to add a subscriber.");
+            log_warn("Subscription failed: Queue must be in STOPPED state to add a subscriber.");
             return false;
         }
 
-        if (!callback) return false;
+        if (!callback)
+            return false;
 
         subscribers_[topic].push_back(std::make_unique<subscriber_channel>(callback));
         return true;
@@ -78,7 +82,8 @@ namespace mino::core::container {
 
     void topic_queue::start() {
         std::unique_lock<std::shared_mutex> lock(state_mutex_);
-        if (is_running_) return;
+        if (is_running_)
+            return;
 
         this->is_running_ = true;
         this->is_cleanup_finished_ = false;
@@ -93,7 +98,7 @@ namespace mino::core::container {
             }
         }
 
-        // log_info(">>> Topic Queue System Started (Total worker threads: " + std::to_string(thread_count) + ") <<<");
+        log_info(">>> Topic Queue System Started (Total worker threads: " + std::to_string(thread_count) + ") <<<");
     }
 
     void topic_queue::stop() {
@@ -123,7 +128,7 @@ namespace mino::core::container {
             is_cleanup_finished_ = true;
         }
 
-        // log_info(">>> Topic Queue System Stopped Successfully <<<");
+        log_info(">>> Topic Queue System Stopped Successfully <<<");
     }
 
     void topic_queue::worker_loop(subscriber_channel* channel) {
@@ -155,4 +160,4 @@ namespace mino::core::container {
         }
     }
 
-} // namespace j2::container
+} // namespace mino::core::container

@@ -94,4 +94,4 @@ namespace mino::core::container {
         std::unordered_map<key2_type, entry_type*> by_key2_;
     };
 
-} 
+} // namespace mino::core::container

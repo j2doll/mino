@@ -239,4 +239,4 @@ namespace mino::core::container {
         lhs.swap(rhs);
     }
 
-} 
+} // namespace mino::core::container

@@ -114,5 +114,4 @@ namespace mino::core::config {
             std::string m_config_file_path;
         };
 
-
-}
+} // namespace mino::core::config

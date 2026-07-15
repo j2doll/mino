@@ -184,4 +184,4 @@ namespace mino::core::container {
         value_compare value_comp() const { return comp_; }
     };
 
-} 
+} // namespace mino::core::container

@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <iterator>
 
-namespace mino::core::container {
+namespace mino::core::container { 
        
     template <typename T, typename Allocator = std::allocator<T>>
     class  devector {
@@ -272,4 +272,4 @@ namespace mino::core::container {
         }
     };
 
-}  
+} // namespace mino::core::container 

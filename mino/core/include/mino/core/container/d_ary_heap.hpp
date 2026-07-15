@@ -100,4 +100,4 @@ namespace mino::core::container {
         }
     };
 
-}
+} // namespace mino::core::container

@@ -116,4 +116,4 @@ namespace mino::core::container {
         std::vector<T> data_;
     };
 
-}  
+} // namespace mino::core::container 

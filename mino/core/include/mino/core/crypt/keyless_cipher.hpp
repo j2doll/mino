@@ -5,7 +5,7 @@
 
 namespace mino::core::crypt {
 
-    class  keyless_cipher {
+    class keyless_cipher {
     public:
         // 암호화 (인코딩 + 난독화)
         static std::string encrypt(std::string_view plain_text);

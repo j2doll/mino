@@ -94,4 +94,4 @@ namespace mino::core::container {
         size_t size_;
     };
 
-}  
+} // namespace mino::core::container 

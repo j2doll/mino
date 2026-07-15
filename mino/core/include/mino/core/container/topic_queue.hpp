@@ -13,7 +13,7 @@
 #include <condition_variable>
 #include <memory>
 
-// #include <spdlog/spdlog.h>
+#include "mino/core/log/tinylog/tinylog_fwd.hpp"
 
 namespace mino::core::container {
 
@@ -32,7 +32,7 @@ namespace mino::core::container {
     public:
         using callback_t = std::function<void(const message_context&)>;
 
-    private:
+    protected:
         struct subscriber_channel {
             callback_t callback;
             std::queue<message_context> item_queue;
@@ -46,7 +46,7 @@ namespace mino::core::container {
     public:
         static topic_queue& get_instance();
 
-        // void set_logger(std::shared_ptr<spdlog::logger> logger);
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger);
 
         queue_state get_state() const;
         bool subscribe(const std::string& topic, callback_t callback);
@@ -79,7 +79,7 @@ namespace mino::core::container {
             return true;
         }
 
-    private:
+    protected:
         topic_queue();
         ~topic_queue();
         topic_queue(const topic_queue&) = delete;
@@ -87,14 +87,12 @@ namespace mino::core::container {
 
         void worker_loop(subscriber_channel* channel);
 
-        /*
         void log_trace(const std::string& msg);
         void log_debug(const std::string& msg);
         void log_info(const std::string& msg);
         void log_warn(const std::string& msg);
         void log_error(const std::string& msg);
         void log_critical(const std::string& msg);
-        //*/
 
         std::unordered_map<std::string, std::vector<std::unique_ptr<subscriber_channel>>> subscribers_;
         mutable std::shared_mutex state_mutex_;
@@ -102,7 +100,8 @@ namespace mino::core::container {
         bool is_running_;
         bool is_cleanup_finished_;
 
-        // std::shared_ptr<spdlog::logger> logger_;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger_;
+
     };
 
-} 
+} // namespace mino::core::container
