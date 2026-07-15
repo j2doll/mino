@@ -1,4 +1,4 @@
-# mino
+# `mino`
 
 - `mino`는 `C++` 범용 라이브러리로 다양한 기능들을 제공합니다.
 
@@ -6,13 +6,13 @@
 
 ### 🏗️ 빌드 도구
 
-#### 🧩 Windows 환경
+#### ⊞ Windows 환경 🧩
 
 - `Visual Studio` (2022 이상)
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
 
-#### 🧩 Linux 환경
+#### 🐧 Linux 환경 🧩
 
 - `gcc` (8.5 이상)
 - `cmake` (3.26 이상)
@@ -36,9 +36,8 @@ C:\opt>eza --tree mino
 mino
 ├── include
 │   └── mino
-│       └── bit
-│           ├── bit.hpp
-│           └── bit_array.hpp
+│       └── xxx
+│           └── xxx.hpp
 └── lib
     ├── cmake
     │   └── mino
@@ -54,9 +53,8 @@ $ eza --tree mino
 mino
 ├── include
 │   └── mino
-│       └── bit
-│           ├── bit.hpp
-│           └── bit_array.hpp
+│       └── xxx
+│           └── xxx.hpp
 └── lib
     ├── cmake
     │   └── mino
