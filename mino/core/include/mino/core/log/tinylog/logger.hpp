@@ -55,12 +55,15 @@ namespace mino::core::log::tinylog {
         std::size_t max_files{ 5 };
     };
 
-    std::string_view to_string(log_level level);
-    std::string_view to_full_string(log_level level);
-    std::string to_korean_string(log_level level, encoding_type et = encoding_type::utf8);
+    // 로깅 레벨 값을 문자열로 반환
+    std::string_view to_string(log_level level); // 약어 문자열
+    std::string_view to_full_string(log_level level); // 전체 문자열
+    std::string to_korean_string(log_level level, encoding_type et = encoding_type::utf8); // 한국어 문자열
 
+    // EOL 타입을 문자열로 반환
     std::string_view to_string(eol_type eol);
 
+    // UTF-8 문자열을 지정된 인코딩으로 변환
     std::string convert_encoding(std::string_view src_utf8, encoding_type target_enc);
 
     //--- Sinks 인터페이스 ---
