@@ -13,4 +13,4 @@ void object_broker::clear() {
     get_instance().storage_.clear();
 }
 
-} 
+} // namespace mino::core::broker
