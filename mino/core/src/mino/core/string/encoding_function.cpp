@@ -37,7 +37,7 @@ namespace {
                 return false;
             }
             else {
-                out.push_back(static_cast<char32_t>(cu));
+                out.push_back(static_cast<char16_t>(cu));
             }
         }
         return true;
@@ -241,6 +241,14 @@ namespace {
     }
 
     // 비-Windows: UTF-8 <-> UTF-16/32 (codecvt 대체: 직접 구현)
+#if defined(USE_ICONV)
+    // Forward declaration: iconv helper used below.
+    bool iconv_convert(const char* from_charset,
+                       const char* to_charset,
+                       const std::string& in,
+                       std::string& out);
+#endif
+
     bool u16_from_utf8_codecvt(const std::string& in, std::u16string& out)
     {
 #if defined(USE_ICONV)
@@ -777,7 +785,7 @@ namespace mino::core::string
         if (!mackorean_to_utf8(mackor, utf8)) return false;
         return utf8_to_utf16(utf8, out_u16);
 #else
-        (void)mackor; (void)out_u16;
+        (void)mackorean; (void)out_u16;
         return false;
 #endif
 #endif
