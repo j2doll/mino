@@ -20,9 +20,20 @@ FetchContent_Declare(
   FIND_PACKAGE_ARGS CONFIG
 )
 FetchContent_MakeAvailable(spdlog)
-# FetchContent_MakeAvailable 는
+# NOTE: FetchContent_MakeAvailable 는
 # 이미 패키지로 설치되어 있으면 FetchContent 를 사용하지 않고,
 # 설치되어 있지 않으면 FetchContent 를 통해 다운로드 및 빌드.
+#
+# spdlog 패키지 설치 방법
+# (1) vcpkg 사용시 
+#  vcpkg install spdlog
+#
+# (2) Rocky/Redaht/Fedora/CentOS 계열 리눅스
+#   sudo dnf install epel-release -y
+#   sudo dnf install spdlog-devel -y
+# 
+# (3) Ubuntu 계열 리눅스
+#   sudo apt install libspdlog-dev -y
 
 # 3-2. nlohmann/json 설정
 FetchContent_Declare(
@@ -32,7 +43,18 @@ FetchContent_Declare(
   FIND_PACKAGE_ARGS CONFIG
 )
 FetchContent_MakeAvailable(nlohmann_json)
-
+#
+# nlohmann_json 패키지 설치 방법
+#
+# (1) vcpkg 사용시
+#  vcpkg install nlohmann-json
+#
+# (2) Rocky/Redaht/Fedora/CentOS 계열 리눅스
+#  sudo dnf install epel-release -y
+#  sudo dnf install nlohmann-json-devel -y
+#
+# (3) Ubuntu 계열 리눅스
+#  sudo apt install nlohmann-json3-dev -y
 
 # 4. 사용하는 패키지 정보
 #   패키지 찾기 또는 설치는 상위 CMakeLists.txt에서 처리하도록 설정.
@@ -62,9 +84,10 @@ target_include_directories(mino_external
 # 7. 사용하는 외부 라이브러리 링크
 target_link_libraries(mino_external
     PUBLIC
+        # spdlog 
         $<BUILD_INTERFACE:spdlog::spdlog>
         $<INSTALL_INTERFACE:spdlog::spdlog>
-
+        # nolohmann_json
         $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
         $<INSTALL_INTERFACE:nlohmann_json::nlohmann_json>
 )
