@@ -15,7 +15,7 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 ) 
-add_library(mino_network STATIC ${SRC_FILES})
+add_library(mino_network STATIC ${SRC_FILES}) 
 if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()

@@ -9,6 +9,32 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
+# 4. 외부 의존성 설정 (vcpkg 우선 검색 / 없으면 FetchContent)
+include(FetchContent) # FetchContent 모듈을 사용하여 외부 라이브러리를 다운로드하고 빌드.
+
+# 4-1. spdlog 설정
+FetchContent_Declare(
+  spdlog 
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG        v1.17.0
+  FIND_PACKAGE_ARGS CONFIG
+)
+FetchContent_MakeAvailable(spdlog)
+# spdlog가 이미 패키지로 설치되어 있으면 FetchContent를 사용하지 않고,
+# 설치되어 있지 않으면 FetchContent를 통해 다운로드 및 빌드.
+
+# 4-2. nlohmann/json 설정
+# (FetchContent로 가져오거나 이미 패키지로 설치되어 있으면 find_package 사용)
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.12.0
+  FIND_PACKAGE_ARGS CONFIG
+)
+FetchContent_MakeAvailable(nlohmann_json)
+# 사용 방법: 원하는 타겟에서
+# target_link_libraries(<your_target> PRIVATE nlohmann_json::nlohmann_json)
+
 # 3. 사용하는 패키지 정보
 #   패키지 찾기 또는 설치는 상위 CMakeLists.txt에서 처리하도록 설정.
 find_package(spdlog CONFIG REQUIRED)
@@ -39,6 +65,7 @@ target_link_libraries(mino_external
     PUBLIC
         $<BUILD_INTERFACE:spdlog::spdlog>
         $<INSTALL_INTERFACE:spdlog::spdlog>
+
         $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
         $<INSTALL_INTERFACE:nlohmann_json::nlohmann_json>
 )
