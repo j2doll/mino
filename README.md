@@ -18,6 +18,20 @@
 - `cmake` (3.26 이상)
 - `ninja` (1.8.2 이상)
 
+#### 외부 라이브러리 설치
+
+- `Redhat` 계열 (Rocky/CentOS/AlmaLinux)
+```
+sudo dnf install -y epel-release
+sudo dnf install -y spdlog-devel json-devel libcurl-devel openssl-devel
+```
+
+- `Debian` 계열 (Ubuntu/Debian)
+```
+sudo apt update
+sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev
+```
+
 ##### 📦 라이브러리 설치 
 
 - 라이브러리를 빌드 모드 설정 (`Release` 등)
