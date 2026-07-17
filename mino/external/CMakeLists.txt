@@ -17,7 +17,7 @@ FetchContent_Declare(
   spdlog 
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG        v1.17.0
-  FIND_PACKAGE_ARGS CONFIG
+  FIND_PACKAGE_ARGS CONFIG # 시스템에 설치된 패키지를 먼저 찾고, 없으면 다운로드하여 빌드하도록 지시
 )
 FetchContent_MakeAvailable(spdlog)
 # NOTE: FetchContent_MakeAvailable 는
@@ -40,7 +40,7 @@ FetchContent_Declare(
   nlohmann_json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG        v3.12.0
-  FIND_PACKAGE_ARGS CONFIG
+  FIND_PACKAGE_ARGS CONFIG # 시스템에 설치된 패키지를 먼저 찾고, 없으면 다운로드하여 빌드하도록 지시
 )
 FetchContent_MakeAvailable(nlohmann_json)
 #
@@ -82,23 +82,19 @@ target_include_directories(mino_external
 )
 
 # 7. 사용하는 외부 라이브러리 링크
-# NOTE: Link third-party libraries only for the BUILD_INTERFACE so the exported
-# target does not claim install-time dependencies that are not part of this export.
-# The package config will call find_dependency(...) so consumers can resolve them.
 target_link_libraries(mino_external
     PUBLIC
         $<BUILD_INTERFACE:spdlog::spdlog>
         $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
 )
 
-# 8. [의존성] external이 core를 사용한다면 여기서 링크해 줍니다.
+# 8. [의존성] external이 core를 사용한다면 여기서 링크.
 target_link_libraries(mino_external
     PUBLIC
         mino_core
 )
 
 # 9. 설치(Install) 규칙 정의
-# Only install the library target defined in this project.
 install(TARGETS mino_external
     EXPORT minoTargets # 중요: 모든 서브 모듈을 하나의 export 묶음(minoTargets)으로 관리
     ARCHIVE DESTINATION lib
