@@ -11,6 +11,28 @@
 - `Visual Studio` (2022 이상)
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
+- `vcpkg` (2023.06 이상)
+```
+vcpkg integrate install
+```
+- `CMakePresets.json` 설정
+```
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-vcpkg",
+      "displayName": "Windows x64 (vcpkg)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "D:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ]
+}
+```
 
 #### 🐧 Linux 환경 🧩
 

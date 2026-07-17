@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.24)
 # 1. 프로젝트 명과 버전 설정
 #  설치본 및 패키지 형태로 만들러면 버전 정보가 필수.
 project(mino_project VERSION 1.0.0 LANGUAGES CXX)
-
+  
 # 2. C++ 표준 정보 설정
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
-
+   
 # 3. 출력 디렉터리 설정
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
