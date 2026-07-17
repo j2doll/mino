@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
 # 1. 프로젝트 명과 버전 설정
-#   mino 의 하위 모듈 mino_external
 project(mino_external VERSION 1.0.0 LANGUAGES CXX)
 
 # 2. C++ 표준 정보 설정
@@ -10,56 +9,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
 # 3. 외부 의존성 설정 
-include(FetchContent) # FetchContent 모듈을 사용하여 외부 라이브러리를 다운로드하고 빌드.
+include(FetchContent) 
 
-# 3-1. spdlog 설정
-FetchContent_Declare(
-  spdlog 
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        v1.17.0
-  FIND_PACKAGE_ARGS CONFIG # 시스템에 설치된 패키지를 먼저 찾고, 없으면 다운로드하여 빌드하도록 지시
-)
-FetchContent_MakeAvailable(spdlog)
-# NOTE: FetchContent_MakeAvailable 는
-# 이미 패키지로 설치되어 있으면 FetchContent 를 사용하지 않고,
-# 설치되어 있지 않으면 FetchContent 를 통해 다운로드 및 빌드.
-#
-# spdlog 패키지 설치 방법
-# (1) vcpkg 사용시 
-#  vcpkg install spdlog
-#
-# (2) Rocky/Redaht/Fedora/CentOS 계열 리눅스
-#   sudo dnf install epel-release -y
-#   sudo dnf install spdlog-devel -y
-# 
-# (3) Ubuntu 계열 리눅스
-#   sudo apt install libspdlog-dev -y
+# 3-1. spdlog
+find_package(spdlog CONFIG QUIET)
+if (NOT spdlog_FOUND)
+    message(STATUS "spdlog not found, downloading and building it...")
+    FetchContent_Declare(
+      spdlog 
+      GIT_REPOSITORY https://github.com/gabime/spdlog.git
+      GIT_TAG        v1.17.0
+      FIND_PACKAGE_ARGS CONFIG 
+    )
+    FetchContent_MakeAvailable(spdlog)
+endif()
 
-# 3-2. nlohmann/json 설정
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        v3.12.0
-  FIND_PACKAGE_ARGS CONFIG # 시스템에 설치된 패키지를 먼저 찾고, 없으면 다운로드하여 빌드하도록 지시
-)
-FetchContent_MakeAvailable(nlohmann_json)
-#
-# nlohmann_json 패키지 설치 방법
-#
-# (1) vcpkg 사용시
-#  vcpkg install nlohmann-json
-#
-# (2) Rocky/Redaht/Fedora/CentOS 계열 리눅스
-#  sudo dnf install epel-release -y
-#  sudo dnf install nlohmann-json-devel -y
-#
-# (3) Ubuntu 계열 리눅스
-#  sudo apt install nlohmann-json3-dev -y
-
-# 4. 사용하는 패키지 정보
-#   패키지 찾기 또는 설치는 상위 CMakeLists.txt에서 처리하도록 설정.
-# find_package(spdlog CONFIG REQUIRED)
-# find_package(nlohmann_json CONFIG REQUIRED)
+# 3-2. nlohmann json 
+find_package(nlohmann_json CONFIG QUIET)
+if (NOT nlohmann_json_FOUND)
+    message(STATUS "nlohmann_json not found, downloading and building it...")
+  FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.12.0
+    FIND_PACKAGE_ARGS CONFIG
+  )
+  FetchContent_MakeAvailable(nlohmann_json)
+endif() 
 
 # 5. 라이브러리 생성 및 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
