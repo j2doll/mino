@@ -58,8 +58,8 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 # 4. 사용하는 패키지 정보
 #   패키지 찾기 또는 설치는 상위 CMakeLists.txt에서 처리하도록 설정.
-find_package(spdlog CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
+# find_package(spdlog CONFIG REQUIRED)
+# find_package(nlohmann_json CONFIG REQUIRED)
 
 # 5. 라이브러리 생성 및 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
