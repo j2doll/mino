@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent) 
 
 # 3-1. OpenSSL
-find_package(OpenSSL CONFIG QUIET)
+find_package(OpenSSL QUIET)
 if (NOT OpenSSL_FOUND)
     message(STATUS "OpenSSL not found, downloading and building it...")
     FetchContent_Declare(
@@ -31,7 +31,7 @@ if(TARGET crypto AND TARGET ssl)
 endif()
 
 # 3-2. CURL
-find_package(CURL CONFIG QUIET)
+find_package(CURL QUIET)
 if (NOT CURL_FOUND)
     message(STATUS "CURL not found, downloading and building it...")
 

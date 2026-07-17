@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent) 
 
 # 3-1. spdlog
-find_package(spdlog CONFIG QUIET)
+find_package(spdlog QUIET)
 if (NOT spdlog_FOUND)
     message(STATUS "spdlog not found, downloading and building it...")
     FetchContent_Declare(
@@ -25,7 +25,7 @@ if (NOT spdlog_FOUND)
 endif()
 
 # 3-2. nlohmann json 
-find_package(nlohmann_json CONFIG QUIET)
+find_package(nlohmann_json QUIET)
 if (NOT nlohmann_json_FOUND)
     message(STATUS "nlohmann_json not found, downloading and building it...")
   FetchContent_Declare(
