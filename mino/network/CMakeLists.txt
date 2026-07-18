@@ -116,7 +116,7 @@ set(MINO_CURL_LINKS "")
 if(TARGET CURL::libcurl)
   set(MINO_CURL_LINKS CURL::libcurl)
 endif()
-
+  
 if(MINO_CURL_LINKS)
   target_link_libraries(mino_network PUBLIC ${MINO_CURL_LINKS})
 else()
