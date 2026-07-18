@@ -5,7 +5,9 @@ cmake_minimum_required(VERSION 3.24)
 project(mino_project VERSION 1.0.0 LANGUAGES CXX)
   
 # 2. C++ 표준 정보 설정
-set(CMAKE_CXX_STANDARD 17)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
    
