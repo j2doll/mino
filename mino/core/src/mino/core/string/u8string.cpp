@@ -5,7 +5,7 @@
 #   include <windows.h>
 #else
 #   include <locale>
-#   include <codecvt>
+// #   include <codecvt>
 #endif
 
 #include "mino/core/string/u8string.hpp"
@@ -246,12 +246,29 @@ namespace mino::core::string::u8
             req);
         return w;
 #else
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
-        return conv.from_bytes(
-            reinterpret_cast<const char*>(s.data()),
-            reinterpret_cast<const char*>(s.data() + s.size()));
+        // Portable conversion without deprecated codecvt:
+        // If wchar_t is 2 bytes, convert via UTF-16; if 4 bytes, via UTF-32.
+        if constexpr (sizeof(wchar_t) == 2)
+        {
+            std::u16string s16 = to_u16string(s);
+            std::wstring w;
+            w.reserve(s16.size());
+            for (char16_t c : s16)
+                w.push_back(static_cast<wchar_t>(c));
+            return w;
+        }
+        else
+        {
+            std::u32string s32 = to_u32string(s);
+            std::wstring w;
+            w.reserve(s32.size());
+            for (char32_t c : s32)
+                w.push_back(static_cast<wchar_t>(c));
+            return w;
+        }
 #endif
     }
+
 
     u8string to_u8_string(const std::wstring& ws)
     {
@@ -286,11 +303,28 @@ namespace mino::core::string::u8
 
         return to_u8_string(out);
 #else
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
-        std::string out = conv.to_bytes(ws);
-        return to_u8_string(out);
+        // Portable conversion without deprecated codecvt:
+        // If wchar_t is 2 bytes, treat incoming wchar_t as UTF-16; if 4 bytes, as UTF-32.
+        if constexpr (sizeof(wchar_t) == 2)
+        {
+            std::u16string s16;
+            s16.reserve(ws.size());
+            for (wchar_t c : ws)
+                s16.push_back(static_cast<char16_t>(c));
+            return to_u8_string(s16);
+        }
+        else
+        {
+            std::u32string s32;
+            s32.reserve(ws.size());
+            for (wchar_t c : ws)
+                s32.push_back(static_cast<char32_t>(c));
+            return to_u8_string(s32);
+        }
 #endif
     }
+
+
 
     // --------------------------------------------------------
     // UTF-16
