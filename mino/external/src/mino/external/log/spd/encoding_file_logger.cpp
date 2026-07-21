@@ -12,11 +12,17 @@
 
 #include "mino/external/log/spd/encoding_file_logger.hpp"
 
-#ifndef MINIZ_CPP_HEADER_ONLY
-#   define MINIZ_CPP_HEADER_ONLY
-#endif
-// #include <miniz-cpp/zip_file.hpp>
+#define MINIZ_CPP_HEADER_ONLY
 #include "mino/external/log/spd/zip_file.hpp"
+
+// detect spdlog version at compile time and provide a fallback for older spdlog
+#ifndef SPDLOG_VER_MAJOR
+#  define MINO_SPDLOG_OLD 1
+#elif (SPDLOG_VER_MAJOR * 10000 + SPDLOG_VER_MINOR * 100 + SPDLOG_VER_PATCH) < 10800
+#  define MINO_SPDLOG_OLD 1
+#else
+#  define MINO_SPDLOG_NEW 1
+#endif
 
 namespace mino::external::log::spd {
 
@@ -260,7 +266,7 @@ namespace mino::external::log::spd {
         auto console_sink = std::make_shared<::spdlog::sinks::stdout_color_sink_mt>();
         console_logger_ = std::make_shared<::spdlog::logger>("encoding_rotating_zipping_sink", console_sink);
 
-        ::spdlog::file_event_handlers handlers;
+        // capture variables used by both new-handler and fallback branch
         std::size_t capture_max_files = max_files;
         int capture_comp_level = compression_level_;
         std::size_t capture_max_zip_count = max_zip_count_;
@@ -270,6 +276,9 @@ namespace mino::external::log::spd {
 
         // create local shared flag copy for lambdas
         auto skip_flag = skip_handler_;
+
+#if defined(MINO_SPDLOG_NEW)
+        ::spdlog::file_event_handlers handlers;
 
         /*
         // after_close handler: capture skip_flag (not this)
@@ -536,6 +545,12 @@ namespace mino::external::log::spd {
 
         backend_sink_ = std::make_shared<::spdlog::sinks::rotating_file_sink<Mutex>>(filename.string(), max_size, max_files, false, handlers);
         backend_sink_->set_formatter(std::make_unique<::spdlog::pattern_formatter>("%v"));
+#else
+        // Older spdlog fallback: cannot attach file event handlers -> create rotating sink without handlers.
+        // Zipping-on-close behavior is disabled for older spdlog versions.
+        backend_sink_ = std::make_shared<::spdlog::sinks::rotating_file_sink<Mutex>>(filename.string(), max_size, max_files);
+        backend_sink_->set_formatter(std::make_unique<::spdlog::pattern_formatter>("%v"));
+#endif
 
         if (write_bom_ && encoding_ == log_encoding::utf8) {
             if (std::filesystem::exists(filename) && std::filesystem::file_size(filename) == 0) {
@@ -636,7 +651,6 @@ namespace mino::external::log::spd {
         auto console_sink = std::make_shared<::spdlog::sinks::stdout_color_sink_mt>();
         console_logger_ = std::make_shared<::spdlog::logger>("encoding_daily_zipping_sink", console_sink);
 
-        ::spdlog::file_event_handlers handlers;
         std::size_t capture_max_files = max_files;
         int capture_comp_level = compression_level_;
         std::size_t capture_max_zip_count = max_zip_count_;
@@ -647,6 +661,8 @@ namespace mino::external::log::spd {
         // create local shared flag copy for lambdas
         auto skip_flag = skip_handler_;
 
+#if defined(MINO_SPDLOG_NEW)
+        ::spdlog::file_event_handlers handlers;
         // before_close handler: capture skip_flag
         handlers.before_close = [
             skip_flag,
@@ -899,6 +915,12 @@ namespace mino::external::log::spd {
         backend_sink_ = std::make_shared<::spdlog::sinks::daily_file_sink<Mutex, FileNameCalc>>(filename.string(), rotation_hour, rotation_minute, false, (uint16_t)max_files, handlers);
         backend_sink_->set_formatter(std::make_unique<::spdlog::pattern_formatter>("%v"));
 
+#else
+    // 구버전 spdlog fallback: handlers 파라미터 없이 생성
+    backend_sink_ = std::make_shared<::spdlog::sinks::daily_file_sink<Mutex, FileNameCalc>>(filename.string(), rotation_hour, rotation_minute, false, (uint16_t)max_files);
+    backend_sink_->set_formatter(std::make_unique<::spdlog::pattern_formatter>("%v"));
+#endif
+
         if (write_bom_ && encoding_ == log_encoding::utf8) {
             if (std::filesystem::exists(filename) && std::filesystem::file_size(filename) == 0) {
                 std::ofstream fs(filename, std::ios::binary | std::ios::app);
@@ -1039,3 +1061,5 @@ std::string mino::external::log::spd::convert_utf8_to_cp949(const std::string& u
     return utf8_str;
 #endif
 }
+
+

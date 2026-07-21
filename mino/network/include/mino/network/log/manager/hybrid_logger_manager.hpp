@@ -17,6 +17,8 @@
 #include <cmath>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/logger.h>
 #include <spdlog/sinks/dist_sink.h>
 
 #if __has_include(<spdlog/pattern_formatter.h>)
