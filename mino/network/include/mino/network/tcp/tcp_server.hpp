@@ -8,7 +8,7 @@
 #include <vector>
 #include <memory>
 
-#include <spdlog/fwd.h>
+#include <spdlog/spdlog.h>
 
 #include "mino/network/ethernet.hpp"
 

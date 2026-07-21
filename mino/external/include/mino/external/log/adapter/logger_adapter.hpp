@@ -27,8 +27,14 @@ namespace mino::external::log::adapter {
         void log(level lvl, Fmt&& fmt_arg, Args&&... args) {
             // 안전하게 문자열로 포맷한다. 문자열 리터럴은 fmt::runtime으로 감싼다.
             std::string msg;
-            if constexpr (std::is_convertible<std::decay_t<Fmt>, const char*>::value) {
+            if constexpr (std::is_convertible_v<std::decay_t<Fmt>, const char*>) {
+#if defined(FMT_VERSION) && FMT_VERSION >= 80000
+                // fmt v8.0.0 이상: fmt::runtime 사용 필수
                 msg = fmt::format(fmt::runtime(fmt_arg), std::forward<Args>(args)...);
+#else
+                // fmt v7.x 이하: fmt::runtime이 없으므로 바로 전달
+                msg = fmt::format(fmt_arg, std::forward<Args>(args)...);
+#endif
             }
             else {
                 msg = fmt::format(std::forward<Fmt>(fmt_arg), std::forward<Args>(args)...);

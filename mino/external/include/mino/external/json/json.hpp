@@ -5,7 +5,7 @@
 #include <limits>
 #include <cmath>
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace mino::external::json {
 

@@ -11,7 +11,7 @@
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/pattern_formatter.h>
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace mino::external::log::spd {
 
