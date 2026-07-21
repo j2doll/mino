@@ -11,28 +11,9 @@
 - `Visual Studio` (2022 이상)
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
-- `vcpkg` (2023.06 이상)
-```
-vcpkg integrate install
-```
-- `CMakePresets.json` 설정
-```
-{
-  "version": 3,
-  "configurePresets": [
-    {
-      "name": "windows-vcpkg",
-      "displayName": "Windows x64 (vcpkg)",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": "D:/vcpkg/scripts/buildsystems/vcpkg.cmake"
-      }
-    }
-  ]
-}
-```
+- `vcpkg` (2023.06 이상) : `vcpkg integrate install`
+- `CMakePresets.json` 와 `vcpkg.json` 설정
+
 
 #### 🐧 Linux 환경 🧩
 
@@ -45,13 +26,13 @@ vcpkg integrate install
 - `Redhat` 계열 (Rocky/CentOS/AlmaLinux)
 ```
 sudo dnf install -y epel-release
-sudo dnf install -y spdlog-devel json-devel libcurl-devel openssl-devel
+sudo dnf install -y spdlog-devel json-devel libcurl-devel openssl-devel cpp-httplib-devel
 ```
 
 - `Debian` 계열 (Ubuntu/Debian)
 ```
 sudo apt update
-sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev
+sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev libcpp-httplib-dev
 ```
 
 ##### 📦 라이브러리 설치 
