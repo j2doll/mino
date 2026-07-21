@@ -21,8 +21,9 @@ namespace mino::external::log::factory {
             size_t max_size = 0, uint32_t max_files = 7,
             uint16_t rot_h = 0, uint16_t rot_m = 0);
 
+        // Use a plain format parameter to remain compatible with older spdlog versions
         template <typename... Args>
-        void operator()(::spdlog::format_string_t<Args...> fmt, Args &&...args) {
+        void operator()(const char* fmt, Args &&...args) {
             if (auto l = ::spdlog::get(name_)) l->log(level_, fmt, std::forward<Args>(args)...);
         }
 
