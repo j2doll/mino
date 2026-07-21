@@ -15,7 +15,14 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/daily_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/pattern_formatter.h>
+
+#if __has_include(<spdlog/pattern_formatter.h>)
+#   include <spdlog/pattern_formatter.h>
+#elif __has_include(<spdlog/details/pattern_formatter.h>)
+#   include <spdlog/details/pattern_formatter.h>
+#else
+#   error "spdlog pattern_formatter header not found. Check your spdlog installation."
+#endif
 
 #ifdef _WIN32
 #   ifndef NOMINMAX
@@ -46,7 +53,6 @@ namespace mino::external::log::spd {
      std::string convert_utf8_to_cp949(const std::string& utf8_str);
 
     // ============================================================================
-
     template<typename Mutex>
     class encoding_file_sink : public ::spdlog::sinks::base_sink<Mutex> {
     public:
@@ -68,7 +74,6 @@ namespace mino::external::log::spd {
     };
 
     // ============================================================================
-
     template<typename Mutex>
     class encoding_rotating_zipping_sink : public ::spdlog::sinks::base_sink<Mutex> {
     public:
@@ -108,7 +113,6 @@ namespace mino::external::log::spd {
     };
 
     // ============================================================================
-
     template<typename Mutex, typename FileNameCalc = ::spdlog::sinks::daily_filename_calculator>
     class encoding_daily_zipping_sink : public ::spdlog::sinks::base_sink<Mutex> {
     public:
