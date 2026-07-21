@@ -2,7 +2,6 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/dist_sink.h>
-#include <spdlog/pattern_formatter.h>
 
 #if __has_include(<spdlog/pattern_formatter.h>)
 #   include <spdlog/pattern_formatter.h>
