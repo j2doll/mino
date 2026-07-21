@@ -1,6 +1,4 @@
 #pragma once
 
-#include "j2_library/macro/setter_getter.hpp" 
-#include "j2_library/macro/try_opt.hpp" 
-
-
+#include "mino/core/macro/setter_getter.hpp" 
+#include "mino/core/macro/try_opt.hpp"

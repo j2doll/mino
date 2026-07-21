@@ -11,7 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
 # 3. 외부 의존성 설정 
-include(FetchContent) 
+
+# include(FetchContent) 
   
 # 3-1. spdlog
 find_package(spdlog REQUIRED)

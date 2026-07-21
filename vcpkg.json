@@ -5,6 +5,7 @@
     "spdlog",
     "nlohmann-json",
     "openssl",
-    "curl"
+    "curl",
+    "cpp-httplib"
   ]
 }

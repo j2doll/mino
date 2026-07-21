@@ -11,7 +11,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
 # 3. 외부 의존성 설정 
-include(FetchContent) 
+
+find_package(Threads REQUIRED)
+
+# include(FetchContent) 
  
 # 3-1. OpenSSL
 find_package(OpenSSL REQUIRED)
@@ -76,6 +79,15 @@ find_package(CURL REQUIRED)
 #     FetchContent_MakeAvailable(CURL)
 # endif()
 
+# 3-3. httplib
+find_package(httplib REQUIRED)
+
+# 3-4. spdlog
+find_package(spdlog REQUIRED)
+
+# 3-5. nlohmann json
+find_package(nlohmann_json REQUIRED)
+
 # 4. 라이브러리 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -96,6 +108,14 @@ target_include_directories(mino_network
 )
 
 # 6. 외부 라이브러리 링크 설정
+
+if(WIN32)
+    # winsock 라이브러리 링크 (Windows 전용)
+    target_link_libraries(mino_network PRIVATE ws2_32)
+
+    # Windows 환경에서 불필요한 헤더 포함을 방지하고, min/max 매크로 충돌을 방지하기 위해 정의 추가
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+endif()
 
 # 6-1. OpenSSL 링크 설정
 set(MINO_OPENSSL_LINKS "")
@@ -125,10 +145,54 @@ else()
   message(WARNING "CURL not found; mino_network will be built without CURL support.")
 endif()
 
-# 7. [의존성] network가 core를 사용한다면 여기서 링크.
+# 6-3. httplib 링크 설정
+set(MINO_HTTP_LIBS "")
+# Common CMake package targets for httplib are typically 'httplib::httplib' or 'cpp-httplib::cpp-httplib'.
+if(TARGET httplib::httplib)
+  set(MINO_HTTP_LIBS httplib::httplib)
+elseif(TARGET cpp-httplib::cpp-httplib)
+  set(MINO_HTTP_LIBS cpp-httplib::cpp-httplib)
+endif()
+
+if(MINO_HTTP_LIBS)
+  target_link_libraries(mino_network PUBLIC ${MINO_HTTP_LIBS})
+else()
+  message(WARNING "httplib not found; mino_network will be built without httplib support.")
+endif()
+
+# 6-4. spdlog 링크 설정
+set(MINO_SPDLOG_LIBS "")
+# Prefer compiled spdlog target first, fallback to header-only when available.
+if(TARGET spdlog::spdlog)
+  set(MINO_SPDLOG_LIBS spdlog::spdlog)
+elseif(TARGET spdlog::spdlog_header_only)
+  set(MINO_SPDLOG_LIBS spdlog::spdlog_header_only)
+endif()
+
+if(MINO_SPDLOG_LIBS)
+  target_link_libraries(mino_network PUBLIC ${MINO_SPDLOG_LIBS})
+else()
+  message(WARNING "spdlog not found; mino_network will be built without spdlog support.")
+endif()
+
+# 6-5. nlohmann_json 링크 설정
+set(MINO_JSON_LIBS "")
+if(TARGET nlohmann_json::nlohmann_json)
+  set(MINO_JSON_LIBS nlohmann_json::nlohmann_json)
+endif()
+
+if(MINO_JSON_LIBS)
+  target_link_libraries(mino_network PUBLIC ${MINO_JSON_LIBS})
+else()
+  message(WARNING "nlohmann_json not found; mino_network will be built without nlohmann_json support.")
+endif()
+
+
+# 7. [의존성] network가 xxx를 사용한다면 여기서 링크.
 target_link_libraries(mino_network
     PUBLIC
         mino_core
+        mino_external
 )
 
 # 8. 설치 규칙 정의 (동일한 EXPORT 묶음 이름인 'minoTargets'를 사용해야 합니다)
