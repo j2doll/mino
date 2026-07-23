@@ -8,7 +8,7 @@
 #include <functional>
 #include <chrono>
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 #include <spdlog/spdlog.h>
 

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace mino::network::rpc {
 

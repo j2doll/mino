@@ -9,7 +9,7 @@
 #include <atomic>
 #include <utility>
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 #include <spdlog/spdlog.h>
 
