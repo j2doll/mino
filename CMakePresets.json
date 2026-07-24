@@ -2,8 +2,8 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "windows-vcpkg-base",
-      "displayName": "Windows x64 Base",
+      "name": "vcpkg-base",
+      "displayName": "vcpkg Base",
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
@@ -12,17 +12,17 @@
       }
     },
     {
-      "name": "windows-vcpkg-debug",
-      "displayName": "Windows x64 (vcpkg) - Debug",
-      "inherits": "windows-vcpkg-base",
+      "name": "vcpkg-debug",
+      "displayName": "vcpkg Debug",
+      "inherits": "vcpkg-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "windows-vcpkg-release",
-      "displayName": "Windows x64 (vcpkg) - Release",
-      "inherits": "windows-vcpkg-base",
+      "name": "vcpkg-release",
+      "displayName": "vcpkg Release",
+      "inherits": "vcpkg-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
