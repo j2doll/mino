@@ -23,16 +23,26 @@
 
 #### 외부 라이브러리 설치
 
-- `Redhat` 계열 (Rocky/CentOS/AlmaLinux)
+- `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```
 sudo dnf install -y epel-release
 sudo dnf install -y spdlog-devel json-devel libcurl-devel openssl-devel cpp-httplib-devel
 ```
 
-- `Debian` 계열 (Ubuntu/Debian)
+- `Debian` 계열 (`Ubuntu`/`Debian`)
 ```
 sudo apt update
 sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev libcpp-httplib-dev
+```
+
+- 일부 패키지 수동 설치
+```
+# fkYAML 수동 다운로드
+wget https://github.com/fktn-k/fkYAML/releases/download/v0.4.2/node.hpp -O fkyaml.hpp
+
+# 원하는 설치 경로에 헤더 파일 이동
+sudo mkdir -p /usr/local/include/fkyaml
+sudo mv fkyaml.hpp /usr/local/include/fkyaml/
 ```
 
 ##### 📦 라이브러리 설치 
