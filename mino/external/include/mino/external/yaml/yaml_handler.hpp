@@ -67,7 +67,6 @@ namespace mino::external::yml {
 
         template <typename T>
         void set_value(std::string_view key, const T& value) {
-            // [수정 완료] config_node -> config_node_ 로 오타를 수정했습니다.
             if (!config_node_.is_mapping()) {
                 config_node_ = fkyaml::node::deserialize("{}");
             }
