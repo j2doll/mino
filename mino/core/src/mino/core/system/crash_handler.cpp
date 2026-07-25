@@ -1,10 +1,13 @@
+
+#include <algorithm>
 #include <iostream>
 #include <sstream>
-#include <ctime>
 #include <iomanip>
 #include <string>
 #include <vector>
-#include <algorithm>
+
+#include <ctime>
+#include <cstring>
 
 #include "mino/core/system/system.hpp"
 
