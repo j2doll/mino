@@ -24,7 +24,7 @@
 #include "mino/core/ini/ini_parser.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/win_net_shim.hpp" 
+// #include "mino/network/win_net_shim.hpp" 
 #include "mino/network/udp/udp_sender.hpp"
 
 // INI 기반 spdlog 구성/리로드/디스크 감시/UDP 알림을 제공하는 로거 매니저
