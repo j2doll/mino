@@ -35,14 +35,18 @@ sudo apt update
 sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev libcpp-httplib-dev
 ```
 
-- 일부 패키지 수동 설치
-```
-# fkYAML 수동 다운로드
-wget https://github.com/fktn-k/fkYAML/releases/download/v0.4.2/node.hpp -O fkyaml.hpp
+#####  일부 패키지 수동 설치
 
-# 원하는 설치 경로에 헤더 파일 이동
-sudo mkdir -p /usr/local/include/fkyaml
-sudo mv fkyaml.hpp /usr/local/include/fkyaml/
+- `fkYAML`
+```
+# 1. Releases에서 소스 압축 파일 다운로드 (v0.4.2 기준)
+wget https://github.com/fktn-k/fkYAML/releases/download/v0.4.2/fkYAML.zip
+
+# 2. 압축 해제
+unzip fkYAML.zip -d fkyaml_src
+
+# 3. 시스템 헤더 경로(/usr/local/include)로 fkYAML 폴더 통째로 복사
+sudo cp -r fkyaml_src/fkYAML/include/fkYAML /usr/local/include/
 ```
 
 ##### 📦 라이브러리 설치 
