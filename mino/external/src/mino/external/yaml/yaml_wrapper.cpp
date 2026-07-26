@@ -15,7 +15,7 @@ namespace mino::external::yml {
 
     // Pimpl 구조체 내부에서 yaml_handler 객체 소유
     struct yaml_wrapper::impl {
-        yaml_handler handler;
+        yaml_handler handler; 
     };
 
     yaml_wrapper::yaml_wrapper() : pimpl_(std::make_unique<impl>()) {}

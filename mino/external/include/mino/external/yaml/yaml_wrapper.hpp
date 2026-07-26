@@ -7,13 +7,10 @@
 
 namespace spdlog {
     class logger;
-}
+} 
 
 namespace mino::external::yml {
 
-    // -------------------------------------------------------------
-    // encoding_type 이 이미 정의되어 있지 않은 경우에만 정의
-    // -------------------------------------------------------------
 #ifndef MINO_ENCODING_TYPE_DEFINED
 #define MINO_ENCODING_TYPE_DEFINED
     enum class encoding_type {
