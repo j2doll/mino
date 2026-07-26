@@ -16,11 +16,14 @@
 
 namespace mino::external::yml {
 
+#ifndef MINO_ENCODING_TYPE_DEFINED
+#define MINO_ENCODING_TYPE_DEFINED
     enum class encoding_type {
         utf8,
         utf16_le,
         utf16_be
     };
+#endif
 
     class  yaml_handler {
     public:
