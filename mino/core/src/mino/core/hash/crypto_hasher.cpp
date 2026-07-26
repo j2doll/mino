@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "mino/network/hash/crypto_hasher.hpp"
+#include "mino/core/hash/crypto_hasher.hpp"
 
 namespace {
     // -------------------------------------------------------------------------
@@ -249,7 +249,7 @@ namespace {
     }
 }
 
-namespace mino::network::hash {
+namespace mino::core::hash {
 
     std::string crypto_hasher::to_hex_string(const std::vector<uint8_t>& bytes) {
         std::ostringstream oss;
@@ -298,4 +298,4 @@ namespace mino::network::hash {
         return to_hex_string(derived_key);
     }
 
-} // namespace mino::network::hash
+} // namespace mino::core::hash

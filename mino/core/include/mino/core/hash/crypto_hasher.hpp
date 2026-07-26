@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace mino::network::hash {
+namespace mino::core::hash {
 
     class  crypto_hasher {
     private:
