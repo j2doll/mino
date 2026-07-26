@@ -12,7 +12,7 @@ namespace mino::external::log::factory {
 
     class tiny_logger; // forward declaration
 
-    class  logger_registry {
+    class logger_registry {
     public:
         static logger_registry& instance(); 
 
