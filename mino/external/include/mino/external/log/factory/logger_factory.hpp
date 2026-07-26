@@ -14,7 +14,7 @@ namespace mino::external::log::factory {
 
     class  logger_registry {
     public:
-        static logger_registry& instance();
+        static logger_registry& instance(); 
 
         // 멤버 함수: 레벨 인자를 명시적으로 받음 (헤더에 기본값 없음)
         void create(const std::string& name, ::spdlog::level::level_enum lvl,

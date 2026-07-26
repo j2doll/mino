@@ -16,7 +16,7 @@ namespace mino::external::log::adapter {
     enum class level { trace, debug, info, warn, error, critical };
 
     class logger_adapter {
-    public:
+    public: 
         logger_adapter() = default;
         explicit logger_adapter(std::shared_ptr<::spdlog::logger> l);
 

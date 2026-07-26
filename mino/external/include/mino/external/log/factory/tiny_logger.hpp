@@ -12,7 +12,7 @@ namespace mino::external::log::factory {
 
     class  tiny_logger {
     public:
-        explicit tiny_logger(std::string name);
+        explicit tiny_logger(std::string name); 
 
         void set_log_level(::spdlog::level::level_enum level);
 
