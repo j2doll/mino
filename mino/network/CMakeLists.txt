@@ -13,8 +13,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 3. 외부 의존성 설정 
 
 find_package(Threads REQUIRED)
-
-# include(FetchContent) 
  
 # 3-1. OpenSSL
 find_package(OpenSSL REQUIRED)

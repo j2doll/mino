@@ -17,8 +17,19 @@ find_package(spdlog REQUIRED)
 message(STATUS "spdlog version: ${spdlog_VERSION}")
  
 # 3-2. nlohmann json
-find_package(nlohmann_json REQUIRED)
-message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
+find_package(nlohmann_json QUIET)
+if (nlohmann_json_FOUND)
+    message(STATUS "Found nlohmann_json ${nlohmann_json_VERSION}")
+    if (nlohmann_json_VERSION VERSION_LESS "3.11.0")
+        message(STATUS "nlohmann_json < 3.11.0 -> forcing C++17 for compatibility")
+        # Force C++17 when older nlohmann_json is present
+        set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard" FORCE)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+        set(CMAKE_CXX_EXTENSIONS OFF)
+    endif()
+else()
+    message(FATAL_ERROR "nlohmann_json is required. Install it or enable FetchContent fallback.")
+endif()
 
 # 3-3. yaml-cpp
 find_package(yaml-cpp REQUIRED)
