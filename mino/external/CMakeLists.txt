@@ -10,7 +10,10 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
-# 3. 외부 의존성 설정 
+# 3. 외부 의존성 설정
+
+# 3-0. Threads
+find_package(Threads REQUIRED)
    
 # 3-1. spdlog
 find_package(spdlog REQUIRED)

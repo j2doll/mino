@@ -12,8 +12,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. 외부 의존성 설정 
 
+# 3-0. Threads
 find_package(Threads REQUIRED)
- 
+  
 # 3-1. OpenSSL
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
