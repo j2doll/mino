@@ -24,6 +24,21 @@ message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 find_package(yaml-cpp REQUIRED)
 message(STATUS "yaml-cpp version: ${yaml-cpp_VERSION}")
 
+# vcpkg 환경이 아닌 일반 Linux/Rocky8 패키지 대응
+if(NOT TARGET yaml-cpp::yaml-cpp)
+    if(TARGET yaml-cpp)
+        # 타깃 이름이 그냥 yaml-cpp로 등록된 경우 ALIAS 생성
+        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+    else()
+        # 타깃 자체가 안 만들어진 구버전 패키지인 경우 인터페이스 타깃 생성
+        add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
+        set_target_properties(yaml-cpp::yaml-cpp PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR}"
+            INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}"
+        )
+    endif()
+endif()
+
 # 4. 라이브러리 생성 및 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
