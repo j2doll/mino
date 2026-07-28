@@ -11,9 +11,10 @@
 - `Visual Studio` (2022 이상)
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
-- `vcpkg` (2023.06 이상) : `vcpkg integrate install`
+- `vcpkg` (2023.06 이상)
+    - `vcpkg integrate install` 명령 실행
 - `CMakePresets.json` 와 `vcpkg.json` 설정
-
+    - `vcpkg`의 경로인 `VCPKG_ROOT`는 환경변수로 사전 설정 필요
 
 #### 🐧 Linux 환경 🧩
 
@@ -26,28 +27,28 @@
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```
 sudo dnf install -y epel-release
-sudo dnf install -y spdlog-devel json-devel libcurl-devel openssl-devel cpp-httplib-devel
+sudo dnf install -y \
+    spdlog-devel \
+    json-devel \
+    libcurl-devel \
+    openssl-devel \
+    cpp-httplib-devel \
+    yaml-cpp \
+    yaml-cpp-devel
 ```
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```
 sudo apt update
-sudo apt install -y libspdlog-dev nlohmann-json3-dev libcurl4-openssl-dev libssl-dev libcpp-httplib-dev
+sudo apt install -y \
+  libspdlog-dev \
+  nlohmann-json3-dev \
+  libcurl4-openssl-dev \
+  libssl-dev \
+  libcpp-httplib-dev \
+  libyaml-cpp-dev
 ```
 
-#####  일부 패키지 수동 설치
-
-- `fkYAML`
-```
-# 1. Releases에서 소스 압축 파일 다운로드 (v0.4.2 기준)
-wget https://github.com/fktn-k/fkYAML/releases/download/v0.4.2/fkYAML.zip
-
-# 2. 압축 해제
-unzip fkYAML.zip -d fkyaml_src
-
-# 3. 시스템 헤더 경로(/usr/local/include)로 fkYAML 폴더 통째로 복사
-sudo cp -r fkyaml_src/fkYAML/include/fkYAML /usr/local/include/
-```
 
 ##### 📦 라이브러리 설치 
 

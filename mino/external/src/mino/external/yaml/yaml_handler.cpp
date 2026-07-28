@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <cmath>
 
-#include <fkYAML/node.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <spdlog/spdlog.h>
 
@@ -69,7 +69,7 @@ namespace mino::external::yml {
                 return false;
             }
 
-            config_node_ = fkyaml::node::deserialize(utf8);
+            config_node_ = YAML::Load(utf8);
             return true;
         }
         catch (const std::exception& e) {
@@ -116,7 +116,6 @@ namespace mino::external::yml {
     {
         try {
             std::ostringstream os;
-            // 수동 루프 대신 이미 구현된 node_to_json을 재귀적으로 사용하여 다양한 루트 구조 유연화 대응
             node_to_json(config_node_, os);
             return os.str();
         }
@@ -145,52 +144,73 @@ namespace mino::external::yml {
         }
     }
 
-    void yaml_handler::node_to_json(const fkyaml::node& node, std::ostream& os)
+    void yaml_handler::node_to_json(const YAML::Node& node, std::ostream& os)
     {
-        if (node.is_null()) {
+        if (!node || node.IsNull()) {
             os << "null";
             return;
         }
 
-        if (node.is_scalar()) {
-            if (node.is_boolean()) {
-                os << (node.get_value<bool>() ? "true" : "false");
+        if (node.IsScalar()) {
+            std::string str = node.Scalar();
+
+            // Boolean 판별
+            if (str == "true" || str == "True" || str == "TRUE") {
+                os << "true";
+                return;
             }
-            else if (node.is_integer()) {
-                os << node.get_value<int64_t>();
+            if (str == "false" || str == "False" || str == "FALSE") {
+                os << "false";
+                return;
             }
-            else if (node.is_float_number()) {
-                // 특수 부동소수점 수치 안전한 래핑 가드 처리
-                double val = node.get_value<double>();
-                if (std::isnan(val)) {
-                    os << "\"NaN\"";
-                }
-                else if (std::isinf(val)) {
-                    os << (val > 0 ? "\".inf\"" : "\"-.inf\"");
-                }
-                else {
+
+            // Integer 판별
+            try {
+                size_t idx = 0;
+                int64_t val = std::stoll(str, &idx);
+                if (idx == str.size()) {
                     os << val;
+                    return;
                 }
             }
-            else if (node.is_string()) {
-                std::string s = node.get_value<std::string>();
-                os << '"';
-                for (char c : s) {
-                    switch (c) {
-                    case '\\': os << "\\\\"; break;
-                    case '"':  os << "\\\""; break;
-                    case '\n': os << "\\n"; break;
-                    case '\r': os << "\\r"; break;
-                    case '\t': os << "\\t"; break;
-                    default:   os << c; break;
+            catch (...) {}
+
+            // Float 판별
+            try {
+                size_t idx = 0;
+                double val = std::stod(str, &idx);
+                if (idx == str.size()) {
+                    if (std::isnan(val)) {
+                        os << "\"NaN\"";
                     }
+                    else if (std::isinf(val)) {
+                        os << (val > 0 ? "\".inf\"" : "\"-.inf\"");
+                    }
+                    else {
+                        os << val;
+                    }
+                    return;
                 }
-                os << '"';
             }
+            catch (...) {}
+
+            // String 변환
+            os << '"';
+            for (char c : str) {
+                switch (c) {
+                case '\\': os << "\\\\"; break;
+                case '"':  os << "\\\""; break;
+                case '\n': os << "\\n"; break;
+                case '\r': os << "\\r"; break;
+                case '\t': os << "\\t"; break;
+                default:   os << c; break;
+                }
+            }
+            os << '"';
             return;
         }
 
-        if (node.is_sequence()) {
+        if (node.IsSequence()) {
             os << "[";
             bool first = true;
             for (const auto& item : node) {
@@ -202,13 +222,13 @@ namespace mino::external::yml {
             return;
         }
 
-        if (node.is_mapping()) {
+        if (node.IsMap()) {
             os << "{";
             bool first = true;
             for (auto it = node.begin(); it != node.end(); ++it) {
                 if (!first) os << ", ";
-                os << "\"" << it.key().get_value<std::string>() << "\": ";
-                node_to_json(it.value(), os);
+                os << "\"" << it->first.as<std::string>() << "\": ";
+                node_to_json(it->second, os);
                 first = false;
             }
             os << "}";
@@ -222,7 +242,6 @@ namespace mino::external::yml {
     {
         try {
             std::ostringstream os;
-            // 최상위 분기 처리 오버헤드를 줄이고 depth 0 기준으로 깔끔하게 계층 결합
             node_to_xml(config_node_, os, root_tag, 0);
             return os.str();
         }
@@ -251,43 +270,36 @@ namespace mino::external::yml {
         }
     }
 
-    void yaml_handler::node_to_xml(const fkyaml::node& node, std::ostream& os, std::string_view tag_name, int depth)
+    void yaml_handler::node_to_xml(const YAML::Node& node, std::ostream& os, std::string_view tag_name, int depth)
     {
         auto indent = [&](int d) { for (int i = 0; i < d; ++i) os << "  "; };
 
-        if (node.is_null()) {
+        if (!node || node.IsNull()) {
             indent(depth);
             os << "<" << tag_name << "/>\n";
             return;
         }
 
-        if (node.is_scalar()) {
+        if (node.IsScalar()) {
             indent(depth);
             os << "<" << tag_name << ">";
 
-            std::string s;
-            if (node.is_boolean()) {
-                s = node.get_value<bool>() ? "true" : "false";
-            }
-            else if (node.is_integer()) {
-                s = std::to_string(node.get_value<int64_t>());
-            }
-            else if (node.is_float_number()) {
-                // 부동소수점 특수 수치 명세와 일치하도록 명시적 치환
-                double val = node.get_value<double>();
-                if (std::isnan(val)) {
-                    s = ".nan";
-                }
-                else if (std::isinf(val)) {
-                    s = (val > 0 ? ".inf" : "-.inf");
-                }
-                else {
-                    s = std::to_string(val);
+            std::string s = node.Scalar();
+
+            // 특수 수치(NaN, Inf) 핸들링
+            try {
+                size_t idx = 0;
+                double val = std::stod(s, &idx);
+                if (idx == s.size()) {
+                    if (std::isnan(val)) {
+                        s = ".nan";
+                    }
+                    else if (std::isinf(val)) {
+                        s = (val > 0 ? ".inf" : "-.inf");
+                    }
                 }
             }
-            else if (node.is_string()) {
-                s = node.get_value<std::string>();
-            }
+            catch (...) {}
 
             // Naive 이스케이프 엔티티 변환 처리
             for (char c : s) {
@@ -302,18 +314,18 @@ namespace mino::external::yml {
             return;
         }
 
-        if (node.is_sequence()) {
+        if (node.IsSequence()) {
             for (const auto& item : node) {
                 node_to_xml(item, os, tag_name, depth);
             }
             return;
         }
 
-        if (node.is_mapping()) {
+        if (node.IsMap()) {
             indent(depth);
             os << "<" << tag_name << ">\n";
             for (auto it = node.begin(); it != node.end(); ++it) {
-                node_to_xml(it.value(), os, it.key().get_value<std::string>(), depth + 1);
+                node_to_xml(it->second, os, it->first.as<std::string>(), depth + 1);
             }
             indent(depth);
             os << "</" << tag_name << ">\n";
@@ -323,12 +335,18 @@ namespace mino::external::yml {
 
     // -- Block scalar setter --------------------------------------------------
 
-    void yaml_handler::set_block_scalar(std::string_view key, std::string_view text, bool /*is_literal*/)
+    void yaml_handler::set_block_scalar(std::string_view key, std::string_view text, bool is_literal)
     {
-        if (!config_node_.is_mapping()) {
-            config_node_ = fkyaml::node::deserialize("{}");
+        if (!config_node_.IsMap()) {
+            config_node_ = YAML::Load("{}");
         }
-        config_node_[std::string(key)] = std::string(text);
+
+        std::string key_str(key);
+        config_node_[key_str] = std::string(text);
+
+        if (is_literal) {
+            config_node_[key_str].SetStyle(YAML::EmitterStyle::Block);
+        }
     }
 
     // -- Existing convert_to_utf8 implementation (kept) -----------------------
@@ -382,4 +400,4 @@ namespace mino::external::yml {
         return out;
     }
 
-} 
+}

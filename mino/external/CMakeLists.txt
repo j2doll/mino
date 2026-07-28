@@ -20,6 +20,10 @@ message(STATUS "spdlog version: ${spdlog_VERSION}")
 find_package(nlohmann_json REQUIRED)
 message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
+# 3-3. yaml-cpp
+find_package(yaml-cpp REQUIRED)
+message(STATUS "yaml-cpp version: ${yaml-cpp_VERSION}")
+
 # 5. 라이브러리 생성 및 소스 코드 설정
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"

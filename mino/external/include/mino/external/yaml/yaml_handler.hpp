@@ -10,7 +10,7 @@
 #include <map>
 #include <variant>
 
-#include <fkYAML/node.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <spdlog/spdlog.h>
 
@@ -25,7 +25,7 @@ namespace mino::external::yml {
     };
 #endif
 
-    class  yaml_handler {
+    class yaml_handler {
     public:
         yaml_handler() = default;
         ~yaml_handler() = default;
@@ -51,16 +51,16 @@ namespace mino::external::yml {
         template <typename T>
         std::optional<T> get_value(std::string_view key) const {
             try {
-                if (!config_node_.is_mapping()) {
+                if (!config_node_.IsMap()) {
                     return std::nullopt;
                 }
 
                 std::string k(key);
                 auto sub_node = config_node_[k];
-                if (sub_node.is_null()) {
+                if (!sub_node || sub_node.IsNull()) {
                     return std::nullopt;
                 }
-                return sub_node.get_value<T>();
+                return sub_node.as<T>();
             }
             catch (const std::exception& e) {
                 log_error("Failed to convert value for key ({}): {}", key, e.what());
@@ -70,14 +70,14 @@ namespace mino::external::yml {
 
         template <typename T>
         void set_value(std::string_view key, const T& value) {
-            if (!config_node_.is_mapping()) {
-                config_node_ = fkyaml::node::deserialize("{}");
+            if (!config_node_.IsMap()) {
+                config_node_ = YAML::Load("{}");
             }
             config_node_[std::string(key)] = value;
         }
 
         void set_block_scalar(std::string_view key, std::string_view text, bool is_literal = true);
-        const fkyaml::node& get_root_node() const { return config_node_; }
+        const YAML::Node& get_root_node() const { return config_node_; }
 
     private:
         void log_info(std::string_view fmt, std::string_view arg1 = "", std::string_view arg2 = "") const;
@@ -85,11 +85,11 @@ namespace mino::external::yml {
 
         std::string convert_to_utf8(std::string_view src, encoding_type encoding);
 
-        void node_to_json(const fkyaml::node& node, std::ostream& os);
-        void node_to_xml(const fkyaml::node& node, std::ostream& os, std::string_view tag_name, int depth);
+        void node_to_json(const YAML::Node& node, std::ostream& os);
+        void node_to_xml(const YAML::Node& node, std::ostream& os, std::string_view tag_name, int depth);
 
-        fkyaml::node config_node_;
+        YAML::Node config_node_;
         std::shared_ptr<spdlog::logger> logger_ = nullptr;
     };
 
-} 
+}

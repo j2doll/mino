@@ -7,6 +7,6 @@
     "openssl",
     "curl",
     "cpp-httplib",
-    "fkyaml"
+    "yaml-cpp"
   ]
 }
