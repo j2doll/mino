@@ -12,9 +12,27 @@
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
 - `vcpkg` (2023.06 이상)
-    - `vcpkg integrate install` 명령 실행
-- `CMakePresets.json` 와 `vcpkg.json` 설정
-    - `vcpkg`의 경로인 `VCPKG_ROOT`는 환경변수로 사전 설정 필요
+    - `Visual Studio` : `vcpkg integrate install` 명령 실행
+    - `VS Code` : `settings.json` 
+    ```json
+    {
+        "cmake.configureSettings": {
+            "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+    }
+    ```
+    - `CMakePresets.json` 설정
+    ```json
+     {
+       // ...
+       "configurePresets": [
+       {
+          "cacheVariables": {
+           "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+         }
+       }
+     }
+    ```
 
 #### 🐧 Linux 환경 🧩
 
