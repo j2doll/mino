@@ -7,13 +7,13 @@ namespace mino::external::schedule::task {
 
     // 시간 계산 편의를 위한 구조체
     struct  date_time_parts {
-        int year;
+        int year;    // 1900 ~
         int month;   // 1 ~ 12
         int day;     // 1 ~ 31
         int weekday; // 0 (일) ~ 6 (토)
-        int hour;    // 0 ~ 23
+        int hour;    // 0 ~ 23 
         int minute;  // 0 ~ 59
-        int second;  // 0 ~ 59
+        int second;  // 0 ~ 59 (60 is possible for leap seconds, but we will ignore that for simplicity.)
 
         static date_time_parts from_time_point(std::chrono::system_clock::time_point tp);
     };
