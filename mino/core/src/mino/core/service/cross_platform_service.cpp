@@ -2,9 +2,8 @@
 #include <chrono>
 #include <thread>
 
-#include <spdlog/spdlog.h>
-
-#include "mino/external/service/cross_platform_service.hpp"
+#include "mino/core/log/tinylog/tinylog.hpp"
+#include "mino/core/service/cross_platform_service.hpp"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -15,14 +14,14 @@
     #include <csignal>
 #endif
 
-namespace mino::external::service {
+namespace mino::core::service {
 
     cross_platform_service::cross_platform_service(std::wstring_view service_name_w, std::string_view service_name_a)
         : service_name_w_(service_name_w), service_name_a_(service_name_a) {
         instance_ = this;
     }
 
-    void cross_platform_service::set_logger(std::shared_ptr<spdlog::logger> logger) {
+    void cross_platform_service::set_logger(std::shared_ptr< mino::core::log::tinylog::logger > logger) {
         logger_ = logger;
     }
 

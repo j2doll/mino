@@ -11,16 +11,16 @@
 #   include <csignal>
 #endif
 
-#include <spdlog/spdlog.h>
+#include "mino/core/log/tinylog/tinylog.hpp"
 
-namespace mino::external::service {
+namespace mino::core::service {
 
     class  cross_platform_service {
     public:
         explicit cross_platform_service(std::wstring_view service_name_w, std::string_view service_name_a);
         virtual ~cross_platform_service() = default;
 
-        void set_logger(std::shared_ptr<spdlog::logger> logger);
+        void set_logger(std::shared_ptr< mino::core::log::tinylog::logger > logger);
         bool run();
 
     protected:
@@ -46,7 +46,7 @@ namespace mino::external::service {
         std::atomic<bool> is_running_{ false };
         std::atomic<bool> is_paused_{ false };
 
-        std::shared_ptr<spdlog::logger> logger_{ nullptr };
+        std::shared_ptr< mino::core::log::tinylog::logger > logger_{ nullptr };
 
     protected:
 #ifdef _WIN32
