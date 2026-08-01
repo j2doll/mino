@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     // 요일을 나타내는 열거형 (0: 월요일, 1: 화요일, ..., 6: 일요일)
     enum class weekday : uint8_t {

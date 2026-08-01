@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     // 로컬 타임, UTC 타임
     enum class time_base {

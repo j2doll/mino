@@ -5,13 +5,13 @@
 #include <algorithm>
 #include <chrono>
 
-#include "mino/external/schedule/weekly/schedule_types.hpp"
-#include "mino/external/schedule/weekly/scheduler_time_base.hpp"
-#include "mino/external/schedule/weekly/schedule_xml.hpp"
-#include "mino/external/schedule/weekly/schedule_dump.hpp"
-#include "mino/external/schedule/weekly/schedule_normalizer.hpp"
+#include "mino/core/schedule/weekly/schedule_types.hpp"
+#include "mino/core/schedule/weekly/scheduler_time_base.hpp"
+#include "mino/core/schedule/weekly/schedule_xml.hpp"
+#include "mino/core/schedule/weekly/schedule_dump.hpp"
+#include "mino/core/schedule/weekly/schedule_normalizer.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     // 주간 스케줄러 클래스
     class  scheduler {
@@ -29,7 +29,7 @@ namespace mino::external::schedule::weekly {
 
         // JSON 문자열로부터 스케줄을 로드 (기존 범위는 추가됨)
         // (헤더에는 nlohmann::json 포함하지 않음 — 문자열 기반 API)
-        void load_from_json_string(const std::string& json_text);
+        // void load_from_json_string(const std::string& json_text);
 
         // 현재 설정된 시간이 스케쥴에 해당되는지 여부 판정
         bool is_active_now() const;

@@ -3,11 +3,13 @@
 #include <stdexcept>
 #include <cctype>
 
-#include <nlohmann/json.hpp>
+// #include <nlohmann/json.hpp>
 
-#include "mino/external/schedule/weekly/schedule_json.hpp"
+#include "mino/core/schedule/weekly/schedule_json.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
+
+    /*
 
     std::string to_json_string(const weekly_ranges& ranges) {
         nlohmann::json arr = nlohmann::json::array();
@@ -88,5 +90,7 @@ namespace mino::external::schedule::weekly {
         }
         return out;
     }
+
+    //*/
 
 }  

@@ -6,10 +6,10 @@
 
 #include "mino/core/datetime/v0/datetime_convert.hpp"
 
-#include "mino/external/schedule/weekly/scheduler.hpp"
-#include "mino/external/schedule/weekly/schedule_json.hpp"
+#include "mino/core/schedule/weekly/scheduler.hpp"
+#include "mino/core/schedule/weekly/schedule_json.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     // 편의: weekday enum -> std::tm 생성 (이번 주 기준, 로컬 날짜로 정규화)
     std::tm make_tm_with_wday_hour_min(
@@ -78,12 +78,14 @@ namespace mino::external::schedule::weekly {
     }
 
     // JSON 문자열에서 읽어 스케줄에 추가합니다 (to_json_string으로 만든 형식을 읽음)
+    /*
     void scheduler::load_from_json_string(const std::string& json_text) {
         auto parsed = from_json_string(json_text); // schedule_json::from_json_string
         for (const auto& r : parsed) {
             add_range(r);
         }
     }
+    //*/
 
     // Add range and merge with existing ranges if they overlap or are adjacent (weekly wrap-aware)
     void scheduler::add_range(const weekly_range& r) {

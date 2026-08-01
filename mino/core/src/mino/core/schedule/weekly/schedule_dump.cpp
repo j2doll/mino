@@ -1,8 +1,8 @@
 #include <sstream>
 
-#include "mino/external/schedule/weekly/schedule_dump.hpp"
+#include "mino/core/schedule/weekly/schedule_dump.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     static const char* day_name[] =
     { "Mon","Tue","Wed","Thu","Fri","Sat","Sun" };

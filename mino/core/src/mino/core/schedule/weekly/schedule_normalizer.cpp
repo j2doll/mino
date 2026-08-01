@@ -1,8 +1,8 @@
 #include <algorithm>
 
-#include "mino/external/schedule/weekly/schedule_normalizer.hpp"
+#include "mino/core/schedule/weekly/schedule_normalizer.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     static void push_intervals_from_range(const weekly_range& r, std::vector<interval>& out) {
         int sd = static_cast<int>(r.start_day);

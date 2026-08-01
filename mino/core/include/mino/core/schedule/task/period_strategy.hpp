@@ -3,7 +3,7 @@
 #include <chrono>
 #include <ctime>
 
-namespace mino::external::schedule::task {
+namespace mino::core::schedule::task {
 
     // 시간 계산 편의를 위한 구조체
     struct  date_time_parts {

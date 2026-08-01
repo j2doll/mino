@@ -10,11 +10,11 @@
 #include <queue>
 #include <condition_variable>
 
-#include <spdlog/spdlog.h>
+#include "mino/core/log/tinylog/tinylog_fwd.hpp"
 
-#include "mino/external/schedule/task/period_strategy.hpp"
+#include "mino/core/schedule/task/period_strategy.hpp"
 
-namespace mino::external::schedule::task {
+namespace mino::core::schedule::task {
 
     struct  scheduled_task {
         uint64_t task_id;
@@ -29,7 +29,7 @@ namespace mino::external::schedule::task {
         task_scheduler();
         ~task_scheduler();
 
-        void set_logger(std::shared_ptr<spdlog::logger> logger);
+        void set_logger(std::shared_ptr< mino::core::log::tinylog::logger > logger);
 
         uint64_t add_task(std::unique_ptr<period_strategy> strategy,
             std::function<void()> work,
@@ -56,7 +56,7 @@ namespace mino::external::schedule::task {
         std::mutex queue_mutex_;
         std::condition_variable queue_cv_;
 
-        std::shared_ptr<spdlog::logger> logger_;
+        std::shared_ptr< mino::core::log::tinylog::logger > logger_;
     };
 
 }  

@@ -1,8 +1,8 @@
 #include <ctime>
 
-#include "mino/external/schedule/weekly/scheduler_time_base.hpp"
+#include "mino/core/schedule/weekly/scheduler_time_base.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     scheduler_time_base::scheduler_time_base(time_base base)
         : base_(base) {

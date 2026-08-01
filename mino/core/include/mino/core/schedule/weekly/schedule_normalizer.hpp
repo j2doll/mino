@@ -1,8 +1,8 @@
 #pragma once
 
-#include "mino/external/schedule/weekly/schedule_types.hpp"
+#include "mino/core/schedule/weekly/schedule_types.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     // 내부 표현: 요일(0=Mon..6=Sun), 시작분, 종료분 (0..1440)
     struct  interval {

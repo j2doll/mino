@@ -3,9 +3,9 @@
 
 #include "mino/core/xml/xml.hpp"
 
-#include "mino/external/schedule/weekly/schedule_xml.hpp"
+#include "mino/core/schedule/weekly/schedule_xml.hpp"
 
-namespace mino::external::schedule::weekly {
+namespace mino::core::schedule::weekly {
 
     std::string to_xml(const weekly_ranges& ranges) {
         static const char* day_name[] = { "Mon","Tue","Wed","Thu","Fri","Sat","Sun" };

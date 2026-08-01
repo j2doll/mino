@@ -1,8 +1,10 @@
 #include <algorithm>
 
-#include "mino/external/schedule/task/task_scheduler.hpp"
+#include "mino/core/log/tinylog/tinylog.hpp"
 
-namespace mino::external::schedule::task {
+#include "mino/core/schedule/task/task_scheduler.hpp"
+
+namespace mino::core::schedule::task {
 
     task_scheduler::task_scheduler()
         : next_id_(1), is_running_(false), logger_(nullptr) {
@@ -12,7 +14,7 @@ namespace mino::external::schedule::task {
         stop();
     }
 
-    void task_scheduler::set_logger(std::shared_ptr<spdlog::logger> logger) {
+    void task_scheduler::set_logger(std::shared_ptr< mino::core::log::tinylog::logger > logger) {
         std::lock_guard<std::mutex> lock(scheduler_mutex_);
         logger_ = logger;
     }

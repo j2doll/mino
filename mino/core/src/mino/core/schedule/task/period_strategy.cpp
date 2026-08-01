@@ -1,6 +1,6 @@
-#include "mino/external/schedule/task/period_strategy.hpp"
+#include "mino/core/schedule/task/period_strategy.hpp"
 
-namespace mino::external::schedule::task {
+namespace mino::core::schedule::task {
 
     date_time_parts date_time_parts::from_time_point(std::chrono::system_clock::time_point tp) {
         std::time_t t = std::chrono::system_clock::to_time_t(tp);
