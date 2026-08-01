@@ -8,12 +8,12 @@
 
 #include "mino/core/string/encoding_function.hpp"
 
-#include "mino/external/xml/xml_common.hpp"
-#include "mino/external/xml/xml_parser.hpp"
+#include "mino/core/xml/xml_common.hpp"
+#include "mino/core/xml/xml_parser.hpp"
 
-#include "mino/external/log/spd/auto_color_sink.hpp" 
+#include "mino/core/log/tinylog/tinylog.hpp"
 
-namespace mino::external::xml
+namespace mino::core::xml
 {
     // -----------------------------
     // 인코딩 탐지/변환
@@ -201,9 +201,26 @@ namespace mino::external::xml
     // -----------------------------
     void print_xml_tree(const xml_node& node, int indent)
     {
-        auto console_sink = std::make_shared<mino::external::log::spd::auto_color_sink<std::mutex>>();
-        std::vector<spdlog::sink_ptr> sinks{ console_sink };
-        auto logger = std::make_shared<spdlog::logger>("logger", sinks.begin(), sinks.end());
+        namespace tinylog = mino::core::log::tinylog;
+        using console_sink = tinylog::console_sink;
+        using console_sink_config = tinylog::console_sink_config;
+        using encoding_type = tinylog::encoding_type;
+        using eol_type = tinylog::eol_type;
+        using log_level = tinylog::log_level;
+
+        console_sink_config console_conf;
+#ifdef _WIN32
+        console_conf.encoding = encoding_type::cp949;
+        console_conf.eol = eol_type::crlf;
+#else
+        console_conf.encoding = encoding_type::utf8;
+        console_conf.eol = eol_type::lf;
+#endif
+        auto console_sink_instance = std::make_shared<console_sink>("stdout_sink", console_conf);
+        auto logger = std::make_shared<tinylog::logger>("logger");
+        logger->add_sink(console_sink_instance);
+        logger->set_level(log_level::trace);
+        // bool is_reg_success = logger::register_logger(logger);
 
         std::string indent_str(static_cast<std::size_t>(indent) * 2, ' ');
 
@@ -388,9 +405,26 @@ namespace mino::external::xml
     // -----------------------------
     void debug_sax_handler::on_start_element(const xml_node& node)
     {
-        auto console_sink = std::make_shared<mino::external::log::spd::auto_color_sink<std::mutex>>();
-        std::vector<spdlog::sink_ptr> sinks{ console_sink };
-        auto logger = std::make_shared<spdlog::logger>("logger", sinks.begin(), sinks.end());
+        namespace tinylog = mino::core::log::tinylog;
+        using console_sink = tinylog::console_sink;
+        using console_sink_config = tinylog::console_sink_config;
+        using encoding_type = tinylog::encoding_type;
+        using eol_type = tinylog::eol_type;
+        using log_level = tinylog::log_level;
+
+        console_sink_config console_conf;
+#ifdef _WIN32
+        console_conf.encoding = encoding_type::cp949;
+        console_conf.eol = eol_type::crlf;
+#else
+        console_conf.encoding = encoding_type::utf8;
+        console_conf.eol = eol_type::lf;
+#endif
+        auto console_sink_instance = std::make_shared<console_sink>("stdout_sink", console_conf);
+        auto logger = std::make_shared<tinylog::logger>("logger");
+        logger->add_sink(console_sink_instance);
+        logger->set_level(log_level::trace);
+        // bool is_reg_success = logger::register_logger(logger);
 
         logger->debug("[SAX] START: ");
         if (!node.prefix.empty())
@@ -400,9 +434,26 @@ namespace mino::external::xml
 
     void debug_sax_handler::on_end_element(const xml_node& node)
     {
-        auto console_sink = std::make_shared<mino::external::log::spd::auto_color_sink<std::mutex>>();
-        std::vector<spdlog::sink_ptr> sinks{ console_sink };
-        auto logger = std::make_shared<spdlog::logger>("logger", sinks.begin(), sinks.end());
+        namespace tinylog = mino::core::log::tinylog;
+        using console_sink = tinylog::console_sink;
+        using console_sink_config = tinylog::console_sink_config;
+        using encoding_type = tinylog::encoding_type;
+        using eol_type = tinylog::eol_type;
+        using log_level = tinylog::log_level;
+
+        console_sink_config console_conf;
+#ifdef _WIN32
+        console_conf.encoding = encoding_type::cp949;
+        console_conf.eol = eol_type::crlf;
+#else
+        console_conf.encoding = encoding_type::utf8;
+        console_conf.eol = eol_type::lf;
+#endif
+        auto console_sink_instance = std::make_shared<console_sink>("stdout_sink", console_conf);
+        auto logger = std::make_shared<tinylog::logger>("logger");
+        logger->add_sink(console_sink_instance);
+        logger->set_level(log_level::trace);
+        // bool is_reg_success = logger::register_logger(logger);
 
         logger->debug("[SAX] END  : ");
         if (!node.prefix.empty())
@@ -412,9 +463,26 @@ namespace mino::external::xml
 
     void debug_sax_handler::on_text(const std::string& text)
     {
-        auto console_sink = std::make_shared<mino::external::log::spd::auto_color_sink<std::mutex>>();
-        std::vector<spdlog::sink_ptr> sinks{ console_sink };
-        auto logger = std::make_shared<spdlog::logger>("logger", sinks.begin(), sinks.end());
+        namespace tinylog = mino::core::log::tinylog;
+        using console_sink = tinylog::console_sink;
+        using console_sink_config = tinylog::console_sink_config;
+        using encoding_type = tinylog::encoding_type;
+        using eol_type = tinylog::eol_type;
+        using log_level = tinylog::log_level;
+
+        console_sink_config console_conf;
+#ifdef _WIN32
+        console_conf.encoding = encoding_type::cp949;
+        console_conf.eol = eol_type::crlf;
+#else
+        console_conf.encoding = encoding_type::utf8;
+        console_conf.eol = eol_type::lf;
+#endif
+        auto console_sink_instance = std::make_shared<console_sink>("stdout_sink", console_conf);
+        auto logger = std::make_shared<tinylog::logger>("logger");
+        logger->add_sink(console_sink_instance);
+        logger->set_level(log_level::trace);
+        // bool is_reg_success = logger::register_logger(logger);
 
         std::string trimmed = trim_spaces(text);
         if (!trimmed.empty())

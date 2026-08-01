@@ -6,10 +6,10 @@
 #include <filesystem>
 #include <fstream>
 
-#include "mino/external/xml/xml_common.hpp" 
-#include "mino/external/xml/xml_writer.hpp"
+#include "mino/core/xml/xml_common.hpp" 
+#include "mino/core/xml/xml_writer.hpp"
 
-namespace mino::external::xml
+namespace mino::core::xml
 {
     // XML 출력 서식 및 정책 설정
     struct  write_options

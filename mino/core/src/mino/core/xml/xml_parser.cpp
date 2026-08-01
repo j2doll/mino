@@ -6,19 +6,19 @@
 #include <sstream>
 #include <iomanip>
 
-#include "mino/external/xml/xml_parser.hpp"
+#include "mino/core/xml/xml_parser.hpp"
 
 #ifndef _WIN32
-    #include <iconv.h>
-    #include <errno.h>
+#   include <iconv.h>
+#   include <errno.h>
 #else
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-    #endif 
-    #include <windows.h>
+#   ifndef WIN32_LEAN_AND_MEAN
+#      define WIN32_LEAN_AND_MEAN
+#   endif 
+#   include <windows.h>
 #endif
 
-namespace mino::external::xml
+namespace mino::core::xml
 {
     // -----------------------------
     // xml_parser 구현

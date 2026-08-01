@@ -1,9 +1,9 @@
 #include <string>
 #include <sstream>
 
-#include "mino/external/xml/xml_serialize.hpp"
+#include "mino/core/xml/xml_serialize.hpp"
 
-namespace mino::external::xml
+namespace mino::core::xml
 {
     namespace {
         static std::string escape_attr(const std::string& s) {

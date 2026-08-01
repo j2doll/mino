@@ -1,8 +1,8 @@
 #include <stdexcept>
 
-#include "mino/external/xml/xml_writer.hpp"
+#include "mino/core/xml/xml_writer.hpp"
 
-namespace mino::external::xml
+namespace mino::core::xml
 {
     xml_writer::xml_writer(const write_options& options)
         : options_(options)

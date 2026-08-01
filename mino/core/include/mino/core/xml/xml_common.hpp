@@ -8,7 +8,7 @@
 #include <chrono>
 #include <filesystem>
 
-namespace mino::external::xml {
+namespace mino::core::xml {
 
     // 텍스트 처리 정책
     enum class text_policy

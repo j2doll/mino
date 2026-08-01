@@ -8,9 +8,9 @@
 #include <chrono>
 #include <filesystem>
 
-#include "mino/external/xml/xml_common.hpp"
+#include "mino/core/xml/xml_common.hpp"
 
-namespace mino::external::xml
+namespace mino::core::xml
 {   
     // -----------------------------
     // XML 파서 (네임스페이스 + CDATA + 인코딩)
