@@ -7,9 +7,9 @@
 #include <condition_variable>
 #include <memory>
 
-#include <spdlog/spdlog.h>
+#include "mino/core/log/tinylog/tinylog_fwd.hpp"
 
-namespace mino::external::server {
+namespace mino::core::server {
 
     class server_application {
 
@@ -19,7 +19,9 @@ namespace mino::external::server {
         std::atomic<bool> is_paused_;
         std::mutex pause_mutex_;
         std::condition_variable pause_cv_;
-        std::shared_ptr<spdlog::logger> logger_;
+
+        std::shared_ptr<mino::core::log::tinylog::logger> logger_;
+
         static inline server_application* instance_ = nullptr;
 
     public:
@@ -27,7 +29,7 @@ namespace mino::external::server {
         virtual ~server_application();
 
         // 외부에서 로거를 주입할 수 있는 세터 (nullptr 허용)
-        void set_logger(std::shared_ptr<spdlog::logger> logger);
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger);
 
         // 애플리케이션 프레임워크의 핵심 진입점
         int start(int argc, char** argv);
@@ -60,7 +62,7 @@ namespace mino::external::server {
         void check_pause_status();
 
         // 자식 클래스에서 주입된 로거를 안전하게 꺼내 쓸 수 있도록 포인터 반환 (nullptr 가능)
-        std::shared_ptr<spdlog::logger> logger();
+        std::shared_ptr<mino::core::log::tinylog::logger> logger();
 
         // 플랫폼별 명령줄 인자 파싱 함수
         void parse_arguments(int argc, char** argv);

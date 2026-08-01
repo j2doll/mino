@@ -1,8 +1,8 @@
 #include <iostream>
 #include <csignal>
- 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+
+#include "mino/core/log/tinylog/tinylog.hpp"
+#include "mino/core/server/server_application.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
 #   define PLATFORM_WINDOWS
@@ -13,9 +13,7 @@
 #   include <unistd.h>
 #endif
 
-#include "mino/external/server/server_application.hpp"
-
-namespace mino::external::server {
+namespace mino::core::server {
 
     server_application::server_application()
         : is_requested_to_stop_(false), is_paused_(false), logger_(nullptr) {
@@ -26,7 +24,7 @@ namespace mino::external::server {
         instance_ = nullptr;
     }
 
-    void server_application::set_logger(std::shared_ptr<spdlog::logger> logger) {
+    void server_application::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
         logger_ = logger;
     }
 
@@ -100,7 +98,7 @@ namespace mino::external::server {
         }
     }
 
-    std::shared_ptr<spdlog::logger> server_application::logger() {
+    std::shared_ptr<mino::core::log::tinylog::logger> server_application::logger() {
         return logger_;
     }
 
