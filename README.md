@@ -43,7 +43,7 @@
 #### 외부 라이브러리 설치
 
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
-```
+```bash
 sudo dnf install -y epel-release
 sudo dnf install -y \
     spdlog-devel \
@@ -56,7 +56,7 @@ sudo dnf install -y \
 ```
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
-```
+```bash
 sudo apt update
 sudo apt install -y \
   libspdlog-dev \
@@ -73,7 +73,7 @@ sudo apt install -y \
 - 라이브러리를 빌드 모드 설정 (`Release` 등)
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
 
-```
+```bash
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 cmake --build build
 cmake --install build
