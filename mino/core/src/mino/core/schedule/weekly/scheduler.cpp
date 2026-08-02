@@ -4,7 +4,7 @@
 #include <chrono>
 #include <ctime>
 
-#include "mino/core/datetime/v0/datetime_convert.hpp"
+#include "mino/core/datetime/util/datetime_convert.hpp"
 
 #include "mino/core/schedule/weekly/scheduler.hpp"
 #include "mino/core/schedule/weekly/schedule_json.hpp"
@@ -40,7 +40,7 @@ namespace mino::core::schedule::weekly {
         t.tm_isdst = -1;
 
         // 정규화: tm -> time_t -> tm (로컬) 해서 tm_yday/tm_wday 등 보정
-        namespace dtv = mino::core::datetime::v0;
+        namespace dtv = mino::core::datetime::util;
         auto t_opt = dtv::to_time_t(t, dtv::time_zone_mode::local_time);
         if (t_opt) {
             auto tm_opt = dtv::to_tm(*t_opt, dtv::time_zone_mode::local_time);
@@ -66,7 +66,7 @@ namespace mino::core::schedule::weekly {
     void scheduler::set_now(weekday wd, int hour, int minute) {
         // 편의: weekday+hour/min -> time_point 프로바이더로 저장
         now_provider_ = [wd, hour, minute]() -> std::chrono::system_clock::time_point {
-            namespace dtv = mino::core::datetime::v0;
+            namespace dtv = mino::core::datetime::util;
             std::tm tmv = make_tm_with_wday_hour_min(wd, hour, minute);
             return dtv::to_timepoint(tmv, dtv::time_zone_mode::local_time);
         };
@@ -196,7 +196,7 @@ namespace mino::core::schedule::weekly {
     }
 
     bool scheduler::is_active_now() const {
-        namespace dtv = mino::core::datetime::v0;
+        namespace dtv = mino::core::datetime::util;
 
         std::chrono::system_clock::time_point tp;
         if (now_provider_) tp = now_provider_();
@@ -212,7 +212,7 @@ namespace mino::core::schedule::weekly {
     }
 
     bool scheduler::is_active_now(std::function<std::chrono::system_clock::time_point()> now_provider_tp) const {
-        namespace dtv = mino::core::datetime::v0;
+        namespace dtv = mino::core::datetime::util;
         auto tp = now_provider_tp();
         std::tm tm{};
         if (time_base_.get_base() == time_base::utc) {

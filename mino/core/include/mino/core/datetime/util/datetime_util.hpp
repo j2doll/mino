@@ -6,10 +6,10 @@
 #include <optional>
 #include <chrono>
 
-#include "mino/core/datetime/v0/datetime_common.hpp"
+#include "mino/core/datetime/util/datetime_common.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // ---------------- 헬퍼 ----------------
         //
@@ -139,5 +139,5 @@ namespace mino::core::datetime {
 
          weekday get_weekday(const uint32_t year, const uint32_t month, const uint32_t day, time_zone_mode tz = time_zone_mode::local_time);
 
-    } // namespace v0
+    } // namespace util
 } // namespace mino::core::datetime

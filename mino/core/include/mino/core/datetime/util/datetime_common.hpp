@@ -9,7 +9,7 @@
 #include <limits>
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         enum class time_zone_mode { // 타임존 모드
             utc, // UTC 기준
@@ -29,6 +29,6 @@ namespace mino::core::datetime {
             no_statement = -1 // 요일 정보 없음
         };
 
-    } // namespace v0
+    } // namespace util
 } // namespace mino::core::datetime
 

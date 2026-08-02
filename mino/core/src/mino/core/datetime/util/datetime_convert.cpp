@@ -1,8 +1,8 @@
-#include "mino/core/datetime/v0/datetime_convert.hpp"
-#include "mino/core/datetime/v0/datetime_util.hpp"
+#include "mino/core/datetime/util/datetime_convert.hpp"
+#include "mino/core/datetime/util/datetime_util.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // ---------------- 기존 내부 구현 재사용 / 새 API 구현 ----------------
 
@@ -148,5 +148,5 @@ namespace mino::core::datetime {
         /////////////////////////////////////////////////////
         //*/
 
-    } // namespace v0
-}  
+    } // namespace util
+} // namespace mino::core::datetime 

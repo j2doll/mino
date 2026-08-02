@@ -37,7 +37,6 @@
 #include "mino/external/log/spd/encoding_file_logger.hpp"
 
 #include "mino/network/ethernet.hpp"
-// #include "mino/network/win_net_shim.hpp"
 #include "mino/network/udp/udp_sender.hpp"
 
 namespace mino::network::log::manager {

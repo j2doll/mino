@@ -8,10 +8,10 @@
 #include <cctype>
 #include <limits>
 
-#include "mino/core/datetime/v0/datetime_common.hpp"
+#include "mino/core/datetime/util/datetime_common.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // - C++17 전용 날짜/시간 파서 
         // - 두 가지 모드:
@@ -178,5 +178,5 @@ namespace mino::core::datetime {
             time_zone_mode tzmode = time_zone_mode::local_time,
             const std::string& format = "YYYY-MM-DD hh:mm:ss.SSS");
 
-    } // namespace v0
+    }  // namespace util
 }  // namespace mino::core::datetime

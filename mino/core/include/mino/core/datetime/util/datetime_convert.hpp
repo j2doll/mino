@@ -6,10 +6,10 @@
 #include <optional>
 #include <chrono>
 
-#include "mino/core/datetime/v0/datetime_common.hpp"
+#include "mino/core/datetime/util/datetime_common.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // ---------------- 새 통일된 변환 API ----------------
         // 실패 가능성 있는 변환은 std::optional<T> 반환으로 통일
@@ -86,6 +86,6 @@ namespace mino::core::datetime {
         ///////////////////////////////////////////////////////
         //*/
 
-    } // namespace v0      
+    } // namespace util
 } // namespace mino::core::datetime
 

@@ -1,8 +1,8 @@
-#include "mino/core/datetime/v0/datetime_util.hpp"
-#include "mino/core/datetime/v0/datetime_convert.hpp"
+#include "mino/core/datetime/util/datetime_util.hpp"
+#include "mino/core/datetime/util/datetime_convert.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // ---------------- 내부 유틸 ----------------
 
@@ -156,7 +156,7 @@ namespace mino::core::datetime {
         // (2) time_t + tzmode + format
         std::string format_datetime(
             std::time_t t,
-            mino::core::datetime::v0::time_zone_mode tzmode,
+            mino::core::datetime::util::time_zone_mode tzmode,
             const std::string& format) {
             std::tm tmv{};
 
@@ -171,7 +171,7 @@ namespace mino::core::datetime {
         // (3) time_point + tzmode + format
         std::string format_datetime(
             const std::chrono::system_clock::time_point& tp,
-            mino::core::datetime::v0::time_zone_mode tzmode,
+            mino::core::datetime::util::time_zone_mode tzmode,
             const std::string& format) {
             std::time_t t = std::chrono::system_clock::to_time_t(tp);
             std::tm tmv{};
@@ -190,7 +190,7 @@ namespace mino::core::datetime {
         std::string format_datetime(
             std::uint64_t epoch_ms,
             const std::string& format,
-            mino::core::datetime::v0::time_zone_mode tzmode)
+            mino::core::datetime::util::time_zone_mode tzmode)
         {
             auto tp = std::chrono::system_clock::time_point{
                 std::chrono::milliseconds{epoch_ms}
@@ -249,5 +249,5 @@ namespace mino::core::datetime {
             return static_cast<weekday>(w);
         }
 
-    } // namespace v0
-}  
+    } // namespace util
+} // namespace mino::core::datetime 

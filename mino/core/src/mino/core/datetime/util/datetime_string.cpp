@@ -1,9 +1,9 @@
-#include "mino/core/datetime/v0/datetime_string.hpp"
-#include "mino/core/datetime/v0/datetime_util.hpp"
-#include "mino/core/datetime/v0/datetime_convert.hpp"
+#include "mino/core/datetime/util/datetime_string.hpp"
+#include "mino/core/datetime/util/datetime_util.hpp"
+#include "mino/core/datetime/util/datetime_convert.hpp"
 
 namespace mino::core::datetime {
-    namespace v0 {
+    namespace util {
 
         // ---------------- (A) 형식 파서 ----------------
 
@@ -484,5 +484,5 @@ namespace mino::core::datetime {
             return out;
         }
 
-    } // namespace v0
-}  
+    } // namespace util
+} // namespace mino::core::datetime 
