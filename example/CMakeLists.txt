@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.24)
+
 project(mino_example_project)
 
 add_subdirectory(mino_core_example)
