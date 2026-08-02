@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 1. 프로젝트 명과 버전 설정
+# 1. Set the project name and version
 project(mino_network VERSION 1.0.0 LANGUAGES CXX)
 
-# 2. C++ 표준 정보 설정
+# 2. C++ standard information settings
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
-# 3. 외부 의존성 설정 
+# 3. External dependency configuration
 
 # 3-0. Threads
 find_package(Threads REQUIRED)
@@ -19,7 +19,7 @@ find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
 
-# 업스트림 빌드가 실제로 '암호화' 및 'ssl' 타겟을 생성한 경우에만 ALIAS 타겟을 생성.
+# Create ALIAS targets only if the upstream build actually created 'crypto' and 'ssl' targets.
 if(TARGET crypto AND TARGET ssl)
     add_library(OpenSSL::Crypto ALIAS crypto)
     add_library(OpenSSL::SSL ALIAS ssl)
@@ -67,7 +67,7 @@ message(STATUS "spdlog version: ${spdlog_VERSION}")
 find_package(nlohmann_json REQUIRED)
 message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
-# 4. 라이브러리 소스 코드 설정
+# 4. Configure the library source code
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
@@ -79,24 +79,24 @@ if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
 
-# 5. 헤더 파일 경로 지정
+# 5. Specify the header file path
 target_include_directories(mino_network
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-# 6. 외부 라이브러리 링크 설정
+# 6. Link external libraries
 
 if(WIN32)
-    # winsock 라이브러리 링크 (Windows 전용)
+    # Link winsock library (Windows only)
     target_link_libraries(mino_network PRIVATE ws2_32)
 
-    # Windows 환경에서 불필요한 헤더 포함을 방지하고, min/max 매크로 충돌을 방지하기 위해 정의 추가
+    # Prevent unnecessary header inclusion and avoid min/max macro conflicts on Windows
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
-# 6-1. OpenSSL 링크 설정
+# 6-1. OpenSSL link settings
 set(MINO_OPENSSL_LINKS "")
 
 if(TARGET OpenSSL::Crypto AND TARGET OpenSSL::SSL)
@@ -112,7 +112,7 @@ else()
     message(WARNING "OpenSSL not found; mino_network will be built without OpenSSL support.")
 endif()
 
-# 6-2. CURL 링크 설정
+# 6-2. CURL link settings
 set(MINO_CURL_LINKS "")
 if(TARGET CURL::libcurl)
     set(MINO_CURL_LINKS CURL::libcurl)
@@ -124,7 +124,7 @@ else()
     message(FATAL_ERROR "CURL not found.")
 endif()
 
-# 6-3. httplib 링크 설정
+# 6-3. httplib link settings
 set(MINO_HTTP_LIBS "")
 # Common CMake package targets for httplib are typically 'httplib::httplib' or 'cpp-httplib::cpp-httplib'.
 if(TARGET httplib::httplib)
@@ -139,7 +139,7 @@ else()
     message(FATAL_ERROR "httplib not found.")
 endif()
 
-# 6-4. spdlog 링크 설정
+# 6-4. spdlog link settings
 set(MINO_SPDLOG_LIBS "")
 # Prefer compiled spdlog target first, fallback to header-only when available.
 if(TARGET spdlog::spdlog)
@@ -154,7 +154,7 @@ else()
     message(FATAL_ERROR "spdlog not found.")
 endif()
 
-# 6-5. nlohmann_json 링크 설정
+# 6-5. nlohmann_json link settings
 set(MINO_JSON_LIBS "")
 if(TARGET nlohmann_json::nlohmann_json)
     set(MINO_JSON_LIBS nlohmann_json::nlohmann_json)
@@ -167,14 +167,14 @@ else()
 endif()
 
 
-# 7. [의존성] network가 xxx를 사용한다면 여기서 링크.
+# 7. [Dependency] If network uses xxx, link it here.
 target_link_libraries(mino_network
     PUBLIC
         mino_core
         mino_external
 )
 
-# 8. 설치 규칙 정의 (동일한 EXPORT 묶음 이름인 'minoTargets'를 사용해야 합니다)
+# 8. Define install rules (use the same EXPORT bundle name 'minoTargets')
 install(TARGETS mino_network
     EXPORT minoTargets
     ARCHIVE DESTINATION lib
@@ -182,7 +182,7 @@ install(TARGETS mino_network
     RUNTIME DESTINATION bin
 )
 
-# 9. 설치 시 헤더 파일도 함께 설치
+# 9. Install header files as well
 install(DIRECTORY include/mino
     DESTINATION include
 )

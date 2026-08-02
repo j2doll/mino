@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 1. 프로젝트 명과 버전 설정
-#   mino 의 하위 모듈 mino_core
+# 1. Set the project name and version
+#   mino's submodule mino_core
 project(mino_core VERSION 1.0.0 LANGUAGES CXX)
 
-# 2. C++ 표준 정보 설정
+# 2. C++ standard information setting
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 
-# 3. 외부 의존성 설정
+# 3. External dependency configuration
 
 # 3-0. Threads
 find_package(Threads REQUIRED)
 
-# 4. 라이브러리 생성 및 소스 코드 설정
+# 4. Create a library and configure the source code
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
@@ -28,24 +28,24 @@ if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
 
-# 5. 헤더 파일 경로 지정
-# 빌드할 때 환경과 나중에 install되어 배포되었을 때의 환경을 구분.
+# 5. Specify the header file path
+# Distinguish the environment at build from the environment when it is installed and deployed later.
 target_include_directories(mino_core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
-# 6. 설치(Install) 규칙 정의
+# 6. Define an install rule
 install(TARGETS mino_core 
-    EXPORT minoTargets # 중요: 모든 서브 모듈을 하나의 export 묶음(minoTargets)으로 관리
+    EXPORT minoTargets # Important: Manage all submodules under a single bundle of exports (minoTargets)
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
-# 7. 공개 헤더 파일 설치 (폴더 통째로 복사)
-# include/mino/core/ 형태를 유지하기 위해 include/ 내부의 mino 폴더를 타깃으로 설정.
+# 7. Public header file installation (copy the entire folder)
+# Set the mino folder inside include/ as the target to maintain the include/mino/core/ structure.
 install(DIRECTORY include/mino
     DESTINATION include
 )

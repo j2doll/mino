@@ -1,50 +1,50 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 1. 프로젝트 명과 버전 설정
-#  설치본 및 패키지 형태로 만들러면 버전 정보가 필수.
+# 1. Set the project name and version
+#  Version information is required to create an installable package.
 project(mino_project VERSION 1.0.0 LANGUAGES CXX)
   
-# 2. C++ 표준 정보 설정
+# 2. Set C++ standard
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
    
-# 3. 출력 디렉터리 설정
+# 3. Set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
  
-# 4. 하위 mino 폴더 
+# 4. Add subdirectories
 add_subdirectory(core)
 add_subdirectory(external)
 add_subdirectory(network)
 
-# 5. 패키지 추출(Export) 및 CMake 설정 파일 생성
+# 5. Export package and generate CMake configuration files
 include(CMakePackageConfigHelpers)
 
-# 6. 서브 모듈들이 차곡차곡 쌓아놓은 'minoTargets' 묶음을 파일로 내보내기
+# 6. Export the 'minoTargets' bundle created by the submodules to a file
 install(EXPORT minoTargets
     FILE minoTargets.cmake
-    NAMESPACE mino::           # 외부 유저가 mino::core 등으로 사용하게 함
+    NAMESPACE mino::           # Allow external users to use mino::core, etc.
     DESTINATION lib/cmake/mino
 )
 
-# 7. 버전 정보 파일 생성
+# 7. Generate version information file
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/minoConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
-# 8. 외부 프로젝트용 Config 파일 생성
+# 8. Generate Config file for external projects
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/minoConfig.cmake
     "include(CMakeFindDependencyMacro)\n"
     "include(\"\${CMAKE_CURRENT_LIST_DIR}/minoTargets.cmake\")\n"
 )
 
-# 9. Config 파일들을 설치 경로로 복사
+# 9. Copy Config files to the installation directory
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/minoConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/minoConfigVersion.cmake
