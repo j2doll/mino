@@ -1,6 +1,17 @@
 #include <string>
+#include <limits>
+#include <string_view>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 
 #if defined(_WIN32)
+#   ifndef WIN32_LEAN_AND_MEAN
+#       define WIN32_LEAN_AND_MEAN
+#   endif
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
 #   include <windows.h>
 #endif
 
@@ -10,8 +21,10 @@ namespace mino::core::string {
 
 #if defined(_WIN32)
     // 내부 헬퍼: UTF-8 → 지정 코드페이지(예: 51949, 949) 멀티바이트 변환
+ 
     static std::string utf8_to_codepage_impl(const std::string& utf8, unsigned int codepage) {
-        if (utf8.empty()) return std::string{};
+        if (utf8.empty())
+            return std::string{};
 
         // 1) UTF-8 → UTF-16
         int wlen = ::MultiByteToWideChar(
@@ -64,15 +77,18 @@ namespace mino::core::string {
         {
             return std::string{};
         }
+
         return mbuf;
-    }
+    } 
+
 #endif // _WIN32
 
 
 #if defined(_WIN32)
     // 내부 헬퍼: 지정 코드페이지(예: 51949, 949) 멀티바이트 → UTF-8 변환
     static std::string codepage_to_utf8_impl(const std::string& mb, unsigned int codepage) {
-        if (mb.empty()) return std::string{};
+        if (mb.empty())
+            return std::string{};
 
         // 1) codepage 멀티바이트 → UTF-16
         int wlen = ::MultiByteToWideChar(
@@ -125,6 +141,7 @@ namespace mino::core::string {
         {
             return std::string{};
         }
+
         return u8buf;
     }
 #endif // _WIN32

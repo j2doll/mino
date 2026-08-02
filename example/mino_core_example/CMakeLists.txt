@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(mino_core_example VERSION 0.1 LANGUAGES CXX)
+project(mino_core_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "mino_core_example")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
@@ -13,12 +14,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(MINO_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../mino/core"
  CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
 
-add_executable(mino_core_example src/main.cpp)
+file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+add_executable(${EXE_NAME} ${SRC_FILES})
+if(MSVC)
+    target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
+endif()
 
 # If building in-tree and the mino_core target exists, use it
 if(TARGET mino_core)
     message(STATUS "Linking to in-tree target: mino_core")
-    target_link_libraries(mino_core_example PRIVATE mino_core)
+    target_link_libraries(${EXE_NAME} PRIVATE mino_core)
 else()
     # Try to find headers and library either under MINO_CORE_DIR (if provided) or system paths
     if(MINO_CORE_DIR)
@@ -42,6 +47,6 @@ else()
         INTERFACE_INCLUDE_DIRECTORIES "${MINO_CORE_INCLUDE_DIR}"
     )
 
-    target_link_libraries(mino_core_example PRIVATE mino_core::mino_core)
+    target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
     message(STATUS "Using external mino_core from ${MINO_CORE_DIR}")
 endif()

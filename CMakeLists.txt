@@ -5,3 +5,4 @@ project(mino_super_project)
 # mino library
 add_subdirectory(mino)
 
+add_subdirectory(example)
