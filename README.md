@@ -67,15 +67,22 @@ sudo apt install -y \
   libyaml-cpp-dev
 ```
 
-
 ##### 📦 라이브러리 설치 
 
-- 라이브러리를 빌드 모드 설정 (`Release` 등)
+- 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
 
-```bash
+```bat
+:: 설치 경로 설정
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
+
+:: vcpkg 사용 시
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+
+:: 빌드
 cmake --build build
+
+:: 설치
 cmake --install build
 ```
 
