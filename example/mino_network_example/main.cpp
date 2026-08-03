@@ -7,18 +7,17 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include "mino/core/daemon/daemon.hpp"
+
 #include "mino/network/tcp/tcp.hpp"
 
-using mino::network::tcp::tcp_server;
-
-static tcp_server* g_server_ptr = nullptr;
-
-static void signal_handler(int /*signum*/) {
-    if (g_server_ptr) {
-        spdlog::info("Signal received: shutting down server...");
-        g_server_ptr->quit();
-        spdlog::info("Server shutdown complete.");
-    }
+void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
+{
+    if (tcp_server) 
+        tcp_server->quit();
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 
 int main() {
@@ -31,6 +30,11 @@ int main() {
     }
 #endif
 
+    using tcp_server = mino::network::tcp::tcp_server;
+
+    auto& handler = mino::core::daemon::termination_handler::get_instance();
+    handler.initialize();
+
     // Logger: vcpkg/compiled spdlog 환경에서 안정적으로 동작하도록 sink로 직접 생성
     auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     sink->set_level(spdlog::level::info);
@@ -39,14 +43,13 @@ int main() {
     logger->set_level(spdlog::level::info);
 
     tcp_server server;
+
+    handler.set_callback([&server]() {
+        clean_up_resources(&server);
+        std::exit(0);
+    });
+
     server.set_logger(logger);
-
-    // 전역 포인터에 설정하여 시그널에서 접근 가능하게 함
-    g_server_ptr = &server;
-
-    // 시그널 핸들러 등록 (Ctrl-C)
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
 
     // 콜백 설정 — 소켓 타입은 전역 네임스페이스의 `socket_t` 사용
     server.set_on_connect_callback([&logger](socket_t s, const std::string& msg) {
