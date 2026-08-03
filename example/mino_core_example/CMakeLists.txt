@@ -29,36 +29,7 @@ if(MSVC)
     target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
 endif()
 
-# If building in-tree and the mino_core target exists, use it
-if(TARGET mino_core)
-  # Case A: If the mino_core target already exists in the parent project (In-tree)
-  message(STATUS "Linking to in-tree target: mino_core")
-  target_link_libraries(${EXE_NAME} PRIVATE mino_core)
-else()
-  # Case B: Explore external libraries and create virtual targets (Out-of-tree)
-  message(STATUS "Linking to out-of-tree(external) target: mino_core")
-  if(MINO_CORE_DIR)
-      # Try to find headers and library either under MINO_CORE_DIR (if provided) or system paths
-      find_path(MINO_CORE_INCLUDE_DIR NAMES "mino/core/core.hpp"
-          PATHS "${MINO_CORE_DIR}/include" "${MINO_CORE_DIR}" NO_DEFAULT_PATH)
-      find_library(MINO_CORE_LIBRARY NAMES mino_core
-          PATHS "${MINO_CORE_DIR}/lib" "${MINO_CORE_DIR}" NO_DEFAULT_PATH)
-  else()
-      find_path(MINO_CORE_INCLUDE_DIR NAMES "mino/core/core.hpp")
-      find_library(MINO_CORE_LIBRARY NAMES mino_core)
-  endif()
+# Use external / in-tree mino_core via reusable module
+include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoCore.cmake")
+use_mino_core(${EXE_NAME} "${MINO_CORE_DIR}")
 
-  if(NOT MINO_CORE_INCLUDE_DIR OR NOT MINO_CORE_LIBRARY)
-      message(FATAL_ERROR "mino_core not found. Either add mino as a subdirectory or set -DMINO_CORE_DIR=/path/to/mino/install")
-  endif()
-
-  # Create an imported target to keep usage consistent
-  add_library(mino_core::mino_core UNKNOWN IMPORTED)
-  set_target_properties(mino_core::mino_core PROPERTIES
-      IMPORTED_LOCATION "${MINO_CORE_LIBRARY}"
-      INTERFACE_INCLUDE_DIRECTORIES "${MINO_CORE_INCLUDE_DIR}"
-  )
-
-  target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
-  message(STATUS "Using external mino_core from ${MINO_CORE_DIR}")
-endif()
