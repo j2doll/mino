@@ -9,10 +9,12 @@
 
 namespace mino::external::json {
 
+    // nlohmann json 관련 별칭
     using nj = nlohmann::json;
-    using njj = nlohmann::json_pointer<std::string>; // 변경: 전방선언된 템플릿을 직접 사용
+    using njj = nlohmann::json_pointer<std::string>; 
 
     // 내부 헬퍼 선언 (정의는 .cpp)
+    // _mutable 은 const가 아닌 버전으로, 수정 가능 노드 포인터를 반환
     const nj* get_node(const nj& j, const njj& ptr) noexcept;
     nj* get_node_mutable(nj& j, const njj& ptr) noexcept;
 
