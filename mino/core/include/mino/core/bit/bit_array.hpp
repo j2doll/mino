@@ -16,7 +16,7 @@
 namespace mino::core::bit {
 
 // 비트 배열 클래스
-class  bit_array {
+class bit_array {
 
 public:
 
