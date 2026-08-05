@@ -6,8 +6,8 @@
 
 int main() {
     namespace mjson = mino::external::json;
-    using json_t = mjson::nj;
-    using json_ptr_t = mjson::njj;
+    using json_t = nlohmann::json;
+    using json_ptr_t = nlohmann::json_pointer<std::string>;
 
     // Build a JSON object
     json_t j;

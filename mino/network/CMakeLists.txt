@@ -8,13 +8,13 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF) 
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. External dependency configuration
 
 # 3-0. Threads
 find_package(Threads REQUIRED)
-  
+
 # 3-1. OpenSSL
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
@@ -33,7 +33,10 @@ message(STATUS "CURL version: ${CURL_VERSION}")
 # otherwise try standard package names quietly)
 set(MINO_BROTLI_AVAILABLE FALSE)
 
-if(DEFINED VCPKG_ROOT OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
+if(
+    DEFINED VCPKG_ROOT
+    OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg")
+)
     # Using vcpkg toolchain -> prefer vcpkg namespace
     find_package(unofficial-brotli CONFIG REQUIRED)
     set(MINO_BROTLI_AVAILABLE TRUE)
@@ -50,7 +53,10 @@ else()
             set(MINO_BROTLI_AVAILABLE TRUE)
             message(STATUS "brotli found via standard package config")
         else()
-            message(STATUS "Brotli package config not found; continuing without guaranteed brotli targets")
+            message(
+                STATUS
+                "Brotli package config not found; continuing without guaranteed brotli targets"
+            )
         endif()
     endif()
 endif()
@@ -68,19 +74,22 @@ find_package(nlohmann_json REQUIRED)
 message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
 # 4. Configure the library source code
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
+file(
+    GLOB_RECURSE SRC_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
-) 
-add_library(mino_network STATIC ${SRC_FILES}) 
+)
+add_library(mino_network STATIC ${SRC_FILES})
 if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
 
 # 5. Specify the header file path
-target_include_directories(mino_network
+target_include_directories(
+    mino_network
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -104,12 +113,12 @@ if(TARGET OpenSSL::Crypto AND TARGET OpenSSL::SSL)
 endif()
 
 if(MINO_OPENSSL_LINKS)
-    target_link_libraries(mino_network
-        PUBLIC
-            ${MINO_OPENSSL_LINKS}
-    )
+    target_link_libraries(mino_network PUBLIC ${MINO_OPENSSL_LINKS})
 else()
-    message(WARNING "OpenSSL not found; mino_network will be built without OpenSSL support.")
+    message(
+        WARNING
+        "OpenSSL not found; mino_network will be built without OpenSSL support."
+    )
 endif()
 
 # 6-2. CURL link settings
@@ -117,7 +126,7 @@ set(MINO_CURL_LINKS "")
 if(TARGET CURL::libcurl)
     set(MINO_CURL_LINKS CURL::libcurl)
 endif()
-    
+
 if(MINO_CURL_LINKS)
     target_link_libraries(mino_network PUBLIC ${MINO_CURL_LINKS})
 else()
@@ -166,16 +175,12 @@ else()
     message(FATAL_ERROR "nlohmann_json not found.")
 endif()
 
-
 # 7. [Dependency] If network uses xxx, link it here.
-target_link_libraries(mino_network
-    PUBLIC
-        mino_core
-        mino_external
-)
+target_link_libraries(mino_network PUBLIC mino_core mino_external)
 
 # 8. Define install rules (use the same EXPORT bundle name 'minoTargets')
-install(TARGETS mino_network
+install(
+    TARGETS mino_network
     EXPORT minoTargets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
@@ -183,6 +188,4 @@ install(TARGETS mino_network
 )
 
 # 9. Install header files as well
-install(DIRECTORY include/mino
-    DESTINATION include
-)
+install(DIRECTORY include/mino DESTINATION include)

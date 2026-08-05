@@ -12,8 +12,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Allow user to specify where the mino install/build is located.
 # If empty and in-tree target named `mino_network` exists, that target will be used.
-set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../mino"
-    CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+set(MINO_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../mino"
+    CACHE PATH
+    "Path to installed or built mino root (contains include/ and lib/)"
+)
 
 # Gather all .cpp files in the current directory
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
