@@ -73,8 +73,11 @@ sudo apt install -y \
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
 
 ```bat
-:: 설정
+:: 설정 (Windows)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
+
+:: 설정 (Linux)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
 
 :: 설정 (vcpkg 사용 시)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
