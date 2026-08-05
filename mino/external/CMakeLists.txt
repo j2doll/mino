@@ -15,44 +15,73 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 3-0. Threads
 find_package(Threads REQUIRED)
 
-# 3-1. spdlog
-# Try to find an installed spdlog first. If not found, use FetchContent to download it.
-find_package(spdlog QUIET)
+include(FetchContent)
 
+# 3-1. spdlog
+find_package(spdlog QUIET)
 if(NOT spdlog_FOUND)
-  include(FetchContent)
   message(STATUS "spdlog not found via find_package; fetching spdlog using FetchContent")
   FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    # Pin a stable tag; adjust as needed
     GIT_TAG v1.11.0
   )
   FetchContent_MakeAvailable(spdlog)
 endif()
-
-if(TARGET spdlog::spdlog)
-  message(STATUS "spdlog target available")
-else()
+if(NOT TARGET spdlog::spdlog)
   message(FATAL_ERROR "spdlog was not found or provided. Set CMAKE_PREFIX_PATH or spdlog_DIR, or allow FetchContent to fetch spdlog.")
 endif()
+message(STATUS "spdlog target available")
 message(STATUS "spdlog version: ${spdlog_VERSION}")
 
-# 3-2. nlohmann json
-find_package(nlohmann_json REQUIRED)
-message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
+# 3-2. nlohmann_json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+  message(STATUS "nlohmann_json not found via find_package; fetching nlohmann/json using FetchContent (no configure)")
+  FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.2
+  )
+  FetchContent_GetProperties(nlohmann_json)
+  if(NOT nlohmann_json_POPULATED)
+    FetchContent_Populate(nlohmann_json)
+  endif()
+  add_library(nlohmann_json::nlohmann_json INTERFACE IMPORTED)
+  set_target_properties(nlohmann_json::nlohmann_json PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${nlohmann_json_SOURCE_DIR}/include"
+  )
+endif()
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  message(FATAL_ERROR "nlohmann_json was not found or provided. Set CMAKE_PREFIX_PATH or nlohmann_json_DIR, or allow FetchContent to fetch nlohmann_json.")
+endif()
+message(STATUS "nlohmann_json target available")
 
 # 3-3. yaml-cpp
-find_package(yaml-cpp REQUIRED)
-message(STATUS "yaml-cpp version: ${yaml-cpp_VERSION}")
+find_package(yaml-cpp QUIET)
+if(NOT yaml-cpp_FOUND)
+  message(STATUS "yaml-cpp not found via find_package; fetching yaml-cpp using FetchContent (no configure)")
+  FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG yaml-cpp-0.7.0
+  )
+  FetchContent_GetProperties(yaml-cpp)
+  if(NOT yaml-cpp_POPULATED)
+    FetchContent_Populate(yaml-cpp)
+  endif()
+  # Create an IMPORTED INTERFACE target pointing to the fetched include directory.
+  add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
+  set_target_properties(yaml-cpp::yaml-cpp PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${yaml-cpp_SOURCE_DIR}/include"
+  )
+endif()
 
-# Generic Linux/Rocky8 package handling, not vcpkg environment
+# If a system/vcpkg yaml-cpp exists, alias or prefer it
 if(NOT TARGET yaml-cpp::yaml-cpp)
   if(TARGET yaml-cpp)
-    # If the target name is simply registered as yaml-cpp, create an alias
     add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
   else()
-    # If the target itself is an unbuilt old version package, create the interface target
     add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
     set_target_properties(
       yaml-cpp::yaml-cpp
@@ -62,6 +91,7 @@ if(NOT TARGET yaml-cpp::yaml-cpp)
     )
   endif()
 endif()
+message(STATUS "yaml-cpp target available")
 
 # 4. Create a library and configure the source code
 file(
