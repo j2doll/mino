@@ -16,10 +16,10 @@ void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
     if (tcp_server) {
         tcp_server->quit();
     }
+    std::cout << std::endl << "Resources cleaned up. Exiting." << std::endl;
 #ifdef _WIN32
     WSACleanup();
 #endif
-    std::cout << std::endl << "Resources cleaned up. Exiting." << std::endl;
 }
 
 int main() {
@@ -33,11 +33,11 @@ int main() {
 #endif
 
     using tcp_server = mino::network::tcp::tcp_server;
+    using termination_handler = mino::core::daemon::termination_handler;
 
-    auto& handler = mino::core::daemon::termination_handler::get_instance();
+    auto& handler = termination_handler::get_instance();
     handler.initialize();
 
-    // Logger: vcpkg/compiled spdlog 환경에서 안정적으로 동작하도록 sink로 직접 생성
     auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     sink->set_level(spdlog::level::info);
     auto logger = std::make_shared<spdlog::logger>("mino_tcp_example", sink);

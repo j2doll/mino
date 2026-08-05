@@ -13,7 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_core` exists, that target will be used.
 set(MINO_CORE_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../mino/core"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino/core"
     CACHE PATH
     "Path to installed or built mino root (contains include/ and lib/)"
 )
