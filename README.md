@@ -61,17 +61,26 @@ sudo apt install -y   libspdlog-dev   nlohmann-json3-dev   libcurl4-openssl-dev 
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
 
 ```bat
-:: 설정 (Windows)
+:: 작업 경로 삭제 (Windows)
+rmdir /s /q build
+
+:: 작업 경로 삭제 (Linux)
+rm -rf build
+
+:: cmake 설정 (Windows)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 
-:: 설정 (Linux)
+:: cmake 설정 (Linux)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
 
-:: 설정 (vcpkg 사용 시)
+:: cmake 설정 (vcpkg 사용 시)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
 :: 빌드
 cmake --build build
+
+:: Linux 전용 빌드 (빌드만 빠르게 진행)
+rm -rf build; cmake -S . -B build -G "Ninja" -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug; cmake --build build -j "$(nproc)"
 
 :: 설치
 cmake --install build
