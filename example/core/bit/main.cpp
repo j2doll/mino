@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iomanip>
 
-#include "mino/core/bit/bit_array.hpp"
+#include "mino/core/bit/bit.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
 
 using bit_array = mino::core::bit::bit_array;
