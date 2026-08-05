@@ -1,7 +1,7 @@
-function(use_mino_core target MINO_CORE_DIR)
+function(use_mino_core EXE_NAME MINO_CORE_DIR)
     if(TARGET mino_core)
         message(STATUS "Linking to in-tree target: mino_core")
-        target_link_libraries(${target} PRIVATE mino_core)
+        target_link_libraries(${EXE_NAME} PRIVATE mino_core)
     else()
         message(STATUS "Linking to out-of-tree(external) target: mino_core")
         if(MINO_CORE_DIR)
@@ -24,7 +24,7 @@ function(use_mino_core target MINO_CORE_DIR)
             INTERFACE_INCLUDE_DIRECTORIES "${MINO_CORE_INCLUDE_DIR}"
         )
 
-        target_link_libraries(${target} PRIVATE mino_core::mino_core)
+        target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
         message(STATUS "Using external mino_core from ${MINO_CORE_DIR}")
     endif()
 endfunction()
