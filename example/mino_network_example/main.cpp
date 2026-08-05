@@ -19,7 +19,7 @@ void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
 #ifdef _WIN32
     WSACleanup();
 #endif
-    std::cout << "Resources cleaned up. Exiting." << std::endl;
+    std::cout << std::endl << "Resources cleaned up. Exiting." << std::endl;
 }
 
 int main() {
