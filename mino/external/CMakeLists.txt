@@ -5,7 +5,7 @@ project(mino_external VERSION 1.0.0 LANGUAGES CXX)
 
 # 2. C++ standard information setting
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -16,7 +16,26 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
 
 # 3-1. spdlog
-find_package(spdlog REQUIRED)
+# Try to find an installed spdlog first. If not found, use FetchContent to download it.
+find_package(spdlog QUIET)
+
+if(NOT spdlog_FOUND)
+  include(FetchContent)
+  message(STATUS "spdlog not found via find_package; fetching spdlog using FetchContent")
+  FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    # Pin a stable tag; adjust as needed
+    GIT_TAG v1.11.0
+  )
+  FetchContent_MakeAvailable(spdlog)
+endif()
+
+if(TARGET spdlog::spdlog)
+  message(STATUS "spdlog target available")
+else()
+  message(FATAL_ERROR "spdlog was not found or provided. Set CMAKE_PREFIX_PATH or spdlog_DIR, or allow FetchContent to fetch spdlog.")
+endif()
 message(STATUS "spdlog version: ${spdlog_VERSION}")
 
 # 3-2. nlohmann json
@@ -29,51 +48,51 @@ message(STATUS "yaml-cpp version: ${yaml-cpp_VERSION}")
 
 # Generic Linux/Rocky8 package handling, not vcpkg environment
 if(NOT TARGET yaml-cpp::yaml-cpp)
-    if(TARGET yaml-cpp)
-        # If the target name is simply registered as yaml-cpp, create an alias
-        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
-    else()
-        # If the target itself is an unbuilt old version package, create the interface target
-        add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
-        set_target_properties(
-            yaml-cpp::yaml-cpp
-            PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR}"
-                INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}"
-        )
-    endif()
+  if(TARGET yaml-cpp)
+    # If the target name is simply registered as yaml-cpp, create an alias
+    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+  else()
+    # If the target itself is an unbuilt old version package, create the interface target
+    add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
+    set_target_properties(
+      yaml-cpp::yaml-cpp
+      PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR}"
+        INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}"
+    )
+  endif()
 endif()
 
 # 4. Create a library and configure the source code
 file(
-    GLOB_RECURSE SRC_FILES
-    CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
+  GLOB_RECURSE SRC_FILES
+  CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
 add_library(mino_external STATIC ${SRC_FILES})
 if(MSVC)
-    target_compile_options(mino_external PRIVATE "/utf-8")
+  target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
 
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
 target_include_directories(
-    mino_external
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+  mino_external
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 # 6. Link the external libraries being used
 target_link_libraries(
-    mino_external
-    PUBLIC
-        $<BUILD_INTERFACE:spdlog::spdlog>
-        $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
-        $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>
+  mino_external
+  PUBLIC
+    $<BUILD_INTERFACE:spdlog::spdlog>
+    $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
+    $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>
 )
 
 # 7. [Dependency] If external uses core, link it here.
@@ -81,12 +100,12 @@ target_link_libraries(mino_external PUBLIC mino_core)
 
 # 8. Define install rules
 install(
-    TARGETS mino_external
-    EXPORT
-        minoTargets # Important: Manage all submodules under a single bundle of exports (minoTargets)
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+  TARGETS mino_external
+  EXPORT
+    minoTargets # Important: Manage all submodules under a single bundle of exports (minoTargets)
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # 9. Install public header files (copy the entire folder)
