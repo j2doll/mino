@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/win_net_shim.hpp"
 
 #include "mino/network/downloader/downloader.hpp"
 #include "mino/network/ftp/ftp.hpp"
