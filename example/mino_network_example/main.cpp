@@ -13,8 +13,9 @@
 
 void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
 {
-    if (tcp_server) 
+    if (tcp_server) {
         tcp_server->quit();
+    }
 #ifdef _WIN32
     WSACleanup();
 #endif

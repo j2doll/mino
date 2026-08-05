@@ -45,26 +45,14 @@
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
 sudo dnf install -y epel-release
-sudo dnf install -y \
-    spdlog-devel \
-    json-devel \
-    libcurl-devel \
-    openssl-devel \
-    cpp-httplib-devel \
-    yaml-cpp \
-    yaml-cpp-devel
+sudo dnf install -y     spdlog-devel     json-devel     libcurl-devel     openssl-devel     cpp-httplib-devel     yaml-cpp     yaml-cpp-devel
 ```
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
 sudo apt update
-sudo apt install -y \
-  libspdlog-dev \
-  nlohmann-json3-dev \
-  libcurl4-openssl-dev \
-  libssl-dev \
-  libcpp-httplib-dev \
-  libyaml-cpp-dev
+sudo apt install -y   libspdlog-dev   nlohmann-json3-dev   libcurl4-openssl-dev   libssl-dev \
+  libcpp-httplib-dev   libyaml-cpp-dev
 ```
 
 ##### 📦 라이브러리 설치 
