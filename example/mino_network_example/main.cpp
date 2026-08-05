@@ -70,7 +70,8 @@ int main() {
     });
 
     // 서버 시작 (모든 인터페이스 바인드, 포트 18080)
-    auto res = server.start("", 18080);
+    auto port_number = 18080;
+    auto res = server.start("", port_number);
     if (res != tcp_server::start_result::success) {
         logger->error("Failed to start tcp_server (code={})", static_cast<int>(res));
 #ifdef _WIN32
@@ -79,7 +80,7 @@ int main() {
         return 1;
     }
 
-    logger->info("TCP server started on port 8080. Press Enter to stop, or Ctrl-C to quit.");
+    logger->info("TCP server started on port {}. Press Enter to stop, or Ctrl-C to quit.", port_number);
 
     // 간단한 종료 대기: Enter 입력 시 종료
     std::cin.get();
