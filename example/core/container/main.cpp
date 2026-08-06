@@ -425,34 +425,43 @@ void test_devector_all_public() {
     namespace container = mino::core::container;
 
     // 타입 정의 검증
-    using DV = container::devector<int>;
-    DV::value_type v = 1;
-    DV::allocator_type alloc;
-    DV::size_type st = 0;
-    DV::difference_type dt = 0;
-    (void)v; (void)alloc; (void)st; (void)dt;
+    using dvi = container::devector<int>;
+
+    dvi::value_type v = 1;
+    (void)v;
+
+    dvi::allocator_type alloc;
+    (void)alloc;
+
+    dvi::size_type st = 0;
+    (void)st;
+
+    dvi::difference_type dt = 0;
+    (void)dt;
 
     // 1. 생성자
-    container::devector<int> dv1;
-    container::devector<int> dv2(5, alloc);
-    assert(dv2.size() == 5);
+    dvi dv1;
 
-    container::devector<int> dv3 = { 10, 20, 30 };
-    assert(dv3.size() == 3);
+    dvi dv2(5, alloc); // 5개의 기본값으로 초기화된 devector 생성
+    assert(dv2.size() == 5); // dv2[0, 0, 0, 0, 0] 상태
+
+    dvi dv3 = { 10, 20, 30 }; // initializer_list로 초기화
+    assert(dv3.size() == 3); // dv3[10, 20, 30] 상태
 
     // 복사 & 이동 생성자
-    container::devector<int> dv_copy(dv3);
-    assert(dv_copy.size() == 3);
+    dvi dv_copy(dv3); // 복사 생성자
+    assert(dv_copy.size() == 3); // dv_copy[10, 20, 30] 상태
 
-    container::devector<int> dv_move(std::move(dv_copy));
-    assert(dv_move.size() == 3);
+    dvi dv_move(std::move(dv_copy)); // 이동 생성자. 이동 후 dv_copy는 비어있음
+    assert(dv_move.size() == 3); // dv_move[10, 20, 30] 상태
+    // 현재 dv_copy는 비어있음
 
     // 복사 & 이동 대입 연산자
-    dv1 = dv_move;
-    assert(dv1.size() == 3);
+    dv1 = dv_move; // 복사 대입
+    assert(dv1.size() == 3); // dv1[10, 20, 30] 상태
 
-    dv2 = std::move(dv_move);
-    assert(dv2.size() == 3);
+    dv2 = std::move(dv_move); // 이동 대입
+    assert(dv2.size() == 3); // dv2[10, 20, 30] 상태
 
     // 2. 용량 및 공간 관련
     assert(!dv1.empty());
@@ -468,7 +477,7 @@ void test_devector_all_public() {
     assert(dv3.back() == 30);
     assert(dv3.data() != nullptr);
 
-    const container::devector<int>& const_dv = dv3;
+    const dvi& const_dv = dv3;
     assert(const_dv[0] == 10);
     assert(const_dv.at(1) == 20);
     assert(const_dv.front() == 10);
@@ -476,17 +485,21 @@ void test_devector_all_public() {
     assert(const_dv.data() != nullptr);
 
     try {
-        (void)dv3.at(99);
-        assert(false);
+        (void)dv3.at(99); // 범위를 벗어난 접근 시도
+        assert(false); // 예외가 발생해야 함
     }
-    catch (const std::out_of_range&) {
+    catch (const std::out_of_range& e) {
+        // 예외 발생 확인
+        std::cout << "Caught expected exception: " << e.what() << std::endl;
     }
 
     try {
-        (void)const_dv.at(99);
-        assert(false);
+        (void)const_dv.at(99); // 범위를 벗어난 접근 시도
+        assert(false); // 예외가 발생해야 함
     }
-    catch (const std::out_of_range&) {
+    catch (const std::out_of_range& e) {
+        // 예외 발생 확인
+        std::cout << "Caught expected exception: " << e.what() << std::endl;
     }
 
     // 4. 반복자 (Iterators)
@@ -498,7 +511,7 @@ void test_devector_all_public() {
     assert(sum == 120);
 
     // 5. Modifiers
-    container::devector<int> dv_mod;
+    dvi dv_mod;
     int val = 5;
     dv_mod.push_back(val);             // lvalue
     dv_mod.push_back(10);              // rvalue
