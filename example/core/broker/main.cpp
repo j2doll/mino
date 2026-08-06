@@ -10,7 +10,9 @@
 
 #include "mino/core/broker/broker.hpp" 
 
-namespace { 
+int test_object_broker_1() {
+    using object_broker = mino::core::broker::object_broker; // 타입 별칭: 코드 가독성 향상
+
     // 테스트용 샘플 클래스들
     struct ServiceA {
         std::string name;                             // 서비스의 이름을 저장
@@ -21,10 +23,6 @@ namespace {
         int id;                                       // 서비스 식별자 저장
         explicit ServiceB(int i) : id(i) {}           // 생성자: id 초기화
     };
-} // anonymous namespace
-
-int test_object_broker_1() {
-    using object_broker = mino::core::broker::object_broker; // 타입 별칭: 코드 가독성 향상
 
     std::cout << "[1] Testing internal structs (key, key_hash)..." << std::endl;
     {
