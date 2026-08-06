@@ -10,7 +10,7 @@
 
 #include "mino/core/broker/broker.hpp" 
 
-int test_object_broker_1() {
+int test_object_broker() {
     using object_broker = mino::core::broker::object_broker; // 타입 별칭: 코드 가독성 향상
 
     // 테스트용 샘플 클래스들
@@ -197,7 +197,7 @@ namespace {
 
 } // anonymous namespace
                                                                                 
-int test_object_broker_2() {
+int unit_test_object_broker() {
     using object_broker = mino::core::broker::object_broker; // 간결한 참조 이름
 
     std::cout << "RegisterAndGetDefault" << std::endl;
@@ -336,7 +336,7 @@ int test_object_broker_2() {
         std::atomic<int> success_count{ 0 }; // 성공 카운터 (원자)
         std::atomic<int> fail_count{ 0 };    // 실패 카운터 (원자)
         std::vector<std::thread> workers;
-        workers.reserve(thread_count);
+        workers.reserve(thread_count); // 스레드 벡터 예약
 
         for (int i = 0; i < thread_count; ++i) {
             workers.emplace_back([i, iterations, &sharedInst, &success_count, &fail_count]() {
@@ -352,9 +352,11 @@ int test_object_broker_2() {
                     }
                     std::this_thread::sleep_for(std::chrono::microseconds(50)); // 잠시 대기
                 }
-                });
+            });
         }
-        for (auto& t : workers) t.join(); // 모든 워커 종료 대기
+
+        for (auto& t : workers)
+            t.join(); // 모든 워커 종료 대기
 
         ExpectEq(fail_count.load(), 0, "MultithreadedUsage: no failures expected");
         ExpectEq(success_count.load(), thread_count * iterations, "MultithreadedUsage: all reads succeeded");
@@ -365,9 +367,11 @@ int test_object_broker_2() {
             removers.emplace_back([i]() {
                 const std::string name = "worker_" + std::to_string(i);
                 object_broker::unregister_instance<Foo>(name); // 이름으로 해제
-                });
+            });
         }
-        for (auto& t : removers) t.join();
+
+        for (auto& t : removers)
+            t.join(); // 모든 제거자 스레드 종료 대기
 
         // 제거 후에는 get이 nullptr을 반환해야 함
         for (int i = 0; i < thread_count; ++i) {
@@ -579,10 +583,10 @@ int test_object_broker_2() {
 
 int main(int argc, char* argv[]) {
     // 메인에서 두 개의 테스트 함수 실행
-    std::cout << "=== test_object_broker_1 ===" << std::endl;
-    test_object_broker_1();
+    std::cout << "=== test_object_broker ===" << std::endl;
+    test_object_broker();
 
-    std::cout << "=== test_object_broker_2 ===" << std::endl;
-    test_object_broker_2();
+    std::cout << "=== unit_test_object_broker ===" << std::endl;
+    unit_test_object_broker();
     return 0;
 }
