@@ -62,8 +62,11 @@ public:
     // 비트 이동 >>
     bit_array operator>>(size_t shift) const; 
 
-    // reverse byte array
-    void reverser(); 
+    // 반전(reverse) byte array
+    void reverser();
+
+    // bitwise NOT (각 비트의 0/1을 뒤집음)
+    bit_array operator~() const;
 
     // 디버그용 출력
     void print(bool split4bit = true) const;

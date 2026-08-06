@@ -220,7 +220,7 @@ bit_array bit_array::operator>>(size_t shift) const {
 }
 
 //-------------------------------------
-// reverse byte array
+// 반전(reverse) byte array
 void bit_array::reverser() {
     if (_data.empty() || _bit_size == 0) {
         return; // 데이터가 없거나 크기가 0이면 아무 작업도 하지 않음
@@ -253,6 +253,28 @@ void bit_array::reverser() {
 
     // 결과를 저장
     _data = reversedData;
+}
+
+
+// bitwise NOT (각 비트의 0/1을 뒤집음)
+bit_array bit_array::operator~() const {
+    // 결과 버퍼 준비
+    size_t byteSize = (_bit_size + 7) / 8;
+    std::vector<uint8_t> invertedData(byteSize, 0);
+
+    for (size_t i = 0; i < _bit_size; ++i) {
+        size_t byteIndex = i / 8;
+        size_t bitOffset = i % 8;
+
+        bool bit = (_data[byteIndex] >> (7 - bitOffset)) & 1;
+        // 원래 비트를 뒤집어서 설정
+        if (!bit) {
+            invertedData[byteIndex] |= (1 << (7 - bitOffset));
+        }
+        // else: 이미 0으로 초기화되어 있으므로 따로 지울 필요 없음
+    }
+
+    return bit_array(invertedData, _bit_size);
 }
 
 //-------------------------------------

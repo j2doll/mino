@@ -16,7 +16,7 @@
 namespace mino::core::broker {
 
     // 객체 중개자
-    class  object_broker {
+    class object_broker {
     public:
 
         // 내부 키 구조체
