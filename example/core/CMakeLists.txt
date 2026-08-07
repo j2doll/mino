@@ -7,4 +7,5 @@ add_subdirectory(broker)
 add_subdirectory(config)
 add_subdirectory(container)
 add_subdirectory(convert)
+add_subdirectory(crypt)
 
