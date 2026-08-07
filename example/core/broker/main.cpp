@@ -198,7 +198,7 @@ namespace {
 } // anonymous namespace
                                                                                 
 int unit_test_object_broker() {
-    using object_broker = mino::core::broker::object_broker; // 간결한 참조 이름
+    using object_broker = mino::core::broker::object_broker; 
 
     std::cout << "RegisterAndGetDefault" << std::endl;
     object_broker::clear(); // 이전 상태 정리
@@ -217,11 +217,11 @@ int unit_test_object_broker() {
     std::cout << "RegisterAndGetNamed" << std::endl;
     object_broker::clear();
     {
-        auto defaultInst = std::make_shared<Foo>(1);   // Foo의 value가 1인 인스턴스 생성
-        auto namedInst = std::make_shared<Foo>(7);     // Foo의 value가 7인 인스턴스 생성
+        auto defaultInst1 = std::make_shared<Foo>(1);   // Foo의 value가 1인 인스턴스 생성
+        auto namedInst7 = std::make_shared<Foo>(7);     // Foo의 value가 7인 인스턴스 생성
 
-        object_broker::register_instance<Foo>(defaultInst);          // 디폴트 이름으로 등록
-        object_broker::register_instance<Foo>("special", namedInst); // "special"이라는 이름으로 등록
+        object_broker::register_instance<Foo>(defaultInst1);          // 디폴트 이름으로 등록
+        object_broker::register_instance<Foo>("special", namedInst7); // "special"이라는 이름으로 등록
 
         auto gotDefault = object_broker::get<Foo>();        // 기본 조회
         auto gotNamed = object_broker::get<Foo>("special"); // 이름으로 조회
