@@ -89,7 +89,8 @@ namespace mino::core::datetime {
 
     // from_tm: 실패 시 std::nullopt 반환하도록 구현
     std::optional<date_time> date_time::from_tm(std::tm* tm_ptr, time_zone zone) {
-        if (tm_ptr == nullptr) return std::nullopt;
+        if (tm_ptr == nullptr)
+            return std::nullopt;
 
         errno = 0;
         std::time_t t = (zone == time_zone::utc) ? MKGMTIME(tm_ptr) : std::mktime(tm_ptr);
