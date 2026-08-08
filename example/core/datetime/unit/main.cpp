@@ -20,27 +20,43 @@ void test_time_span_all() {
     dtunit::time_span ts_raw(std::chrono::milliseconds(5000));
     assert(ts_raw.total_msecs() == 5000);
 
-    // Factory methods
+    // total_msecs() & total_secs()
     dtunit::time_span ts_ms = dtunit::time_span::from_msecs(1000);
-    dtunit::time_span ts_sec = dtunit::time_span::from_seconds(60);
-    dtunit::time_span ts_min = dtunit::time_span::from_minutes(60);
-    dtunit::time_span ts_hr = dtunit::time_span::from_hours(24);
-    dtunit::time_span ts_day = dtunit::time_span::from_days(1);
-
-    // total_msecs() & total_secs() 
     assert(ts_ms.total_msecs() == 1000);
-    assert(ts_ms.total_secs() == 1);
-    assert(ts_sec.total_secs() == 60);
-    assert(ts_min.total_secs() == 3600);
-    assert(ts_hr.total_secs() == 86400);
-    assert(ts_day.total_secs() == 86400);
+    assert(ts_ms.total_secs() == 1); // 1000밀리초 = 1초
+
+    dtunit::time_span ts_sec = dtunit::time_span::from_seconds(60);
+    assert(ts_sec.total_secs() == 60); // 60초 = 1분
+
+    dtunit::time_span ts_min = dtunit::time_span::from_minutes(60);
+    assert(ts_min.total_secs() == 3600); // 60분 = 3600초
+
+    dtunit::time_span ts_hr = dtunit::time_span::from_hours(24);
+    assert(ts_hr.total_secs() == 86400); // 24시간 = 86400초
+
+    dtunit::time_span ts_day = dtunit::time_span::from_days(1);
+    assert(ts_day.total_secs() == 86400); // 1일 = 24시간 = 86400초
 
     // duration() 
-    assert(ts_sec.duration() == std::chrono::milliseconds(60000));
+    assert(ts_sec.duration() == std::chrono::milliseconds(60000)); // 60초 = 60000밀리초
 
     // operator== 
     assert(ts_hr == ts_day);
     assert(!(ts_ms == ts_sec));
+
+    // date_time과 time_span 연산 테스트
+    auto same_timezone = dtunit::time_zone::local_time;
+    // NOTICE: span을 하기 전에 가능하면 두 시간의 타임존을 통일시킨다.
+    // 타임존이 다른 date_time의 span도 계산은 가능하지만, 결과가 직관적이지 않을 수 있다.
+
+    dtunit::date_time dt1 = dtunit::date_time::from_datetime(2026, 1, 1, 0, 0, 0, 0, same_timezone).value(); // 2026-01-01 00:00:00.000
+    dtunit::date_time dt2 = dtunit::date_time::from_datetime(2026, 1, 2, 0, 0, 0, 0, same_timezone).value(); // 2026-01-02 00:00:00.000
+
+    dtunit::time_span span_diff1 = dt2 - dt1; // dt1.secs_to(dt2)와 동일
+    dtunit::time_span span_diff2 = dt1 - dt2; // dt2.secs_to(dt1)와 동일
+
+    assert(span_diff1.total_secs() == 86400); // 1일(day) 차이 = 86400초
+    assert(span_diff2.total_secs() == -86400); // -1일(day) 차이 = -86400초
 
     std::cout << to_console_encoding("  -> time_span 검증 완료!\n\n");
 }
