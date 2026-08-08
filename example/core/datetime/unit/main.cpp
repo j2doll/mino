@@ -232,12 +232,12 @@ void test_date_time_arithmetic_and_operators() {
         assert(base.add_days(5).day() == 6); // 1일 + 5일 = 6일
 
         // add_months, add_years 
-        assert(base.add_months(2).month() == 3);
-        assert(base.add_years(1).year() == 2027);
+        assert(base.add_months(2).month() == 3); // 1월 + 2개월 = 3월
+        assert(base.add_years(1).year() == 2027); // 2026년 + 1년 = 2027년
 
         // secs_to 
-        date_time future = base.add_secs(100);
-        time_span span_diff = base.secs_to(future);
+        date_time future = base.add_secs(100); // 100초 후
+        time_span span_diff = base.secs_to(future); // future - base
         assert(span_diff.total_secs() == 100);
 
         // operator- (date_time - date_time) -> time_span
@@ -245,9 +245,9 @@ void test_date_time_arithmetic_and_operators() {
         assert(op_minus_dt.total_secs() == 100);
 
         // operator+ (date_time + time_span) -> date_time
-        time_span add_span = time_span::from_hours(5);
+        time_span add_span = time_span::from_hours(5); // 5시간 추가
         date_time plus_result = base + add_span;
-        assert(plus_result.hour() == 15);
+        assert(plus_result.hour() == 15); // 10시 + 5시간 = 15시간 
 
         // operator- (date_time - time_span) -> date_time
         date_time minus_result = plus_result - add_span;
