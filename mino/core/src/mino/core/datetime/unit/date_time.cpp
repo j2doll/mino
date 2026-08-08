@@ -1,6 +1,5 @@
-#include <iomanip>
-#include <sstream>
 #include <cmath>
+#include <cerrno>
 
 #include "mino/core/datetime/unit/date_time.hpp"
 
@@ -87,17 +86,84 @@ namespace mino::core::datetime {
         auto ret = date_time(std::chrono::time_point_cast<std::chrono::milliseconds>(clock::from_time_t(t)), zone);
         return ret; 
     }
-    date_time date_time::from_tm(std::tm* tm_ptr, time_zone zone) {
+
+    // from_tm: 실패 시 std::nullopt 반환하도록 구현
+    std::optional<date_time> date_time::from_tm(std::tm* tm_ptr, time_zone zone) {
+        if (tm_ptr == nullptr) return std::nullopt;
+
+        errno = 0;
         std::time_t t = (zone == time_zone::utc) ? MKGMTIME(tm_ptr) : std::mktime(tm_ptr);
-        auto ret = from_time_t(t, zone);
-        return ret; 
+
+        if (t == static_cast<std::time_t>(-1)) {
+            // 변환 실패
+            return std::nullopt;
+        }
+
+        // 정상 변환
+        auto dt = from_time_t(t, zone);
+        return std::optional<date_time>(dt);
     }
 
-    // 새로 추가: epoch 밀리초(64-bit)에서 생성
-    date_time date_time::from_epoch_msecs(long long epoch_msecs, time_zone spec) {
-        time_point tp = time_point(std::chrono::milliseconds(epoch_msecs));
-        auto ret = date_time(tp, spec);
-        return ret; 
+    // 연/월/일/시/분/초/밀리초 구성요소로부터 생성
+    std::optional<date_time> date_time::from_datetime(int year, int month, int day, int hour, int min, int sec, int msec, time_zone spec) {
+        std::tm parts{};
+        parts.tm_year = year - 1900;
+        parts.tm_mon = month - 1;
+        parts.tm_mday = day;
+        parts.tm_hour = hour;
+        parts.tm_min = min;
+        parts.tm_sec = sec;
+
+        errno = 0;
+        std::time_t t = (spec == time_zone::utc) ? MKGMTIME(&parts) : std::mktime(&parts);
+
+        if (t == static_cast<std::time_t>(-1)) {
+            // 변환 실패 -> nullopt 반환
+            return std::nullopt;
+        }
+
+        auto tp_base = std::chrono::time_point_cast<std::chrono::milliseconds>(clock::from_time_t(t));
+        auto tp = tp_base + std::chrono::milliseconds(msec);
+        return std::optional<date_time>(date_time(tp, spec));
+    }
+
+    // epoch 밀리초(64-bit)에서 생성 (범위 검사 후 실패 시 std::nullopt 반환)
+    std::optional<date_time> date_time::from_epoch_msecs(long long epoch_msecs, time_zone spec) {
+        using ms = std::chrono::milliseconds;
+
+        ms msecs(epoch_msecs);
+
+        // time_point 최소/최대의 time_since_epoch()를 안전하게 얻기 위해
+        // Windows의 min/max 매크로 충돌을 피하도록 일시적으로 undef 처리
+    #if defined(_WIN32) || defined(_WIN64)
+    #   pragma push_macro("min")
+    #   pragma push_macro("max")
+    #   ifdef min
+    #       undef min
+    #   endif
+    #   ifdef max
+    #       undef max
+    #   endif
+    #endif
+
+        auto tp_min_dur = time_point::min().time_since_epoch();
+        auto tp_max_dur = time_point::max().time_since_epoch();
+
+    #if defined(_WIN32) || defined(_WIN64)
+    #   pragma pop_macro("max")
+    #   pragma pop_macro("min")
+    #endif
+
+        // 비교를 위해 동일한 duration 타입으로 변환
+        using dur_t = decltype(tp_min_dur);
+        dur_t msecs_dur = std::chrono::duration_cast<dur_t>(msecs);
+
+        if (msecs_dur < tp_min_dur || msecs_dur > tp_max_dur) {
+            return std::nullopt;
+        }
+
+        time_point tp = time_point(msecs);
+        return std::optional<date_time>(date_time(tp, spec));
     }
 
     date_time::time_point date_time::to_time_point() const {
@@ -109,7 +175,7 @@ namespace mino::core::datetime {
         return ret; 
     }
 
-    // 새로 추가: epoch 밀리초(64-bit) 반환
+    // epoch 밀리초(64-bit) 반환
     long long date_time::to_epoch_msecs() const {
         auto ret = std::chrono::duration_cast<std::chrono::milliseconds>(tp_.time_since_epoch()).count();
         return ret; 
@@ -148,11 +214,6 @@ namespace mino::core::datetime {
         // Offset (seconds) = -bias minutes * 60
         return static_cast<long long>(-bias) * 60LL;
     #else
-        // 올바른 오프셋 계산:
-        // local_tm: 현재 시각을 로컬로 해석한 tm
-        // mktime(local_tm) => 실제 epoch (now)
-        // MKGMTIME(local_tm) => 그 로컬 캘린더를 UTC로 해석했을 때의 epoch
-        // (MKGMTIME(local_tm) - mktime(local_tm)) 이 오프셋(초, 양수는 UTC보다 동쪽)
         std::time_t now = std::time(nullptr);
         std::tm l_tm;
         LOCALTIME_S(&l_tm, &now);
@@ -160,7 +221,6 @@ namespace mino::core::datetime {
         std::time_t local_epoch = std::mktime(&l_tm);
         std::time_t gm_of_local = MKGMTIME(&l_tm);
 
-        // gm_of_local - local_epoch : seconds east of UTC (예: KST => +32400)
         return static_cast<long long>(gm_of_local - local_epoch);
     #endif
     }
@@ -171,7 +231,6 @@ namespace mino::core::datetime {
     }
 
     int date_time::utc_offset_hours() {
-        // Truncate toward zero to produce integer hours (e.g. +5:30 -> 5)
         auto ret = static_cast<int>(utc_offset_minutes() / 60LL);
         return ret; 
     }
@@ -181,12 +240,10 @@ namespace mino::core::datetime {
         int hours = static_cast<int>(total_secs / 3600);
         char buf[10];
         if (short_format) {
-            // short_format now returns the HH:MM style (tests expect a ':' present)
             int mins = std::abs(static_cast<int>((total_secs % 3600) / 60));
             std::snprintf(buf, sizeof(buf), "%+03d:%02d", hours, mins);
         }
         else {
-            // long/legacy format -> single number like +9 or -5
             std::snprintf(buf, sizeof(buf), "%+d", hours);
         }
         auto ret = std::string(buf);
@@ -202,7 +259,6 @@ namespace mino::core::datetime {
         return ret; 
     }
 
-    // spec accessors
     time_zone date_time::spec() const {
         return zone_;
     }
@@ -211,7 +267,6 @@ namespace mino::core::datetime {
         return zone_ == time_zone::utc;
     }
 
-    // calendar component accessors
     int date_time::year() const {
         std::tm parts = to_tm();
         auto ret = parts.tm_year + 1900;
@@ -247,7 +302,6 @@ namespace mino::core::datetime {
     }
 
     int date_time::msec() const {
-        // milliseconds within current second
         auto rem = tp_.time_since_epoch() % std::chrono::seconds(1);
         auto ret = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(rem).count());
         return ret;
@@ -292,7 +346,6 @@ namespace mino::core::datetime {
         return time_span(std::chrono::duration_cast<std::chrono::milliseconds>(other.tp_ - this->tp_));
     }
 
-    // subtract two date_time instances -> time_span (time1 - time2)
     time_span date_time::operator-(const date_time& other) const {
         return time_span(std::chrono::duration_cast<std::chrono::milliseconds>(tp_ - other.tp_));
     }

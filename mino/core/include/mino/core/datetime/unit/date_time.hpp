@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <string>
+#include <optional>
 
 namespace mino::core::datetime {
     namespace unit {
@@ -46,7 +47,7 @@ namespace mino::core::datetime {
     
 
     // date_time 클래스는 시스템 클럭과 밀리초 정밀도의 time_point를 기반으로 날짜와 시간을 나타냅니다.
-    class  date_time {
+    class date_time {
     public:
         // 시스템 클럭 및 밀리초 정밀도의 time_point 타입 정의입니다.
         using clock = std::chrono::system_clock; // UTC 기준 시스템 클럭
@@ -71,10 +72,16 @@ namespace mino::core::datetime {
         static date_time from_time_t(std::time_t t, time_zone spec = time_zone::local_time);
 
         // std::tm 구조체로부터 date_time을 생성합니다(지정된 spec 기준).
-        static date_time from_tm(std::tm* tm_ptr, time_zone spec = time_zone::local_time);
+        // 실패 시 std::nullopt 를 반환합니다.
+        static std::optional<date_time> from_tm(std::tm* tm_ptr, time_zone spec = time_zone::local_time);
 
-        // 새로 추가: epoch 기준 밀리초(1970-01-01 UTC)에서 date_time을 생성합니다.
-        static date_time from_epoch_msecs(long long epoch_msecs, time_zone spec = time_zone::local_time);
+        // 연/월/일/시/분/초/밀리초 구성요소로부터 date_time을 생성합니다(지정된 spec 기준).
+        // 실패 시 std::nullopt 를 반환합니다.
+        static std::optional<date_time> from_datetime(int year, int month, int day, int hour, int min, int sec, int msec = 0, time_zone spec = time_zone::local_time);
+
+        // epoch 기준 밀리초(1970-01-01 UTC)에서 date_time을 생성합니다.
+        // 범위를 벗어나면 std::nullopt 를 반환합니다.
+        static std::optional<date_time> from_epoch_msecs(long long epoch_msecs, time_zone spec = time_zone::local_time);
 
         // 내부 time_point를 반환합니다.
         time_point to_time_point() const;
