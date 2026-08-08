@@ -9,4 +9,5 @@ add_subdirectory(container)
 add_subdirectory(convert)
 add_subdirectory(crypt)
 add_subdirectory(csv)
+add_subdirectory(daemon)
 

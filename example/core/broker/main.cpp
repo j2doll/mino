@@ -10,8 +10,26 @@
 
 #include "mino/core/broker/broker.hpp" 
 
+//----------------------------------------------------------------
+
+int test_object_broker();
+int unit_test_object_broker();
+
+int main(int argc, char* argv[]) {
+    std::cout << "=== test_object_broker ===" << std::endl << std::endl;
+    test_object_broker();
+
+    std::cout << std::endl << std::endl;
+
+    std::cout << "=== unit_test_object_broker ===" << std::endl;
+    unit_test_object_broker();
+    return 0;
+}
+
+//----------------------------------------------------------------
+
 int test_object_broker() {
-    using object_broker = mino::core::broker::object_broker; // 타입 별칭: 코드 가독성 향상
+    using object_broker = mino::core::broker::object_broker;  
 
     // 테스트용 샘플 클래스들
     struct ServiceA {
@@ -168,7 +186,6 @@ namespace {
     // 실패 카운트를 모아두는 전역 변수 (테스트에서 누적하여 출력)
     static int g_failures = 0;
 
-
     // 기대치 헬퍼: 조건이 거짓이면 실패 카운트 증가 및 메시지 출력
     inline void ExpectTrue(bool cond, const std::string& msg) {
         if (!cond) {
@@ -200,7 +217,7 @@ namespace {
 int unit_test_object_broker() {
     using object_broker = mino::core::broker::object_broker; 
 
-    std::cout << "RegisterAndGetDefault" << std::endl;
+    std::cout << "=== RegisterAndGetDefault ===" << std::endl;
     object_broker::clear(); // 이전 상태 정리
     {
         auto inst = std::make_shared<Foo>(42);         // Foo의 value가 42인 인스턴스 생성    
@@ -214,7 +231,7 @@ int unit_test_object_broker() {
         object_broker::clear(); // 테스트 종료 후 정리
     }
 
-    std::cout << "RegisterAndGetNamed" << std::endl;
+    std::cout << "=== RegisterAndGetNamed ===" << std::endl;
     object_broker::clear();
     {
         auto defaultInst1 = std::make_shared<Foo>(1);   // Foo의 value가 1인 인스턴스 생성
@@ -236,7 +253,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "UnregisterInstance" << std::endl;
+    std::cout << "=== UnregisterInstance ===" << std::endl;
     object_broker::clear();
     {
         auto namedInst = std::make_shared<Foo>(99); // Foo의 value가 99인 인스턴스 생성
@@ -254,7 +271,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "ClearRemovesAll" << std::endl;
+    std::cout << "=== ClearRemovesAll ===" << std::endl;
     object_broker::clear();
     {
         auto a = std::make_shared<Foo>(5); // Foo의 value가 5인 인스턴스 생성
@@ -272,7 +289,7 @@ int unit_test_object_broker() {
         ExpectEq(object_broker::get<Foo>("other"), nullptr, "ClearRemovesAll: other removed");
     }
 
-    std::cout << "SameInstanceMultipleNames" << std::endl;
+    std::cout << "=== SameInstanceMultipleNames ===" << std::endl;
     object_broker::clear();
     {
         auto sharedInst = std::make_shared<Foo>(123); // Foo의 value가 123인 인스턴스 생성
@@ -300,7 +317,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "ConfigServiceExample (capture std::cout)" << std::endl;
+    std::cout << "=== ConfigServiceExample (capture std::cout) ===" << std::endl;
     object_broker::clear();
     {
         auto service = std::make_shared<config_service>(); // config_service 인스턴스 생성
@@ -327,7 +344,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "MultithreadedUsage" << std::endl;
+    std::cout << "=== MultithreadedUsage ===" << std::endl;
     object_broker::clear();
     {
         const int thread_count = 8;       // 생성할 워커 스레드 수
@@ -380,7 +397,7 @@ int unit_test_object_broker() {
         }
     }
 
-    std::cout << "SingleRegistrarMultiReaders" << std::endl;
+    std::cout << "=== SingleRegistrarMultiReaders ===" << std::endl;
     object_broker::clear();
     {
         const int reader_count = 8;     // 읽기 전용 스레드 수
@@ -392,12 +409,15 @@ int unit_test_object_broker() {
         std::atomic<int> fail_count{ 0 };      // 실패 카운터
 
         std::vector<std::thread> readers;
-        readers.reserve(reader_count);
+        readers.reserve(reader_count); // 리더 스레드 벡터 예약
+
         for (int i = 0; i < reader_count; ++i) {
+            // 각 리더 스레드는 등록 완료 플래그가 true가 될 때까지 대기 후, 반복적으로 get() 호출
             readers.emplace_back([&registered, &sharedInst, &success_count, &fail_count, iterations]() {
                 while (!registered.load(std::memory_order_acquire)) { // 등록될 때까지 대기
                     std::this_thread::yield();
                 }
+
                 for (int k = 0; k < iterations; ++k) {
                     auto got = object_broker::get<Foo>(); // 기본으로 등록된 객체 조회
                     if (got && got == sharedInst && got->value == 314) {
@@ -408,17 +428,19 @@ int unit_test_object_broker() {
                     }
                     std::this_thread::sleep_for(std::chrono::microseconds(5));
                 }
-                });
+            });
         }
 
+        // 등록자 스레드: 잠시 지연 후 단일 인스턴스를 등록하고 플래그를 설정
         std::thread registrar([&sharedInst, &registered]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 리더들이 대기하도록 잠깐 지연
             object_broker::register_instance<Foo>(sharedInst);         // 단일 등록자 등록
             registered.store(true, std::memory_order_release);         // 플래그 설정
-            });
+        });
 
-        registrar.join();
-        for (auto& t : readers) t.join();
+        registrar.join(); // 등록자 스레드 종료 대기
+        for (auto& t : readers)
+            t.join(); // 모든 리더 스레드 종료 대기
 
         ExpectEq(fail_count.load(), 0, "SingleRegistrarMultiReaders: no failures");
         ExpectEq(success_count.load(), reader_count * iterations, "SingleRegistrarMultiReaders: all reads succeeded");
@@ -426,34 +448,42 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "MainRegisters_TwoReadersAccess" << std::endl;
+    std::cout << "=== MainRegisters_TwoReadersAccess ===" << std::endl;
     object_broker::clear();
     {
-        auto a = std::make_shared<Foo>(42);
-        object_broker::register_instance<Foo>(a); // 메인에서 등록
+        auto a = std::make_shared<Foo>(42); // Foo의 value가 42인 인스턴스 생성
+        object_broker::register_instance<Foo>(a); // 디폴트 이름으로 등록
 
         const int reads_per_thread = 1000;
         std::atomic<int> success_count{ 0 };
         std::atomic<int> fail_count{ 0 };
 
+        // 두 개의 리더 스레드 생성: 동시에 get() 호출
         std::thread reader1([&]() {
             for (int i = 0; i < reads_per_thread; ++i) {
                 auto p = object_broker::get<Foo>();
-                if (p && p == a && p->value == 42) ++success_count; else ++fail_count;
+                if (p && p == a && p->value == 42)
+                    ++success_count;
+                else
+                    ++fail_count;
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
-            });
+        });
 
+        // 두 번째 리더 스레드
         std::thread reader2([&]() {
             for (int i = 0; i < reads_per_thread; ++i) {
                 auto p = object_broker::get<Foo>();
-                if (p && p == a && p->value == 42) ++success_count; else ++fail_count;
+                if (p && p == a && p->value == 42)
+                    ++success_count;
+                else
+                    ++fail_count;
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
-            });
+        });
 
-        reader1.join();
-        reader2.join();
+        reader1.join(); // 첫 번째 리더 스레드 종료 대기
+        reader2.join(); // 두 번째 리더 스레드 종료 대기
 
         ExpectEq(fail_count.load(), 0, "MainRegisters_TwoReadersAccess: no failures");
         ExpectEq(success_count.load(), reads_per_thread * 2, "MainRegisters_TwoReadersAccess: all reads succeeded");
@@ -461,22 +491,22 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "ContainsChecksPresence" << std::endl;
+    std::cout << "=== ContainsChecksPresence ===" << std::endl;
     object_broker::clear();
     {
-        auto inst = std::make_shared<Foo>(11);
-        object_broker::register_instance<Foo>("present", inst); // "present" 이름 등록
+        auto inst = std::make_shared<Foo>(11); // Foo의 value가 11인 인스턴스 생성
+        object_broker::register_instance<Foo>("present", inst); // "present" 이름으로 등록
 
-        ExpectTrue(object_broker::contains<Foo>("present"), "ContainsChecksPresence: present should be true");
-        ExpectTrue(!object_broker::contains<Foo>("absent"), "ContainsChecksPresence: absent should be false");
+        ExpectTrue(object_broker::contains<Foo>("present"), "ContainsChecksPresence: present should be true"); // "present" 존재 여부 확인 (존재함)
+        ExpectTrue(!object_broker::contains<Foo>("absent"), "ContainsChecksPresence: absent should be false"); // "absent" 존재 여부 확인 (없음)
 
-        object_broker::unregister_instance<Foo>("present"); // 제거 후 존재 여부 확인
-        ExpectTrue(!object_broker::contains<Foo>("present"), "ContainsChecksPresence: present removed");
+        object_broker::unregister_instance<Foo>("present"); // "present" 제거
+        ExpectTrue(!object_broker::contains<Foo>("present"), "ContainsChecksPresence: present removed"); // 제거 후 존재 여부 확인
 
         object_broker::clear();
     }
 
-    std::cout << "GetAllReturnsAllInstancesForType" << std::endl;
+    std::cout << "=== GetAllReturnsAllInstancesForType ===" << std::endl;
     object_broker::clear();
     {
         auto a = std::make_shared<Foo>(1);
@@ -503,7 +533,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "GetOptionalReturnsOptionalWhenPresent" << std::endl;
+    std::cout << "=== GetOptionalReturnsOptionalWhenPresent ===" << std::endl;
     object_broker::clear();
     {
         auto inst = std::make_shared<Foo>(99);
@@ -520,7 +550,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "RegistrationGuardRegistersAndUnregistersAutomatically" << std::endl;
+    std::cout << "=== RegistrationGuardRegistersAndUnregistersAutomatically ===" << std::endl;
     object_broker::clear();
     {
         auto temp = std::make_shared<Foo>(555);
@@ -534,7 +564,7 @@ int unit_test_object_broker() {
         object_broker::clear();
     }
 
-    std::cout << "ListAllNamesAndEntries" << std::endl;
+    std::cout << "=== ListAllNamesAndEntries ===" << std::endl;
     object_broker::clear();
     {
         auto a = std::make_shared<Foo>(1);
@@ -571,7 +601,7 @@ int unit_test_object_broker() {
 
     // 최종 결과 출력: 실패가 없으면 All checks passed, 아니면 실패 개수 출력
     if (g_failures == 0) {
-        std::cout << "All checks passed." << std::endl;
+        std::cout << "=== All checks passed. ===" << std::endl;
     }
     else {
         std::cerr << "Failures: " << g_failures << std::endl;
@@ -579,14 +609,3 @@ int unit_test_object_broker() {
     return g_failures;
 }
 
-//----------------------------------------------------------------
-
-int main(int argc, char* argv[]) {
-    // 메인에서 두 개의 테스트 함수 실행
-    std::cout << "=== test_object_broker ===" << std::endl;
-    test_object_broker();
-
-    std::cout << "=== unit_test_object_broker ===" << std::endl;
-    unit_test_object_broker();
-    return 0;
-}
