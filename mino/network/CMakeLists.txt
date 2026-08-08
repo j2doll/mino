@@ -87,6 +87,10 @@ if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
 
+# Ensure consumers of the static library also link the threading library.
+# This propagates the necessary pthread linkage to executables that link `mino_network`.
+target_link_libraries(mino_network PUBLIC Threads::Threads)
+
 # 5. Specify the header file path
 target_include_directories(
     mino_network

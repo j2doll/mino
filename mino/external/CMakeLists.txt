@@ -59,6 +59,10 @@ if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
 
+# Ensure consumers of the static library also link the threading library.
+# This propagates the necessary pthread linkage to executables that link `mino_external`.
+target_link_libraries(mino_external PUBLIC Threads::Threads)
+
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
 target_include_directories(
