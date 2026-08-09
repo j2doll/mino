@@ -117,7 +117,10 @@ void test_binomial_heap_all_public() {
     assert(bh1.size() == 3);
 
     // 2. top (std::less 기준 최댓값 우선)
-    assert(bh1.top() == 30);
+    {
+        auto top_opt = bh1.top();
+        assert(top_opt.has_value() && top_opt.value() == 30);
+    }
 
     // 3. merge
     bhint bh2;
@@ -127,38 +130,36 @@ void test_binomial_heap_all_public() {
     bh1.merge(bh2); // bh1[30, 20, 10] + bh2[50, 40] -> bh1[50, 40, 30, 20, 10]
     assert(bh1.size() == 5);
     assert(bh2.empty());
-    assert(bh1.top() == 50);
+    {
+        auto top_opt = bh1.top();
+        assert(top_opt.has_value() && top_opt.value() == 50);
+    }
 
     // 자기 자신과의 merge / empty와의 merge 처리
     bh1.merge(bh1); // 자기 자신과 merge 시, 아무 동작도 하지 않음
     bh1.merge(bh2); // empty 힙과 merge 시, 아무 동작도 하지 않음
 
     // 4. pop
-    bh1.pop(); // 50 제거 -> bh1[40, 30, 20, 10]
-    assert(bh1.top() == 40);
+    assert( bh1.pop()); // 50 제거 -> bh1[40, 30, 20, 10]
+    {
+        auto top_opt = bh1.top();
+        assert(top_opt.has_value() && top_opt.value() == 40);
+    }
 
     // 5. clear
     bh1.clear();
     assert(bh1.empty());
     assert(bh1.size() == 0);
 
-    // 예외 테스트
-    try {
-        (void)bh1.top(); // 비어있는 힙에서 top 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::runtime_error& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
+    // Non-throwing checks (was exception tests before)
+    {
+        auto top_value = bh1.top(); // 비어있는 힙에서 top 시도
+        assert(!top_value.has_value()); // top()은 std::optional 반환, 비어있으면 std::nullopt
     }
 
-    try {
-        bh1.pop(); // 비어있는 힙에서 pop 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::runtime_error& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
+    {
+        auto pop_result = bh1.pop(); // 비어있는 힙에서 pop 시도
+        assert(!pop_result); // pop()은 bool 반환, 비어있으면 false
     }
 
     std::cout << "  -> binomial_heap OK!\n\n";
@@ -173,15 +174,9 @@ void test_circular_buffer_all_public() {
     namespace container = mino::core::container;
     using cbint = container::circular_buffer<int>;
 
-    // 예외 테스트 (capacity == 0)
-    try {
-        cbint invalid_cb(0); // 용량이 0인 circular_buffer 생성 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::invalid_argument& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
+    // capacity == 0 case: constructor no longer throws; check is_valid()
+    cbint invalid_cb(0);
+    assert(!invalid_cb.is_valid());
 
     cbint cb(3); // 용량 3인 circular_buffer 생성
 
@@ -198,16 +193,28 @@ void test_circular_buffer_all_public() {
     assert(cb.is_full()); // 용량 3이므로 full 상태
     assert(cb.size() == 3); // size는 3
 
-    // 3. front, back
-    assert(cb.front().value() == 10); // [10, 20, 30]에서 front는 10
-    assert(cb.back().value() == 30); // [10, 20, 30]에서 back은 30
+    // 3. front, back (now return std::optional<T>)
+    {
+        auto f = cb.front();
+        assert(f.has_value() && f.value() == 10);
+    }
+    {
+        auto b = cb.back();
+        assert(b.has_value() && b.value() == 30);
+    }
 
     // 4. 오버플로우 push_back (가장 오래된 10 덮어씀)
     cb.push_back(40); // [20, 30, 40] (10이 제거되고 40이 추가됨)
-    assert(cb.front().value() == 20); // [20, 30, 40]에서 front는 20
-    assert(cb.back().value() == 40); // [20, 30, 40]에서 back은 40
+    {
+        auto f2 = cb.front();
+        assert(f2.has_value() && f2.value() == 20);
+    }
+    {
+        auto b2 = cb.back();
+        assert(b2.has_value() && b2.value() == 40);
+    }
 
-    // 5. operator[] (Non-const & Const)
+    // 5. operator[] (Non-const & Const) - operator[] is unchecked; we only access valid indices
     assert(cb[0] == 20); // [20, 30, 40]에서 index 0은 20
     assert(cb[1] == 30); // [20, 30, 40]에서 index 1은 30
     assert(cb[2] == 40); // [20, 30, 40]에서 index 2는 40
@@ -216,25 +223,10 @@ void test_circular_buffer_all_public() {
     assert(cb[0] == 25); // [25, 30, 40]에서 index 0은 25
 
     const auto& const_cb = cb; // const_cb는 cb의 const 참조
-    assert(const_cb[0] == 25);  
+    assert(const_cb[0] == 25);
 
-    try {
-        (void)cb[3]; // capacity가 3이므로, index는 0,1,2만 사용 가능.
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::out_of_range& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
-
-    try {
-        (void)const_cb[3];
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::out_of_range& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
+    // Instead of expecting operator[] to throw, validate size and avoid out-of-range access
+    assert(cb.size() == 3);
 
     // 6. pop_front
     auto item = cb.pop_front(); // cb[25, 30, 40] -> cb[30, 40]이 되고, item은 25
@@ -347,9 +339,6 @@ void test_d_ary_heap_all_public() {
 
     // 타입 정의 검증
     using dahi3 = container::d_ary_heap<int, 3>; // 3-ary integer heap
-    // D-ary 힙(d-ary heap)은 이진 힙(Binary heap)을 일반화한 트리 기반의 자료구조입니다.
-    // 이진 힙은 모든 내부 노드가 최대 2개의 자식 노드를 가질 수 있는 반면,
-    // d-ary 힙은 각 노드가 최대 d 개의 자식 노드를 가질 수 있습니다.
 
     dahi3::value_type v = 1; // value_type 검증
     (void)v;
@@ -371,46 +360,43 @@ void test_d_ary_heap_all_public() {
     // 2. push (const&, &&), emplace
     int x = 10;
     heap1.push(x);           // lvalue로 push -> heap1[10]
-    // push는 내부적으로 std::vector를 사용하여 힙 구조를 유지하며, std::less 기준으로 최댓값이 top에 위치하도록 함
     heap1.push(30);          // rvalue로 push -> heap1[30, 10]
     heap1.emplace(20);       // emplace -> heap1[30, 10, 20]
-    // emplace는 생성자 인자를 전달하여 객체를 직접 생성하고 삽입하는 방식
     heap1.push(40);          // rvalue로 push -> heap1[40, 30, 10, 20]
 
     assert(!heap1.empty());
     assert(heap1.size() == 4);
 
     // 3. top (std::less 기준 최댓값 top)
-    assert(heap1.top() == 40);
+    {
+        auto top_opt = heap1.top();
+        assert(top_opt.has_value() && top_opt.value() == 40);
+    }
 
     // 4. pop
-    heap1.pop(); // 40이 나오고, heap1[30, 20, 10]이 됨
-    assert(heap1.top() == 30);
-    heap1.pop(); // 30이 나오고, heap1[20, 10]이 됨
-    assert(heap1.top() == 20);
+    assert(heap1.pop()); // 40이 나오고, heap1[30, 20, 10]이 됨
+    {
+        auto top_opt = heap1.top();
+        assert(top_opt.has_value() && top_opt.value() == 30);
+    }
+    assert(heap1.pop()); // 30이 나오고, heap1[20, 10]이 됨
+    {
+        auto top_opt = heap1.top();
+        assert(top_opt.has_value() && top_opt.value() == 20);
+    }
 
     // 5. clear
     heap1.clear();
     assert(heap1.empty());
     assert(heap1.size() == 0);
 
-    // 예외 테스트
-    try {
-        (void)heap1.top(); // 비어있는 힙에서 top 시도
-        assert(false); // 예외가 발생해야 함
+      // Non-throwing checks (was exception tests before)
+    {
+        auto top_empty = heap1.top();
+        assert(!top_empty.has_value());
     }
-    catch (const std::runtime_error& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
-
-    try {
-        heap1.pop(); // 비어있는 힙에서 pop 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::runtime_error& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
+    {
+        assert(!heap1.pop());
     }
 
     std::cout << "  -> d_ary_heap OK!\n\n";
@@ -454,7 +440,6 @@ void test_devector_all_public() {
 
     dvi dv_move(std::move(dv_copy)); // 이동 생성자. 이동 후 dv_copy는 비어있음
     assert(dv_move.size() == 3); // dv_move[10, 20, 30] 상태
-    // 현재 dv_copy는 비어있음
 
     // 복사 & 이동 대입 연산자
     dv1 = dv_move; // 복사 대입
@@ -472,35 +457,21 @@ void test_devector_all_public() {
 
     // 3. Element Access
     assert(dv3[0] == 10);
-    assert(dv3.at(1) == 20);
+    assert(dv3.at(1) != nullptr && *dv3.at(1) == 20);
     assert(dv3.front() == 10);
     assert(dv3.back() == 30);
     assert(dv3.data() != nullptr);
 
     const dvi& const_dv = dv3;
     assert(const_dv[0] == 10);
-    assert(const_dv.at(1) == 20);
+    assert(const_dv.at(1) != nullptr && *const_dv.at(1) == 20);
     assert(const_dv.front() == 10);
     assert(const_dv.back() == 30);
     assert(const_dv.data() != nullptr);
 
-    try {
-        (void)dv3.at(99); // 범위를 벗어난 접근 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::out_of_range& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
-
-    try {
-        (void)const_dv.at(99); // 범위를 벗어난 접근 시도
-        assert(false); // 예외가 발생해야 함
-    }
-    catch (const std::out_of_range& e) {
-        // 예외 발생 확인
-        std::cout << "Caught expected exception: " << e.what() << std::endl;
-    }
+    // Out-of-range now returns nullptr instead of throwing
+    assert(dv3.at(99) == nullptr);
+    assert(const_dv.at(99) == nullptr);
 
     // 4. 반복자 (Iterators)
     int sum = 0;
@@ -565,7 +536,10 @@ void test_fibonacci_heap_all_public() {
     assert(fh1.size() == 3);
 
     // 2. top (std::less 기준 최댓값)
-    assert(fh1.top() == 30);
+    {
+        auto t = fh1.top();
+        assert(t.has_value() && t.value() == 30);
+    }
 
     // 3. merge
     FH fh2;
@@ -575,34 +549,34 @@ void test_fibonacci_heap_all_public() {
     fh1.merge(fh2);
     assert(fh1.size() == 5);
     assert(fh2.empty());
-    assert(fh1.top() == 50);
+    {
+        auto t = fh1.top();
+        assert(t.has_value() && t.value() == 50);
+    }
 
     // 자기 자신과의 merge / empty와의 merge
     fh1.merge(fh1);
     fh1.merge(fh2);
 
     // 4. pop
-    fh1.pop(); // 50 제거
-    assert(fh1.top() == 40);
+    assert(fh1.pop()); // 50 제거
+    {
+        auto t = fh1.top();
+        assert(t.has_value() && t.value() == 40);
+    }
 
     // 5. clear
     fh1.clear();
     assert(fh1.empty());
     assert(fh1.size() == 0);
 
-    // 예외 테스트
-    try {
-        (void)fh1.top();
-        assert(false);
+    // Non-throwing checks
+    {
+        auto t = fh1.top();
+        assert(!t.has_value());
     }
-    catch (const std::runtime_error&) {
-    }
-
-    try {
-        fh1.pop();
-        assert(false);
-    }
-    catch (const std::runtime_error&) {
+    {
+        assert(!fh1.pop());
     }
 
     std::cout << "  -> fibonacci_heap OK!\n\n";

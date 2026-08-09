@@ -58,18 +58,15 @@ namespace mino::core::container {
         }
 
         // 엘리먼트 접근 (Element access)
-        reference at(size_type pos) {
-            if (pos >= size_) {
-                throw std::out_of_range("static_vector::at - index out of range");
-            }
-            return data_ptr()[pos];
+        // Non-throwing: returns nullptr when out of range
+        pointer at(size_type pos) noexcept {
+            if (pos >= size_) return nullptr;
+            return data_ptr() + pos;
         }
 
-        const_reference at(size_type pos) const {
-            if (pos >= size_) {
-                throw std::out_of_range("static_vector::at - index out of range");
-            }
-            return data_ptr()[pos];
+        const_pointer at(size_type pos) const noexcept {
+            if (pos >= size_) return nullptr;
+            return data_ptr() + pos;
         }
 
         reference operator[](size_type pos) noexcept { return data_ptr()[pos]; }
@@ -117,24 +114,35 @@ namespace mino::core::container {
             size_ = 0;
         }
 
-        void push_back(const T& value) {
-            if (size_ >= Capacity) throw std::bad_alloc();
+        // Non-throwing push_back: returns false when full
+        [[nodiscard]] bool push_back(const T& value) noexcept {
+            if (size_ >= Capacity) return false;
             new (static_cast<void*>(data_ptr() + size_)) T(value);
             ++size_;
+            return true;
         }
 
-        void push_back(T&& value) {
-            if (size_ >= Capacity) throw std::bad_alloc();
+        [[nodiscard]] bool push_back(T&& value) noexcept {
+            if (size_ >= Capacity) return false;
             new (static_cast<void*>(data_ptr() + size_)) T(std::move(value));
             ++size_;
+            return true;
+        }
+
+        // Non-throwing emplace_back: returns pointer to new element or nullptr when full
+        pointer emplace_back() noexcept {
+            if (size_ >= Capacity) return nullptr;
+            pointer p = new (static_cast<void*>(data_ptr() + size_)) T();
+            ++size_;
+            return p;
         }
 
         template <typename... Args>
-        reference emplace_back(Args&&... args) {
-            if (size_ >= Capacity) throw std::bad_alloc();
+        pointer emplace_back(Args&&... args) noexcept {
+            if (size_ >= Capacity) return nullptr;
             pointer p = new (static_cast<void*>(data_ptr() + size_)) T(std::forward<Args>(args)...);
             ++size_;
-            return *p;
+            return p;
         }
 
         void pop_back() noexcept {

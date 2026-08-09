@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
+#include <optional>
 
 // 이항 힙(Binomial Heap)은 일반적인 이진 힙(Binary Heap)보다
 // 두 힙을 하나로 합치는 연산(Merge/Union)을 훨씬 더 효율적으로 처리하기 위해
@@ -34,6 +35,7 @@
 // | Delete          | O(log n)      | O(log n)        | 값 낮춘 후 최솟값 추출 |
 // +-----------------+---------------+-----------------+------------------------+
 // 
+// 
 
 namespace mino::core::container {
 
@@ -47,7 +49,7 @@ namespace mino::core::container {
         // 노드 구조체: value, degree(차수), child(가장 왼쪽 자식), sibling(오른쪽 형제)
         struct node {
             value_type value;
-            size_type degree = 0;
+            size_t degree = 0;
             node* child = nullptr;
             node* sibling = nullptr;
             template <typename... Args>
@@ -65,10 +67,10 @@ namespace mino::core::container {
         [[nodiscard]] size_type size() const noexcept { return size_; }
 
         // 최상위(우선순위가 가장 높은) 값 참조 반환
-        // 1) 비어있으면 예외 발생
+        // 1) 비어있으면 std::nullopt 반환
         // 2) 내부적으로 루트 리스트에서 최대(또는 비교로 정의된 우선순위) 노드를 찾음
-        const value_type& top() const {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        [[nodiscard]] std::optional<value_type> top() const noexcept {
+            if (empty()) return std::nullopt;
             return find_max_node()->value;
         }
 
@@ -92,15 +94,9 @@ namespace mino::core::container {
         node* push(const value_type& value) { return emplace(value); }
 
         // 최상위 요소 제거
-        // 동작 요약:
-        // 1) 비었으면 예외
-        // 2) 루트 리스트에서 최대(우선순위) 루트 노드와 그 이전 노드를 찾음
-        // 3) 해당 루트를 루트 리스트에서 제거
-        // 4) 제거한 노드의 자식들을 뒤집어서 새로운 힙으로 구성
-        // 5) 삭제한 노드 메모리 해제, size 감소
-        // 6) 새로 구성한 자식 힙을 현재 힙과 merge
-        void pop() {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        // 변경: 예외를 던지지 않고 실패 시 false 반환, 성공 시 true 반환
+        [[nodiscard]] bool pop() noexcept {
+            if (empty()) return false;
 
             // 1) 루트 리스트 순회해서 우선순위가 가장 높은 루트를 찾음
             node* max_prev = nullptr;
@@ -159,6 +155,8 @@ namespace mino::core::container {
 
             // 6) 자식 힙을 현재 힙과 합침
             this->merge(temp_heap);
+
+            return true;
         }
 
         // 다른 힙과 합치기 (merge/union)

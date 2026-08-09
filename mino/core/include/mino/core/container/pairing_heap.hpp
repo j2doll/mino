@@ -3,6 +3,7 @@
 #include <functional>
 #include <utility>
 #include <stdexcept>
+#include <optional>
 
 // ========================================================================
 // 항목            우선순위 큐          이진 힙              피보나치 힙
@@ -57,8 +58,8 @@ namespace mino::core::container {
         [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
         [[nodiscard]] size_type size() const noexcept { return size_; }
 
-        const value_type& top() const {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        [[nodiscard]] std::optional<value_type> top() const noexcept {
+            if (empty()) return std::nullopt;
             return root_->value;
         }
 
@@ -72,12 +73,14 @@ namespace mino::core::container {
 
         handle_type push(const value_type& value) { return emplace(value); }
 
-        void pop() {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        // Non-throwing pop: returns false when empty, true on success
+        [[nodiscard]] bool pop() noexcept {
+            if (empty()) return false;
             handle_type old_root = root_;
             root_ = merge_children(root_->child);
             delete old_root;
             --size_;
+            return true;
         }
 
         void merge(pairing_heap& other) {

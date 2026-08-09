@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <utility>
 #include <algorithm>
+#include <optional>
 
 // D-ary 힙(d-ary heap)은 이진 힙(Binary heap)을 일반화한 트리 기반의 자료구조입니다.
 // 이진 힙은 모든 내부 노드가 최대 2개의 자식 노드를 가질 수 있는 반면,
@@ -24,8 +25,8 @@ namespace mino::core::container {
         [[nodiscard]] bool empty() const noexcept { return data_.empty(); }
         [[nodiscard]] size_type size() const noexcept { return data_.size(); }
 
-        const T& top() const {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        [[nodiscard]] std::optional<value_type> top() const noexcept {
+            if (empty()) return std::nullopt;
             return data_.front();
         }
 
@@ -45,15 +46,17 @@ namespace mino::core::container {
             sift_up(data_.size() - 1);
         }
 
-        void pop() {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        // Non-throwing pop: returns false when empty, true on success
+        [[nodiscard]] bool pop() noexcept {
+            if (empty()) return false;
             if (data_.size() == 1) {
                 data_.pop_back();
-                return;
+                return true;
             }
             data_.front() = std::move(data_.back());
             data_.pop_back();
             sift_down(0);
+            return true;
         }
 
         void clear() noexcept {
@@ -78,7 +81,7 @@ namespace mino::core::container {
         }
 
         void sift_down(size_type index) {
-            size_type size = data_.size();
+            size_t size = data_.size();
             while (true) {
                 size_type best = index;
                 size_type first_child = index * D + 1;

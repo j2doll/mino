@@ -6,8 +6,8 @@
 #include <iterator>
 #include <initializer_list>
 #include <algorithm>
-#include <stdexcept>
 #include <utility>
+#include <optional>
 
 namespace mino::core::container {
 
@@ -144,7 +144,7 @@ namespace mino::core::container {
                 free_storage();
 
                 if constexpr (alloc_traits::propagate_on_container_move_assignment::value) {
-                    allocator_ = std::move(other.allocator_); // 오타 수정 완료
+                    allocator_ = std::move(other.allocator_);
                 }
 
                 if (other.is_on_stack()) {
@@ -187,7 +187,6 @@ namespace mino::core::container {
         const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
         const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
 
-        // 용량 (Capacity)
         bool empty() const noexcept { return size_ == 0; }
         size_type size() const noexcept { return size_; }
         size_type max_size() const noexcept { return alloc_traits::max_size(allocator_); }
@@ -196,14 +195,9 @@ namespace mino::core::container {
         void reserve(size_type new_cap) {
             if (new_cap <= capacity_) return;
 
-            // Growth strategy:
-            //  - prefer doubling the current capacity when growing
-            //  - ensure at least new_cap
-            //  - if the computed allocation equals new_cap, add an extra 1.5x buffer to provide headroom
             size_type allocate_cap = std::max(new_cap, capacity_ == 0 ? static_cast<size_type>(1) : capacity_ * 2);
 
             if (allocate_cap == new_cap) {
-                // add additional headroom (1.5x) to avoid allocating exactly the requested size
                 size_type extra = new_cap / 2;
                 if (extra == 0) extra = 1;
                 size_type bumped = new_cap + extra;
@@ -250,17 +244,17 @@ namespace mino::core::container {
             }
         }
 
-        // 원소 접근 (Element Access)
-        reference operator[](size_type pos) { return data_[pos]; }
-        const_reference operator[](size_type pos) const { return data_[pos]; }
+        // 원소 접근 (Element Access) - non-throwing: return pointer or nullptr
+        reference operator[](size_type pos) noexcept { return data_[pos]; }
+        const_reference operator[](size_type pos) const noexcept { return data_[pos]; }
 
-        reference at(size_type pos) {
-            if (pos >= size_) throw std::out_of_range("small_vector::at out of range");
-            return data_[pos];
+        pointer at(size_type pos) noexcept {
+            if (pos >= size_) return nullptr;
+            return data_ + pos;
         }
-        const_reference at(size_type pos) const {
-            if (pos >= size_) throw std::out_of_range("small_vector::at out of range");
-            return data_[pos];
+        const_pointer at(size_type pos) const noexcept {
+            if (pos >= size_) return nullptr;
+            return data_ + pos;
         }
 
         reference front() { return data_[0]; }
@@ -357,5 +351,4 @@ namespace mino::core::container {
             lhs.swap(rhs);
         }
     };
-
 } // namespace mino::core::container

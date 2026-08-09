@@ -3,6 +3,7 @@
 #include <functional>
 #include <utility>
 #include <stdexcept>
+#include <optional>
 
 // 스큐 힙(Skew Heap)은 이진 트리 구조를 가진 자가 조절(Self-adjusting) 힙 자료구조입니다.
 // 레프트이스트 힙(Leftist Heap)과 기능적으로 매우 유사하지만,
@@ -33,8 +34,8 @@ namespace mino::core::container {
         [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
         [[nodiscard]] size_type size() const noexcept { return size_; }
 
-        const value_type& top() const {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        [[nodiscard]] std::optional<value_type> top() const noexcept {
+            if (empty()) return std::nullopt;
             return root_->value;
         }
 
@@ -48,12 +49,14 @@ namespace mino::core::container {
 
         node* push(const value_type& value) { return emplace(value); }
 
-        void pop() {
-            if (empty()) throw std::runtime_error("Heap is empty");
+        // Non-throwing pop: returns false if empty, true on success
+        [[nodiscard]] bool pop() noexcept {
+            if (empty()) return false;
             node* old_root = root_;
             root_ = merge_nodes(root_->left, root_->right);
             delete old_root;
             --size_;
+            return true;
         }
 
         void merge(skew_heap& other) {

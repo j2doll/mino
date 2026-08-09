@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
+#include <optional>
 
 // ========================================================================
 // 항목            우선순위 큐          이진 힙              피보나치 힙
@@ -56,8 +57,8 @@ namespace mino::core::container {
         [[nodiscard]] bool empty() const noexcept { return c_.empty(); }
         [[nodiscard]] size_type size() const noexcept { return c_.size(); }
 
-        const_reference top() const {
-            if (empty()) throw std::runtime_error("Queue is empty");
+        [[nodiscard]] std::optional<value_type> top() const noexcept {
+            if (empty()) return std::nullopt;
             return c_.front();
         }
 
@@ -77,10 +78,12 @@ namespace mino::core::container {
             std::push_heap(c_.begin(), c_.end(), comp_);
         }
 
-        void pop() {
-            if (empty()) throw std::runtime_error("Queue is empty");
+        // Non-throwing pop: returns true on success, false when empty
+        [[nodiscard]] bool pop() noexcept {
+            if (empty()) return false;
             std::pop_heap(c_.begin(), c_.end(), comp_);
             c_.pop_back();
+            return true;
         }
 
         void clear() noexcept {
@@ -98,4 +101,4 @@ namespace mino::core::container {
         Compare comp_;
     };
 
-}  
+}
