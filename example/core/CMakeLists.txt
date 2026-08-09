@@ -11,4 +11,5 @@ add_subdirectory(crypt)
 add_subdirectory(csv)
 add_subdirectory(daemon)
 add_subdirectory(datetime)
+add_subdirectory(encoding)
 
