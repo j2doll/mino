@@ -47,7 +47,7 @@ public:
         if (val < 0.0) {
             return cexp::unexpected_value<MathError>(MathError::NegativeSquareRoot);
         }
-        return std::sqrt(val);
+        return std::sqrt(val); // double 타입의 정상 결과 반환
     }
 
     // 3. 상태 변경(non-const) 멤버 함수: 계산 결과를 히스토리에 추가
@@ -58,7 +58,7 @@ public:
         if (res) {
             history_.push_back(res.value());
         }
-        return res;
+        return res; 
     }
 
     // 4. static 멤버 함수: 문자열을 정수로 파싱
@@ -69,7 +69,7 @@ public:
             return cexp::unexpected_value<std::string>("빈 문자열입니다.");
         }
         try {
-            return std::stoi(str);
+            return std::stoi(str); // int 타입의 정상 결과 반환
         }
         catch (...) {
             return cexp::unexpected_value<std::string>("정수로 변환할 수 없습니다.");
