@@ -20,7 +20,10 @@ namespace mino::core::resilience {
 
     void circuit_breaker::execute_void(std::function<void()> op)
     {
-        pre_execute_check();
+        if (!pre_execute_check())
+        {
+            return;
+        }
 
         try
         {
@@ -30,13 +33,15 @@ namespace mino::core::resilience {
         catch (...)
         {
             on_failure();
-            throw;
         }
     }
 
     std::any circuit_breaker::execute_any(std::function<std::any()> op)
     {
-        pre_execute_check();
+        if (!pre_execute_check())
+        {
+            return std::any{};
+        }
 
         try
         {
@@ -47,20 +52,19 @@ namespace mino::core::resilience {
         catch (...)
         {
             on_failure();
-            throw;
+            return std::any{};
         }
     }
 
     std::future<std::any> circuit_breaker::execute_async_any(std::function<std::any()> op)
     {
-        // 비동기 실행: 내부에서 동기 execute_any 호출 -> 상태 관리 일관성 보장
         return std::async(std::launch::async, [this, op = std::move(op)]() mutable -> std::any {
             return this->execute_any(std::move(op));
-        });
+            });
     }
 
     void circuit_breaker::execute_with_callback_any(std::function<std::any()> op,
-                                                    std::function<void(std::optional<std::any>, std::exception_ptr)> cb)
+        std::function<void(std::optional<std::any>, std::exception_ptr)> cb)
     {
         std::thread([this, op = std::move(op), cb = std::move(cb)]() mutable {
             try
@@ -72,7 +76,7 @@ namespace mino::core::resilience {
             {
                 cb(std::optional<std::any>{}, std::current_exception());
             }
-        })
+            })
             .detach();
     }
 
@@ -95,15 +99,14 @@ namespace mino::core::resilience {
         last_failure_time_ = std::chrono::steady_clock::time_point{};
     }
 
-    void circuit_breaker::pre_execute_check()
+    bool circuit_breaker::pre_execute_check()
     {
         state s = state_.load(std::memory_order_acquire);
         if (s == state::open)
         {
-            // 만약 reset_timeout이 비어있다면(수동 모드) 자동 전환 없음
             if (!config_.reset_timeout.has_value())
             {
-                throw circuit_open_exception();
+                return false;
             }
 
             auto now = std::chrono::steady_clock::now();
@@ -111,7 +114,6 @@ namespace mino::core::resilience {
             std::lock_guard<std::mutex> lock(mutex_);
             if (state_.load(std::memory_order_acquire) == state::open)
             {
-                // reset_timeout == 0ms 이면 즉시 half_open 허용
                 if (now - last_failure_time_ >= config_.reset_timeout.value())
                 {
                     state_.store(state::half_open, std::memory_order_release);
@@ -119,10 +121,11 @@ namespace mino::core::resilience {
                 }
                 else
                 {
-                    throw circuit_open_exception();
+                    return false;
                 }
             }
         }
+        return true;
     }
 
     void circuit_breaker::on_success() noexcept

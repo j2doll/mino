@@ -17,18 +17,8 @@
 
 namespace mino::core::resilience {
 
-    class  retry_helper {
+    class retry_helper {
     public:
-        /**
-         * @brief error-code or exception based retry helper
-         *
-         * If the callable returns a non-void value, a return value equal to
-         * the default-constructed return type (`return_t{}`) is considered success.
-         * Otherwise the helper will retry until `max_attempts` is reached.
-         *
-         * If the callable throws, exceptions are logged and treated as failures;
-         * the last exception is rethrown on the final attempt.
-         */
         template <typename func_type, typename... args_type>
         static auto retry(
             int max_attempts,
@@ -41,7 +31,6 @@ namespace mino::core::resilience {
         {
             using return_t = decltype(std::invoke(std::forward<func_type>(func), std::forward<args_type>(args)...));
             using duration_type = std::decay_t<decltype(base_delay)>;
-            std::exception_ptr last_exception;
 
             for (int attempt = 1; attempt <= max_attempts; ++attempt)
             {
@@ -49,20 +38,17 @@ namespace mino::core::resilience {
                 {
                     if constexpr (std::is_void<return_t>::value)
                     {
-                        // void-returning callable: success if no exception thrown
                         std::invoke(std::forward<func_type>(func), std::forward<args_type>(args)...);
                         return;
                     }
                     else
                     {
-                        // non-void: treat default-constructed return_t as success (e.g., 0 for int)
                         auto result = std::invoke(std::forward<func_type>(func), std::forward<args_type>(args)...);
                         if (result == return_t{})
                         {
                             return result;
                         }
 
-                        // log failure return value if logger provided
                         if (logger)
                         {
                             logger->warn("Attempt {} returned failure value", attempt);
@@ -70,34 +56,22 @@ namespace mino::core::resilience {
 
                         if (attempt == max_attempts)
                         {
-                            // 마지막 시도이면 마지막 반환값을 그대로 반환
                             return result;
                         }
                     }
                 }
-                catch (...)
+                catch (const std::exception& ex)
                 {
-                    last_exception = std::current_exception();
                     if (logger)
                     {
-                        try
-                        {
-                            std::rethrow_exception(last_exception);
-                        }
-                        catch (const std::exception& ex)
-                        {
-                            logger->warn("Attempt {} failed: {}", attempt, ex.what());
-                        }
-                        catch (...)
-                        {
-                            logger->warn("Attempt {} failed: unknown exception", attempt);
-                        }
+                        logger->warn("Attempt {} failed: {}", attempt, ex.what());
                     }
-
-                    if (attempt == max_attempts)
+                }
+                catch (...)
+                {
+                    if (logger)
                     {
-                        // 마지막 시도에서 예외가 발생하면 재던짐
-                        std::rethrow_exception(last_exception);
+                        logger->warn("Attempt {} failed: unknown exception", attempt);
                     }
                 }
 
@@ -109,7 +83,6 @@ namespace mino::core::resilience {
                 std::this_thread::sleep_for(delay);
             }
 
-            // 이 지점에는 도달하지 않아야 하나, 안전하게 기본값 반환
             if constexpr (std::is_void<return_t>::value)
             {
                 return;
@@ -121,4 +94,4 @@ namespace mino::core::resilience {
         }
     };
 
-} 
+}

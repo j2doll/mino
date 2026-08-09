@@ -185,7 +185,6 @@ namespace mino::core::file {
     std::filesystem::path executable_path(const exec_path_options& opt) {
         std::error_code ec;
         auto p = executable_path(ec, opt);
-        // 더 이상 throw 하지 않음. 실패 시 빈 path 반환.
         return ec ? std::filesystem::path{} : p;
     }
 
@@ -202,7 +201,6 @@ namespace mino::core::file {
     std::filesystem::path executable_dir(const exec_path_options& opt) {
         std::error_code ec;
         auto d = executable_dir(ec, opt);
-        // 더 이상 throw 하지 않음. 실패 시 빈 path 반환.
         return ec ? std::filesystem::path{} : d;
     }
 

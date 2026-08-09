@@ -55,7 +55,6 @@ namespace mino::core::file {
 
         std::error_code ec;
         auto s = executable_name(ec, type, opt);
-        // 더 이상 throw 하지 않음. 실패 시 빈 문자열 반환.
         return ec ? std::string{} : s;
     }
 
@@ -80,7 +79,6 @@ namespace mino::core::file {
 
         std::error_code ec;
         auto s = executable_name_w(ec, type, opt);
-        // 더 이상 throw 하지 않음. 실패 시 빈 문자열 반환.
         return ec ? std::wstring{} : s;
     }
 
