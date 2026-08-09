@@ -87,10 +87,10 @@ namespace mino::network::memory_store {
         client_.stop();
     }
 
-    std::string memory_store_client::send_and_wait(const std::string& command, std::chrono::seconds timeout) {
+    std::optional<std::string> memory_store_client::send_and_wait(const std::string& command, std::chrono::seconds timeout) {
         if (!client_.is_connected()) {
             if (logger_) logger_->error("[memory_store_client] Send failed: Disconnected");
-            throw std::runtime_error("Disconnected from memory storage server");
+            return std::nullopt;
         }
 
         std::unique_lock<std::mutex> lock(response_mutex_);
@@ -99,14 +99,14 @@ namespace mino::network::memory_store {
 
         if (client_.send_data(command + "\n") < 0) {
             if (logger_) logger_->error("[memory_store_client] Failed to write socket buffer");
-            throw std::runtime_error("Failed to send data.");
+            return std::nullopt;
         }
 
         // std::chrono::seconds timeout = std::chrono::seconds(5);
         bool success = response_cv_.wait_for(lock, timeout, [this] { return has_response_; });
         if (!success || !client_.is_connected()) {
             if (logger_) logger_->error("[memory_store_client] Request timeout or network failure during wait.");
-            throw std::runtime_error("Connection timeout or disconnected while waiting.");
+            return std::nullopt;
         }
 
         return current_response_;
@@ -118,8 +118,22 @@ namespace mino::network::memory_store {
             if (logger_) logger_->error("[memory_store_client] Invalid key contains double quote: '{}'", key);
             return false;
         }
-        std::string res = send_and_wait("SET " + qkey + " \"" + value + "\"", timeout_);
-        return res == "+OK";
+
+        auto res_opt = send_and_wait("SET " + qkey + " \"" + value + "\"", timeout_);
+        std::string res_string;
+        if (res_opt) {
+            if (*res_opt == "+OK") {
+                return true;
+            }
+            else {
+                if (logger_) logger_->error("[memory_store_client] SET command failed: {}", *res_opt);
+                return false;
+            }
+        }
+        else {
+            if (logger_) logger_->error("[memory_store_client] SET command failed: No response from server");
+            return false;
+        }
     }
 
     std::optional<std::string> memory_store_client::get(const std::string& key) {
@@ -129,9 +143,17 @@ namespace mino::network::memory_store {
             return std::nullopt;
         }
 
-        std::string res = send_and_wait("GET " + qkey, timeout_);
-        if (res.empty() || res == "$-1" || res.rfind("-ERR", 0) == 0) return std::nullopt;
-        if (res[0] == '+') return res.substr(1);
+        auto res_opt = send_and_wait("GET " + qkey, timeout_);
+        if (!res_opt) {
+            if (logger_) logger_->error("[memory_store_client] GET command failed: No response from server");
+            return std::nullopt;
+        }
+
+        std::string res = *res_opt;
+        if (res.empty() || res == "$-1" || res.rfind("-ERR", 0) == 0)
+            return std::nullopt;
+        if (res[0] == '+')
+            return res.substr(1);
         return res;
     }
 
@@ -142,8 +164,16 @@ namespace mino::network::memory_store {
             return 0;
         }
 
-        std::string res = send_and_wait("DEL " + qkey, timeout_);
-        if (!res.empty() && res[0] == ':') return std::stoi(res.substr(1));
+        auto res_opt = send_and_wait("DEL " + qkey, timeout_);
+        if (!res_opt) {
+            if (logger_) logger_->error("[memory_store_client] DEL command failed: No response from server");
+            return 0;
+        }
+
+        std::string res = *res_opt;
+        if (!res.empty() && res[0] == ':')
+            return std::stoi(res.substr(1));
+
         return 0;
     }
 
@@ -227,7 +257,13 @@ namespace mino::network::memory_store {
     }
 
     long memory_store_client::request_server_sleep_ms() {
-        std::string res = send_and_wait("SLEEP_MS", timeout_);
+        auto res_opt = send_and_wait("SLEEP_MS", timeout_);
+        if (!res_opt) {
+            if (logger_) logger_->error("[memory_store_client] SLEEP_MS command failed: No response from server");
+            return -1;
+        }
+
+        std::string res = *res_opt;
         if (!res.empty() && res[0] == ':') {
             try {
                 return std::stol(res.substr(1));
@@ -240,7 +276,13 @@ namespace mino::network::memory_store {
     }
 
     long memory_store_client::request_server_latency_ms() {
-        std::string res = send_and_wait("LATENCY", timeout_);
+        auto res_opt = send_and_wait("LATENCY", timeout_);
+        if (!res_opt) {
+            if (logger_) logger_->error("[memory_store_client] LATENCY command failed: No response from server");
+            return -1;
+        }
+
+        std::string res = *res_opt;
         if (!res.empty() && res[0] == ':') {
             try {
                 return std::stol(res.substr(1));

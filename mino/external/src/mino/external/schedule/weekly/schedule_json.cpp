@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cctype>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
@@ -40,7 +41,8 @@ namespace mino::external::schedule::weekly {
             return t;
         }
 
-        static mino::core::schedule::weekly::weekday parse_day_value(const nlohmann::json& v) {
+        static std::optional<mino::core::schedule::weekly::weekday> parse_day_value(const nlohmann::json& v)
+        {
             if (v.is_string()) {
                 using weekday = mino::core::schedule::weekly::weekday;
                 std::string s = v.get<std::string>();
@@ -52,45 +54,74 @@ namespace mino::external::schedule::weekly {
                 if (p == "fri") return weekday::fri;
                 if (p == "sat") return weekday::sat;
                 if (p == "sun") return weekday::sun;
-                throw std::runtime_error("Invalid weekday string: " + s);
+
+                return std::nullopt;
             }
             else if (v.is_number_integer()) {
                 using weekday = mino::core::schedule::weekly::weekday;
                 int i = v.get<int>();
-                if (i < 0 || i > 6) 
-                    throw std::runtime_error("weekday integer out of range (0..6)");
+                if (i < 0 || i > 6) {
+                    return std::nullopt;
+                }
                 return static_cast<weekday>(i);
             }
             else {
-                throw std::runtime_error("weekday value must be string or integer");
+                return std::nullopt;
             }
+            return std::nullopt;
         }
     } // namespace
 
-    mino::core::schedule::weekly::weekly_ranges from_json_string(const std::string& json_text) {
+    std::optional <weekly_ranges> from_json_string(const std::string& json_text) {
+
         nlohmann::json j = nlohmann::json::parse(json_text);
-        if (!j.is_array()) 
-            throw std::runtime_error("Expected JSON array for weekly ranges");
+        if (!j.is_array()) {
+            return std::nullopt;
+        }
 
         mino::core::schedule::weekly::weekly_ranges out;
         for (const auto& el : j) {
-            if (!el.is_object()) throw std::runtime_error("Expected object for range element");
+            if (!el.is_object()) {
+                return std::nullopt;
+            }
 
-            if (!el.contains("start_day") || !el.contains("start_h") || !el.contains("start_m") ||
-                !el.contains("end_day") || !el.contains("end_h") || !el.contains("end_m")) {
-                throw std::runtime_error("Missing range fields (start_day/start_h/start_m/end_day/end_h/end_m)");
+            if (!el.contains("start_day") ||
+                !el.contains("start_h") ||
+                !el.contains("start_m") ||
+                !el.contains("end_day") ||
+                !el.contains("end_h") ||
+                !el.contains("end_m") )
+            {
+                return std::nullopt;
             }
 
             mino::core::schedule::weekly::weekly_range r;
-            r.start_day = parse_day_value(el.at("start_day"));
+
+            auto sd = parse_day_value(el.at("start_day"));
+            if (sd) {
+                r.start_day = *sd;
+            }
+            else {
+                return std::nullopt;
+            }
+
             r.start_time.hour = el.at("start_h").get<int>();
             r.start_time.minute = el.at("start_m").get<int>();
-            r.end_day = parse_day_value(el.at("end_day"));
+
+            auto ed = parse_day_value(el.at("end_day"));
+            if (ed) {
+                r.end_day = *ed;
+            }
+            else {
+                return std::nullopt;
+            }
+
             r.end_time.hour = el.at("end_h").get<int>();
             r.end_time.minute = el.at("end_m").get<int>();
 
             out.push_back(r);
         }
+
         return out;
     }
 

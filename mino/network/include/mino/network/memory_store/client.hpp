@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 #include <utility>
+#include <optional>
 
 #include <spdlog/spdlog.h>
 
@@ -27,7 +28,7 @@ namespace mino::network::memory_store {
         std::chrono::seconds timeout_;
 
     protected:
-        std::string send_and_wait(const std::string& command, std::chrono::seconds timeout);
+        std::optional<std::string> send_and_wait(const std::string& command, std::chrono::seconds timeout);
 
     public:
         memory_store_client();
