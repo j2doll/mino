@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <stdexcept>
 #include <mutex>
 #include <memory>
 
@@ -86,10 +85,10 @@ namespace mino::network::rest::httplib {
         // SSL 인증서 오류 무시 여부 설정
         void set_ignore_ssl_errors(bool ignore);
 
-        // GET 요청 실행 (예외 발생 가능)
+        // GET 요청 실행
         response get(const query_params& query_params = {});
 
-        // GET 요청 실행 (예외 발생 없이 결과 코드로 반환)
+        // GET 요청 실행 (결과 코드로 반환)
         result_code get(const query_params& query_params, response& out_resp) noexcept;
 
         // 응답 결과 분류
@@ -114,4 +113,4 @@ namespace mino::network::rest::httplib {
         static http_status to_http_status(long code);
     };
 
-} 
+}

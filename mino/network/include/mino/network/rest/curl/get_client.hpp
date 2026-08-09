@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <stdexcept>
 #include <mutex>
 
 typedef void CURL;
@@ -47,7 +46,7 @@ namespace mino::network::rest::curl {
             http_redirect_3xx, // HTTP 리다이렉션 (3xx)
             http_other_error, // HTTP 기타 오류 (1xx, 2xx가 아닌 경우)
 
-            unknown_error // 알 수 없는 오류 (예: 예외 발생)
+            unknown_error // 알 수 없는 오류
         };
 
         // GET 요청 결과를 담는 구조체
@@ -57,7 +56,7 @@ namespace mino::network::rest::curl {
             long         raw_status_code = 0; // HTTP 상태 코드의 원시 값 (예: 200, 404 등)
             int          curl_error_code = 0; // cURL 오류 코드 (0이면 cURL 오류 없음)
             std::string  body; // HTTP 응답 본문
-            std::string  error; // 오류 메시지 (cURL 오류 또는 예외 메시지)
+            std::string  error; // 오류 메시지
             std::vector<std::string> headers; // HTTP 응답 헤더 (원시 문자열 형태)
             std::string content_type; // Content-Type 헤더 값 (없으면 빈 문자열)
 
@@ -89,10 +88,10 @@ namespace mino::network::rest::curl {
         // SSL 인증서 오류 무시 여부 설정
         void set_ignore_ssl_errors(bool ignore);
 
-        // GET 요청 실행 (예외 발생 가능)
+        // GET 요청 실행
         response get(const query_params& query_params = {});
 
-        // GET 요청 실행 (예외 발생 없이 결과 코드로 반환)        
+        // GET 요청 실행 (결과 코드로 반환)        
         result_code get(const query_params& query_params, response& out_resp) noexcept;
 
         // 응답 결과 분류
@@ -121,6 +120,6 @@ namespace mino::network::rest::curl {
     };
 
 
-}  
+}
 
 #endif // USE_CURL

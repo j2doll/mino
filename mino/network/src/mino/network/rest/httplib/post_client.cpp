@@ -5,9 +5,9 @@
 #include <cctype>
 
 #ifdef USE_OPENSSL
-    #ifndef CPPHTTPLIB_OPENSSL_SUPPORT
-        #define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
-    #endif
+#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
+#endif
 #endif
 
 #include <httplib.h>
@@ -76,8 +76,7 @@ namespace mino::network::rest::httplib {
         long port,
         const std::string& path)
     {
-        if (scheme.empty()) throw std::invalid_argument("scheme is empty.");
-        if (host.empty())   throw std::invalid_argument("host is empty.");
+        if (scheme.empty() || host.empty()) return;
 
         scheme_ = scheme;
         host_ = host;
@@ -114,7 +113,7 @@ namespace mino::network::rest::httplib {
 
     void post_client::set_timeout_ms(long timeout_ms)
     {
-        if (timeout_ms <= 0) throw std::invalid_argument("timeoutMs must be greater than 0.");
+        if (timeout_ms <= 0) return;
         timeout_ms_ = timeout_ms;
 
         if (!impl_->client_impl) return;
@@ -169,14 +168,16 @@ namespace mino::network::rest::httplib {
     }
 
     // ------------------------------
-    // POST (exception version)
+    // POST
     // ------------------------------
     post_client::response post_client::post(const std::string& body_str)
     {
-        if (!impl_->client_impl)
-            throw std::runtime_error("Client is not initialized. Call set_server() first.");
-
         response resp;
+
+        if (!impl_->client_impl) {
+            resp.error = "Client is not initialized. Call set_server() first.";
+            return resp;
+        }
 
         // Build request path (base path)
         std::string req_path = impl::build_request_path(path_, std::string());
@@ -296,18 +297,8 @@ namespace mino::network::rest::httplib {
     post_client::result_code
         post_client::post(const std::string& body_str, response& out_resp) noexcept
     {
-        try {
-            out_resp = post(body_str);
-            return classify(out_resp);
-        }
-        catch (const std::exception& ex) {
-            out_resp.error = ex.what();
-            return result_code::unknown_error;
-        }
-        catch (...) {
-            out_resp.error = "Unknown exception occurred";
-            return result_code::unknown_error;
-        }
+        out_resp = post(body_str);
+        return classify(out_resp);
     }
 
-}  
+}

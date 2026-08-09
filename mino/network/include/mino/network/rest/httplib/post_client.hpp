@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <stdexcept>
 #include <mutex>
 #include <memory>
 
@@ -43,7 +42,7 @@ namespace mino::network::rest::httplib {
             http_redirect_3xx, // HTTP 리다이렉션 (3xx)
             http_other_error, // HTTP 기타 오류 (1xx, 2xx가 아닌 경우)
 
-            unknown_error // 알 수 없는 오류 (예: 예외 발생)
+            unknown_error // 알 수 없는 오류
         };
 
         // POST 요청 결과를 담는 구조체
@@ -85,10 +84,10 @@ namespace mino::network::rest::httplib {
         // SSL 인증서 오류 무시 여부 설정
         void set_ignore_ssl_errors(bool ignore);
 
-        // POST 요청 실행 (예외 발생 가능)
+        // POST 요청 실행
         response post(const std::string& body);
 
-        // POST 요청 실행 (예외 발생 없이 result_code로 결과 반환)
+        // POST 요청 실행 (result_code로 결과 반환)
         result_code post(const std::string& body, response& out_resp) noexcept;
 
         // POST 요청 결과 분류 (result_code 반환)
@@ -112,4 +111,4 @@ namespace mino::network::rest::httplib {
         static http_status to_http_status(long code);
     };
 
-} 
+}
