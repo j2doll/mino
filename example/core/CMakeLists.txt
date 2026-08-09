@@ -13,5 +13,6 @@ add_subdirectory(daemon)
 add_subdirectory(datetime)
 add_subdirectory(encoding)
 add_subdirectory(enum)
+add_subdirectory(expected)
 
 
