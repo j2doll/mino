@@ -57,7 +57,9 @@ namespace mino::core::csv {
         s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
         std::transform(s.begin(), s.end(), s.begin(), ::toupper);
 
-        if (s.empty()) throw std::invalid_argument("Empty size string");
+        if (s.empty()) {
+            return 0; 
+        }
 
         size_t i = 0;
         while (i < s.size() && (std::isdigit(s[i]) || s[i] == '.')) {
@@ -72,7 +74,7 @@ namespace mino::core::csv {
         else if (unit == "MB" || unit == "M") multiplier = 1024 * 1024;
         else if (unit == "GB" || unit == "G") multiplier = 1024 * 1024 * 1024;
         else if (!unit.empty() && unit != "B" && unit != "BYTE" && unit != "BYTES") {
-            throw std::invalid_argument("Unknown unit");
+            return 0;
         }
 
         return static_cast<size_t>(value * multiplier);

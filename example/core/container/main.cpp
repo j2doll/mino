@@ -623,19 +623,21 @@ void test_flat_map_all_public() {
     (void)cit_cb; (void)cit_ce;
 
     // 4. 원소 접근 (at, operator[])
-    assert(fm3.at(1) == "One");
-    assert(const_fm.at(1) == "One");
-
-    try {
-        (void)fm3.at(99);
-        assert(false);
+    auto fm3_opt = fm3.at(1);
+    if (fm3_opt) {
+        assert(fm3_opt.value() == "One");
+    } else {
+        assert(false); // at(1)에서 값이 없으면 실패
     }
-    catch (const std::out_of_range&) {
-    }
-
+         
     try {
-        (void)const_fm.at(99);
-        assert(false);
+        auto fm3_opt = fm3.at(99); // 99는 범위 밖이고, 값이 없어야 함.
+        if (fm3_opt) {
+            assert(false); // at(99)에서 값이 있으면 실패
+        }
+        else {
+            assert(true); // at(99)에서 값이 없으면 성공
+        }
     }
     catch (const std::out_of_range&) {
     }

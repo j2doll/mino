@@ -2,11 +2,11 @@
 
 #include <variant>
 #include <utility>
-#include <stdexcept>
+#include <cassert>
 
 namespace mino::core::expected
 {
-    // C++17 스타일의 expected<T, E> 구현
+    // C++17 스타일의 expected<T, E> 구현 (Non-throwing 버전을 적용)
 
     /* ===============================
      * unexpected<E>
@@ -15,8 +15,8 @@ namespace mino::core::expected
     class unexpected_value {
     public:
         explicit unexpected_value(E e) : error_(std::move(e)) {}
-        const E& error() const& { return error_; }
-        E& error()& { return error_; }
+        const E& error() const& noexcept { return error_; }
+        E& error() & noexcept { return error_; }
 
     private:
         E error_;
@@ -65,33 +65,43 @@ namespace mino::core::expected
 
         /* ----- 값 접근 ----- */
 
-        T& value()
+        T& value() noexcept
         {
-            if (!has_value())
-                throw std::logic_error("expected: no value");
+            assert(has_value() && "expected: no value");
             return std::get<T>(storage_);
         }
 
-        const T& value() const
+        const T& value() const noexcept
         {
-            if (!has_value())
-                throw std::logic_error("expected: no value");
+            assert(has_value() && "expected: no value");
             return std::get<T>(storage_);
+        }
+
+        /* ----- 기본값 기반 안전 접근 ----- */
+
+        template <typename U>
+        T value_or(U&& default_value) const&
+        {
+            return has_value() ? std::get<T>(storage_) : static_cast<T>(std::forward<U>(default_value));
+        }
+
+        template <typename U>
+        T value_or(U&& default_value)&&
+        {
+            return has_value() ? std::move(std::get<T>(storage_)) : static_cast<T>(std::forward<U>(default_value));
         }
 
         /* ----- 에러 접근 ----- */
 
-        E& error()
+        E& error() noexcept
         {
-            if (has_value())
-                throw std::logic_error("expected: no error");
+            assert(!has_value() && "expected: no error");
             return std::get<E>(storage_);
         }
 
-        const E& error() const
+        const E& error() const noexcept
         {
-            if (has_value())
-                throw std::logic_error("expected: no error");
+            assert(!has_value() && "expected: no error");
             return std::get<E>(storage_);
         }
 

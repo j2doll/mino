@@ -40,7 +40,7 @@ namespace mino::core::xml
         std::string write_to_string(const xml_node& root);
 
         // xml_node 트리를 파일로 저장 (경로가 없거나 쓰기 실패 시 std::runtime_error 발생)
-        void write_to_file(const std::filesystem::path& file_path, const xml_node& root); // throws std::runtime_error on missing path or write failure
+        bool write_to_file(const std::filesystem::path& file_path, const xml_node& root); // throws std::runtime_error on missing path or write failure
 
     private:
         write_options options_;

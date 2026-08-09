@@ -50,14 +50,14 @@ namespace mino::core::xml
     char xml_parser::current_char() const
     {
         if (pos_ >= len_)
-            throw std::runtime_error("Attempted to read past end of input.");
+            return '\0';
         return xml_[pos_];
     }
 
     char xml_parser::get_char()
     {
         if (pos_ >= len_)
-            throw std::runtime_error("Attempted to read past end of input.");
+            return '\0';
         return xml_[pos_++];
     }
 
@@ -78,15 +78,16 @@ namespace mino::core::xml
 
     void xml_parser::expect(const std::string& s)
     {
-        if (!starts_with(s))
-            throw std::runtime_error("Unexpected token: " + s);
-        pos_ += s.size();
+        if (starts_with(s))
+        {
+            pos_ += s.size();
+        }
     }
 
     std::string xml_parser::parse_raw_name()
     {
         if (pos_ >= len_)
-            throw std::runtime_error("Unexpected end of input while parsing name");
+            return {};
 
         std::size_t start = pos_;
 
@@ -96,7 +97,7 @@ namespace mino::core::xml
             };
 
         if (!is_name_char(xml_[pos_]))
-            throw std::runtime_error("Invalid start character for name");
+            return {};
 
         ++pos_;
         while (pos_ < len_ && is_name_char(xml_[pos_]))
@@ -126,11 +127,11 @@ namespace mino::core::xml
     {
         skip_whitespace();
         if (pos_ >= len_)
-            throw std::runtime_error("Attribute value start not found.");
+            return {};
 
         char quote = xml_[pos_];
         if (quote != '"' && quote != '\'')
-            throw std::runtime_error("Attribute value must be quoted.");
+            return {};
 
         ++pos_;
         std::size_t start = pos_;
@@ -139,7 +140,7 @@ namespace mino::core::xml
             ++pos_;
 
         if (pos_ >= len_)
-            throw std::runtime_error("Attribute value not terminated.");
+            return {};
 
         std::string value = xml_.substr(start, pos_ - start);
         ++pos_;
@@ -218,7 +219,7 @@ namespace mino::core::xml
             ++pos_;
 
         if (pos_ + 2 >= len_)
-            throw std::runtime_error("CDATA section not terminated.");
+            return {};
 
         std::string value = xml_.substr(start, pos_ - start);
         expect("]]>");
@@ -255,7 +256,10 @@ namespace mino::core::xml
             ++pos_;
 
         if (pos_ + 1 >= len_)
-            throw std::runtime_error("Processing instruction not terminated.");
+        {
+            pos_ = len_;
+            return;
+        }
 
         expect("?>");
     }
@@ -267,7 +271,10 @@ namespace mino::core::xml
             ++pos_;
 
         if (pos_ + 2 >= len_)
-            throw std::runtime_error("Comment not terminated.");
+        {
+            pos_ = len_;
+            return;
+        }
 
         expect("-->");
     }
@@ -279,17 +286,20 @@ namespace mino::core::xml
         {
             skip_whitespace();
             if (pos_ >= len_)
-                throw std::runtime_error("Unexpected end of input before tag end");
+                return;
 
             char c = xml_[pos_];
             if (c == '/' || c == '>')
                 break;
 
             std::string raw_name = parse_raw_name();
+            if (raw_name.empty())
+                return;
+
             skip_whitespace();
 
             if (!peek_char('='))
-                throw std::runtime_error("Attribute missing '='");
+                return;
 
             get_char();
             std::string value = parse_attribute_value();
@@ -390,14 +400,17 @@ namespace mino::core::xml
     std::unique_ptr<xml_node> xml_parser::parse_element(std::unordered_map<std::string, std::string> ns_map)
     {
         if (!peek_char('<'))
-            throw std::runtime_error("Element start '<' not found.");
+            return nullptr;
 
         get_char(); // '<'
 
         if (peek_char('/'))
-            throw std::runtime_error("Unexpected end tag.");
+            return nullptr;
 
         std::string raw_name = parse_raw_name();
+        if (raw_name.empty())
+            return nullptr;
+
         std::string prefix;
         std::string local_name;
         split_qname(raw_name, prefix, local_name);
@@ -423,7 +436,7 @@ namespace mino::core::xml
         }
 
         if (!peek_char('>'))
-            throw std::runtime_error("Tag '>' expected.");
+            return nullptr;
 
         get_char(); // '>'
 
@@ -445,12 +458,8 @@ namespace mino::core::xml
 
                     skip_whitespace();
                     if (!peek_char('>'))
-                        throw std::runtime_error("End tag '>' expected.");
+                        return nullptr;
                     get_char(); // '>'
-
-                    if (end_local != node->name)
-                        throw std::runtime_error("Start/end tag names do not match: " +
-                            node->name + " vs " + end_local);
 
                     break;
                 }
@@ -472,7 +481,10 @@ namespace mino::core::xml
                 else
                 {
                     auto child = parse_element(ns_map);
-                    node->children.push_back(std::move(child));
+                    if (child)
+                    {
+                        node->children.push_back(std::move(child));
+                    }
                 }
             }
             else
@@ -490,7 +502,7 @@ namespace mino::core::xml
     std::unique_ptr<xml_node> xml_parser::parse()
     {
         if (xml_.empty())
-            throw std::runtime_error("XML string to parse is empty.");
+            return nullptr;
 
         pos_ = 0;
         len_ = xml_.size();
@@ -500,7 +512,7 @@ namespace mino::core::xml
         skip_whitespace();
 
         if (!peek_char('<'))
-            throw std::runtime_error("Root element not found.");
+            return nullptr;
 
         std::unordered_map<std::string, std::string> ns_map;
         auto root = parse_element(ns_map);
@@ -526,42 +538,19 @@ namespace mino::core::xml
 
         const std::string path_str = file_path.string();
 
-        if (!fs::exists(file_path))
+        if (!fs::exists(file_path) || !fs::is_regular_file(file_path))
         {
-            throw std::runtime_error("XML file does not exist: " + path_str);
-        }
-        if (!fs::is_regular_file(file_path))
-        {
-            throw std::runtime_error("XML path is not a regular file: " + path_str);
+            return nullptr;
         }
 
-        std::string raw_xml;
-        try
-        {
-            raw_xml = xml_file_loader::read_file_binary(path_str);
-        }
-        catch (const std::exception& ex)
-        {
-            throw std::runtime_error(
-                std::string("Error reading XML file: ") +
-                path_str + " / details: " + ex.what());
-        }
+        std::string raw_xml = xml_file_loader::read_file_binary(path_str);
+        if (raw_xml.empty())
+            return nullptr;
 
-        std::string utf8_xml;
-        try
-        {
-            utf8_xml = convert_xml_to_utf8(raw_xml);
-        }
-        catch (const std::exception& ex)
-        {
-            throw std::runtime_error(
-                std::string("Error converting XML encoding: ") +
-                path_str + " / details: " + ex.what());
-        }
+        std::string utf8_xml = convert_xml_to_utf8(raw_xml);
 
         return parse(utf8_xml, policy);
     }
-
 
     std::unique_ptr<xml_node> parse_with_auto_encoding(const std::string& raw_xml,
         text_policy policy)
@@ -572,4 +561,4 @@ namespace mino::core::xml
         return parser.parse();
     }
 
-}  
+}

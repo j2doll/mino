@@ -57,19 +57,9 @@ namespace mino::core::container {
         void reserve(size_type new_cap) { data_.reserve(new_cap); }
 
         // 원소 접근 (Element Access)
-        mapped_type& at(const key_type& key) {
+        std::optional<mapped_type> at(const key_type& key) noexcept {
             auto it = find(key);
-            if (it == end()) {
-                throw std::out_of_range("flat_map::at: key not found");
-            }
-            return it->second;
-        }
-
-        const mapped_type& at(const key_type& key) const {
-            auto it = find(key);
-            if (it == end()) {
-                throw std::out_of_range("flat_map::at: key not found");
-            }
+            if (it == end()) return std::nullopt;
             return it->second;
         }
 

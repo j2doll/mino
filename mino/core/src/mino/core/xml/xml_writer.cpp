@@ -148,21 +148,22 @@ namespace mino::core::xml
         return out_xml;
     }
 
-    void xml_writer::write_to_file(const std::filesystem::path& file_path, const xml_node& root)
+    bool xml_writer::write_to_file(const std::filesystem::path& file_path, const xml_node& root)
     {
         std::string xml_content = write_to_string(root);
 
         std::ofstream ofs(file_path, std::ios::out | std::ios::binary);
         if (!ofs)
         {
-            throw std::runtime_error("Unable to open file for writing: " + file_path.string());
+            return false; 
         }
 
         ofs.write(xml_content.data(), static_cast<std::streamsize>(xml_content.size()));
         if (!ofs)
         {
-            throw std::runtime_error("An error occurred while saving the file: " + file_path.string());
+            return false;
         }
+        return true;
     }
 
 }  

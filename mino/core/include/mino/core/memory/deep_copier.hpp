@@ -5,13 +5,12 @@
 #include <string>
 #include <cstring>
 #include <memory>
-#include <stdexcept>
+#include <type_traits>
 
-// 요청하신 네임스페이스 적용
 namespace mino::core::memory {
 
     // --- Deep Copy를 위한 직렬화 스트림 클래스 ---
-    class  serializer {
+    class serializer {
     public:
         std::vector<uint8_t> buffer;
 
@@ -45,7 +44,7 @@ namespace mino::core::memory {
         }
     };
 
-    class  deserializer {
+    class deserializer {
     private:
         const std::vector<uint8_t>& buffer_;
         size_t offset_ = 0;
@@ -53,56 +52,80 @@ namespace mino::core::memory {
     public:
         deserializer(const std::vector<uint8_t>& buf) : buffer_(buf) {}
 
-        // 기본 타입 및 POD 데이터 역직렬화
+        size_t offset() const { return offset_; }
+        size_t remaining() const { return buffer_.size() - offset_; }
+
+        // 기본 타입 및 POD 데이터 역직렬화 (성공 여부 bool 반환)
         template <typename T>
-        void deserialize(T& data) {
+        bool deserialize(T& data) {
             if constexpr (std::is_standard_layout_v<T> && std::is_trivial_v<T>) {
                 if (offset_ + sizeof(T) > buffer_.size()) {
-                    throw std::runtime_error("Buffer overflow during deserialization");
+                    return false;
                 }
                 std::memcpy(&data, &buffer_[offset_], sizeof(T));
                 offset_ += sizeof(T);
+                return true;
             }
             else {
-                data.deserialize(*this);
+                return data.deserialize(*this);
             }
         }
 
         // std::string 특수화
-        void deserialize(std::string& str) {
+        bool deserialize(std::string& str) {
             size_t size = 0;
-            deserialize(size);
+            if (!deserialize(size)) {
+                return false;
+            }
             if (offset_ + size > buffer_.size()) {
-                throw std::runtime_error("Buffer overflow during deserialization");
+                return false;
             }
             str.assign(reinterpret_cast<const char*>(&buffer_[offset_]), size);
             offset_ += size;
+            return true;
         }
 
         // std::vector 특수화
         template <typename T>
-        void deserialize(std::vector<T>& vec) {
+        bool deserialize(std::vector<T>& vec) {
             size_t size = 0;
-            deserialize(size);
+            if (!deserialize(size)) {
+                return false;
+            }
+
+            // 손상된 데이터로 인한 과도한 메모리 할당 방지
+            if (size > buffer_.size() - offset_) {
+                return false;
+            }
+
             vec.resize(size);
             for (size_t i = 0; i < size; ++i) {
-                deserialize(vec[i]);
+                if (!deserialize(vec[i])) {
+                    return false;
+                }
             }
+            return true;
         }
     };
 
     // --- Deep Copier 유틸리티 ---
-    class  deep_copier {
+    class deep_copier {
     public:
+        // 성공 여부를 확인하고 결과를 출력 파라미터에 담는 방식
         template <typename T>
-        static T copy(const T& obj) {
+        static bool copy(const T& src, T& dst) {
             serializer s;
-            const_cast<T&>(obj).serialize(s);
+            const_cast<T&>(src).serialize(s);
 
             deserializer d(s.buffer);
-            T new_obj;
-            new_obj.deserialize(d);
+            return dst.deserialize(d);
+        }
 
+        // 기존 인터페이스 호환용 (복사 실패 시 기본 생성된 객체 반환)
+        template <typename T>
+        static T copy(const T& obj) {
+            T new_obj{};
+            copy(obj, new_obj);
             return new_obj;
         }
     };

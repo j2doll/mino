@@ -82,17 +82,16 @@ namespace mino::core::xml
         {
             if (mino::core::string::cp949_to_utf8(input, out))
                 return out;
-            throw std::runtime_error("Encoding conversion failed: " + encoding);
+            return input;
         }
         if (enc_lower == "iso-2022-kr" || enc_lower == "iso2022-kr" || enc_lower == "iso-2022-kr")
         {
             if (mino::core::string::iso2022kr_to_utf8(input, out))
                 return out;
-            throw std::runtime_error("Encoding conversion failed: " + encoding);
+            return input;
         }
 
-        // 기타 인코딩은 우선 입력을 그대로 반환(보수적 처리).
-        // 필요시 iconv/Windows API로 확장 가능.
+        // 기타 인코딩은 입력을 그대로 반환
         return input;
     }
 
@@ -101,16 +100,7 @@ namespace mino::core::xml
     )
     {
         std::string enc = detect_xml_encoding(raw_xml);
-        try
-        {
-            return convert_text_encoding_to_utf8(raw_xml, enc);
-        }
-        catch (...)
-        {
-            // 변환 실패 시 원본을 반환하거나 예외를 올릴 수 있음.
-            // 여기서는 호출자가 예외를 원하면 convert_text_encoding_to_utf8에서 던진다.
-            throw;
-        }
+        return convert_text_encoding_to_utf8(raw_xml, enc);
     }
 
     // -----------------------------
@@ -220,7 +210,6 @@ namespace mino::core::xml
         auto logger = std::make_shared<tinylog::logger>("logger");
         logger->add_sink(console_sink_instance);
         logger->set_level(log_level::trace);
-        // bool is_reg_success = logger::register_logger(logger);
 
         std::string indent_str(static_cast<std::size_t>(indent) * 2, ' ');
 
@@ -281,27 +270,27 @@ namespace mino::core::xml
         step.name = step_str.substr(0, lb);
         auto rb = step_str.find(']', lb);
         if (rb == std::string::npos)
-            throw std::runtime_error("XPath step bracket is not closed.");
+            return step;
 
         std::string cond = step_str.substr(lb + 1, rb - lb - 1);
         cond.erase(std::remove_if(cond.begin(), cond.end(), ::isspace), cond.end());
 
         if (cond.size() < 5 || cond[0] != '@')
-            throw std::runtime_error("Unsupported XPath condition: " + cond);
+            return step;
 
         auto eq_pos = cond.find('=');
         if (eq_pos == std::string::npos)
-            throw std::runtime_error("XPath condition missing '=': " + cond);
+            return step;
 
         step.attr_name = cond.substr(1, eq_pos - 1);
 
         char quote = cond[eq_pos + 1];
         if (quote != '"' && quote != '\'')
-            throw std::runtime_error("XPath condition value must be quoted: " + cond);
+            return step;
 
         auto q2 = cond.find(quote, eq_pos + 2);
         if (q2 == std::string::npos)
-            throw std::runtime_error("XPath condition value is not closed: " + cond);
+            return step;
 
         step.attr_value = cond.substr(eq_pos + 2, q2 - (eq_pos + 2));
 
@@ -424,7 +413,6 @@ namespace mino::core::xml
         auto logger = std::make_shared<tinylog::logger>("logger");
         logger->add_sink(console_sink_instance);
         logger->set_level(log_level::trace);
-        // bool is_reg_success = logger::register_logger(logger);
 
         logger->debug("[SAX] START: ");
         if (!node.prefix.empty())
@@ -453,7 +441,6 @@ namespace mino::core::xml
         auto logger = std::make_shared<tinylog::logger>("logger");
         logger->add_sink(console_sink_instance);
         logger->set_level(log_level::trace);
-        // bool is_reg_success = logger::register_logger(logger);
 
         logger->debug("[SAX] END  : ");
         if (!node.prefix.empty())
@@ -482,12 +469,10 @@ namespace mino::core::xml
         auto logger = std::make_shared<tinylog::logger>("logger");
         logger->add_sink(console_sink_instance);
         logger->set_level(log_level::trace);
-        // bool is_reg_success = logger::register_logger(logger);
 
         std::string trimmed = trim_spaces(text);
         if (!trimmed.empty())
         {
-            // std::cout << "[SAX] TEXT : " << trimmed << "\n";
             logger->debug("[SAX] TEXT : {}", trimmed);
         }
     }
@@ -499,7 +484,7 @@ namespace mino::core::xml
     {
         std::ifstream ifs(path, std::ios::binary);
         if (!ifs)
-            throw std::runtime_error("Unable to open file: " + path);
+            return {};
 
         std::ostringstream oss;
         oss << ifs.rdbuf();
@@ -511,6 +496,8 @@ namespace mino::core::xml
         text_policy policy)
     {
         std::string raw_xml = read_file_binary(path);
+        if (raw_xml.empty())
+            return nullptr;
         return parse_with_auto_encoding(raw_xml, policy);
     }
 
@@ -863,7 +850,6 @@ namespace mino::core::xml
                 {
                     pos += 2;
                 }
-                // 실제 시간대 보정은 생략 (로컬 시간 기준으로 처리)
             }
         }
 
@@ -1057,4 +1043,4 @@ namespace mino::core::xml
         return true;
     }
 
-}  
+}
