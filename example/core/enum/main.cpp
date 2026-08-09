@@ -15,7 +15,7 @@ DEFINE_ENUM_GLOBAL(Color, \
     Red = -1, Green, Blue = 5)
     // 전역 Color 열거형 정의
 
-int main() {
+int main() { 
     namespace enums = mino::core::enums;
 
     // --------------------------------------------------
@@ -62,6 +62,12 @@ int main() {
             << " | Value: " << static_cast<int>(entry.value)
             << std::endl;
     }
+    // 출력 결과
+    // [game::Status Entries List]
+    //   Name: Idle | Value: 0
+    //   Name: Running | Value: 1
+    //   Name: Paused | Value: 10
+    //   Name: Stopped | Value: 11
 
     // --------------------------------------------------
     // Test 2: Color (전역 열거형 문자열 및 숫자 테스트)
