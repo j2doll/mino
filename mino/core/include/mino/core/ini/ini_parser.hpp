@@ -16,11 +16,14 @@ namespace mino::core::ini {
         std::string value;
         value_kind  kind{ value_kind::String };
         bool        string_literal{ false }; // true: Literal("..."), false: Raw('...')
+        std::vector<std::string> leading_comments; // whole-line comments that appear immediately before this entry
+        std::string inline_comment;               // inline comment (including delimiter ';' or '#'), empty if none
     };
 
     struct  section {
         std::vector<entry> entries;               // 삽입 순서 보존
         std::map<std::string, std::size_t> index; // 키 -> 인덱스
+        std::vector<std::string> leading_comments; // whole-line comments that appear immediately before this section header
     };
 
     class  ini_parser {
@@ -82,7 +85,7 @@ namespace mino::core::ini {
 
         // 유틸
         static std::string trim(std::string s);
-        static void strip_inline_comment(std::string& s);
+        static void strip_inline_comment(std::string& s, std::string& out_comment);
 
         // 인용/언인용
         static std::string unquote_and_unescape(const std::string& v, char quote_ch);

@@ -36,3 +36,10 @@ endif()
 # include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoCore.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
 use_mino_core(${EXE_NAME} "${MINO_CORE_DIR}")
+
+# Configure the file to be copied to the build directory
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/sample.ini"
+    "${CMAKE_CURRENT_BINARY_DIR}/sample.ini"
+    COPYONLY
+)

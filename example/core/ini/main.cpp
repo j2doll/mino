@@ -1,8 +1,9 @@
-#include <iostream>
-#include <cassert>
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <iostream>
+#include <fstream>
+#include <cassert>
 
 #include "mino/core/ini/ini_parser.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
@@ -13,7 +14,6 @@ int main() {
     using value_kind = mini::value_kind;
     using entry = mini::entry;
     using section = mini::section;
-    using value_kind = mini::value_kind;
 
     auto to_console_encoding = mino::core::string::to_console_encoding;
 
@@ -55,6 +55,84 @@ int main() {
         << to_console_encoding((saved ? "성공" : "실패"))
         << std::endl;
     assert(saved);
+
+    // --- 1.1 주석 보존 예제 파일 생성 (leading + inline comments) ---
+    const std::string comment_file = "config_with_comments.ini";
+    {
+        std::ofstream ofs(comment_file, std::ios::trunc); 
+        ofs << "; Global comment: configuration for demo\n"; // 주석
+        ofs << "# Another global comment line\n"; // 주석
+        ofs << "\n";
+        ofs << "[Server]\n";
+        ofs << "; Server section leading comment\n"; // 주석
+        ofs << "host='127.0.0.1' ; inline comment for host\n"; // 엔트리와 인라인 주석
+        ofs << "path=\"C:\\\\Program Files\\\\App\\\"Quote\\\"\" # inline with # delimiter\n"; // 엔트리와 인라인 주석
+        ofs << "enabled=true\n";
+        ofs << "\n";
+        ofs << "[Database]\n";
+        ofs << "; DB leading comment\n"; // 주석
+        ofs << "db_name='test_db' ; important DB comment\n"; // 엔트리와 인라인 주석
+        ofs.close();
+    }
+
+    std::cout
+        << to_console_encoding("\n=== 1.1 주석 보존(load/save) 테스트 ===")
+        << std::endl;
+
+    // load comment file and print preserved comments
+    ini_parser comment_parser;
+    bool loaded_comments = comment_parser.load(comment_file);
+    std::cout
+        << to_console_encoding("load(config_with_comments.ini): ")
+        << to_console_encoding((loaded_comments ? "성공" : "실패"))
+        << std::endl;
+    assert(loaded_comments);
+
+    auto secs = comment_parser.all_sections();
+    for (const auto& sec_pair : secs) {
+        const std::string& sec_name = sec_pair.first;
+        const auto& entries = sec_pair.second;
+
+        // print section leading comments if any
+        std::cout << to_console_encoding("\n[Section] ") << to_console_encoding(sec_name) << std::endl;
+        // find section object to access leading_comments (use parser.section_names + entries for printed data)
+        // we already have entries vector; print any leading comments attached to first entry or section via API:
+        // (entry.leading_comments and section.leading_comments were set by modified parser on load)
+        // print leading comments stored at section (via re-fetching section by name)
+        const section* sec_obj = nullptr;
+        // Because all_sections returns copies, use comment_parser.section_names() + comment_parser.entries(...)
+        // to access section leading comments we need to fetch entries and check entry.leading_comments.
+        // Print section-level leading comments by checking entries of this section and first entry's leading_comments if present.
+        if (!entries.empty() && !entries.front().leading_comments.empty()) {
+            for (const auto& c : entries.front().leading_comments) {
+                std::cout << to_console_encoding("  [leading comment] ") << to_console_encoding(c) << std::endl;
+            }
+        }
+
+        for (const auto& e : entries) {
+            std::cout
+                << to_console_encoding("  key: ") << to_console_encoding(e.key)
+                << to_console_encoding("  value: ") << to_console_encoding(e.value)
+                << std::endl;
+            // print entry-level leading comments
+            for (const auto& lc : e.leading_comments) {
+                std::cout << to_console_encoding("    entry leading comment: ") << to_console_encoding(lc) << std::endl;
+            }
+            // print inline comment if present
+            if (!e.inline_comment.empty()) {
+                std::cout << to_console_encoding("    inline comment: ") << to_console_encoding(e.inline_comment) << std::endl;
+            }
+        }
+    }
+
+    // Save round-trip to verify comments are written back
+    const std::string comment_out = "config_with_comments_out.ini";
+    bool saved_comments = comment_parser.save(comment_out);
+    std::cout
+        << to_console_encoding("\nsave(config_with_comments_out.ini): ")
+        << to_console_encoding((saved_comments ? "성공" : "실패"))
+        << std::endl;
+    assert(saved_comments);
 
     std::cout
         << to_console_encoding("\n=== 2. 퍼블릭 조회 및 검증 함수 테스트 ===")
@@ -210,11 +288,59 @@ int main() {
     std::cout
         << to_console_encoding("삭제 후 has_section('Database'): ")
         << std::boolalpha
-        << loaded_parser.has_section("Database") 
+        << loaded_parser.has_section("Database")
         << std::endl;
 
     // 최종 상태 저장
     loaded_parser.save("config_test_modified.ini");
+
+    // === 5. sample.ini 읽기 테스트 (모든 섹션과 엔트리 출력) ===
+    std::cout << to_console_encoding("\n=== 5. sample.ini 로드 및 전체 출력 테스트 ===") << std::endl;
+    const std::string sample_file = "sample.ini";
+    ini_parser sample_parser;
+    bool sample_loaded = sample_parser.load(sample_file);
+    std::cout
+        << to_console_encoding("load(sample.ini): ")
+        << to_console_encoding((sample_loaded ? "성공" : "실패"))
+        << std::endl;
+
+    if (sample_loaded) {
+        auto sample_all = sample_parser.all_sections();
+        for (const auto& sec_pair : sample_all) {
+            const std::string& section_name = sec_pair.first;
+            const auto& entries = sec_pair.second;
+
+            // print section header
+            std::cout << std::endl << "[" << to_console_encoding(section_name) << "]" << std::endl;
+
+            for (const auto& e : entries) {
+                std::cout
+                    << "  '" << to_console_encoding(e.key) << "' = '"
+                    << to_console_encoding(e.value) << "'";
+
+                std::cout << "  (kind=";
+                switch (e.kind) {
+                    case value_kind::String: std::cout << "String"; break;
+                    case value_kind::Bool:   std::cout << "Bool";   break;
+                    case value_kind::Int:    std::cout << "Int";    break;
+                    case value_kind::Double: std::cout << "Double"; break;
+                }
+                std::cout << (e.string_literal ? ", literal" : ", raw") << ")";
+
+                if (!e.inline_comment.empty()) {
+                    std::cout << "  ; " << to_console_encoding(e.inline_comment);
+                }
+                std::cout << std::endl;
+
+                // print leading comments associated with this entry (if any)
+                if (!e.leading_comments.empty()) {
+                    for (const auto& lc : e.leading_comments) {
+                        std::cout << to_console_encoding("    [leading comment] ") << to_console_encoding(lc) << std::endl;
+                    }
+                }
+            }
+        }
+    }
 
     std::cout
         << to_console_encoding("\n모든 퍼블릭 멤버 기능 테스트 완료.")

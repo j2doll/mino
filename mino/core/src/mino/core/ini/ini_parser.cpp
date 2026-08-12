@@ -25,8 +25,10 @@ namespace mino::core::ini {
         return s.substr(start, end - start + 1);
     }
 
-    void ini_parser::strip_inline_comment(std::string& s)
+    // 변경: 인라인 주석을 잘라내고, 잘린 주석(구분자 포함)을 out_comment에 반환
+    void ini_parser::strip_inline_comment(std::string& s, std::string& out_comment)
     {
+        out_comment.clear();
         // 라인 전체가 주석인 경우는 호출자에서 처리됨.
         // 여기서는 첫 번째 유효한 ';' 또는 '#'을 찾아 그 뒤를 자른다.
         bool in_single = false;
@@ -44,6 +46,8 @@ namespace mino::core::ini {
             if (!in_single && !in_double) {
                 // check comment char first (so we don't treat the comment char itself as "last non-space")
                 if (c == ';' || c == '#') {
+                    // capture the comment including delimiter and any following space/text
+                    out_comment = s.substr(i);
                     std::size_t cut = 0;
                     if (last_non_space >= 0) {
                         cut = static_cast<std::size_t>(last_non_space) + 1;
@@ -282,20 +286,32 @@ namespace mino::core::ini {
         std::string line;
         std::string current_section;
 
+        std::vector<std::string> pending_comments; // accumulate whole-line comments until next section/header/entry
+
         while (std::getline(ifs, line)) {
             std::string raw = line;
             // 트리밍 한 뒤 빈 라인 처리
             std::string t = trim(raw);
             if (t.empty()) { continue; }
 
-            // 전체 주석 라인
-            if (t.front() == ';' || t.front() == '#') { continue; }
+            // 전체 주석 라인: 보관(pending) 후 다음 유효 라인에 붙인다.
+            if (t.front() == ';' || t.front() == '#') {
+                // store trimmed comment (preserve delimiter at front)
+                pending_comments.push_back(t);
+                continue;
+            }
 
             // 섹션
             if (t.front() == '[' && t.back() == ']') {
                 std::string name = trim(t.substr(1, t.size() - 2));
                 current_section = name;
-                ensure_section(current_section);
+                section* sec = ensure_section(current_section);
+                // append pending comments to section leading comments
+                if (!pending_comments.empty()) {
+                    sec->leading_comments.insert(sec->leading_comments.end(),
+                        pending_comments.begin(), pending_comments.end());
+                    pending_comments.clear();
+                }
                 continue;
             }
 
@@ -308,38 +324,65 @@ namespace mino::core::ini {
 
             std::string key = trim(line.substr(0, pos));
             std::string value = line.substr(pos + 1);
-            strip_inline_comment(value);
+            std::string inline_comment;
+            strip_inline_comment(value, inline_comment);
             value = trim(value);
+
+            // prepare entry and attach pending_comments and inline_comment
+            entry e;
+            e.key = key;
+            e.inline_comment = inline_comment;
+            if (!pending_comments.empty()) {
+                e.leading_comments = pending_comments;
+                pending_comments.clear();
+            }
 
             if (value.size() >= 2 && value.front() == '\'' && value.back() == '\'') {
                 // Raw string (single-quoted): 이스케이프 시퀀스 해석
                 std::string v = unquote_and_unescape(value, '\'');
-                upsert_string(current_section, key, v, false);
+                e.value = v;
+                e.kind = value_kind::String;
+                e.string_literal = false;
             } else if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
                 // Literal string (double-quoted): \" 만 해제
                 std::string v = unquote_and_unescape(value, '"');
-                upsert_string(current_section, key, v, true);
+                e.value = v;
+                e.kind = value_kind::String;
+                e.string_literal = true;
             } else {
                 // 숫자/불리언 우선 파싱
                 bool bval = false;
                 if (parse_bool(value, bval)) {
-                    upsert_numeric(current_section, key, bval ? "true" : "false", value_kind::Bool);
+                    e.value = bval ? "true" : "false";
+                    e.kind = value_kind::Bool;
+                    e.string_literal = false;
                 } else {
                     int64_t ival = 0;
                     if (parse_int(value, ival)) {
-                        upsert_numeric(current_section, key, std::to_string(ival), value_kind::Int);
+                        e.value = std::to_string(ival);
+                        e.kind = value_kind::Int;
+                        e.string_literal = false;
                     } else {
                         double dval = 0.0;
                         if (parse_double(value, dval)) {
-                            upsert_numeric(current_section, key, format_double(dval), value_kind::Double);
+                            e.value = format_double(dval);
+                            e.kind = value_kind::Double;
+                            e.string_literal = false;
                         } else {
                             // Unquoted plain string: decode common escapes (t/n/r/\\/'/") and store as raw
                             std::string decoded = decode_escapes_for_string(value);
-                            upsert_string(current_section, key, decoded, false);
+                            e.value = decoded;
+                            e.kind = value_kind::String;
+                            e.string_literal = false;
                         }
                     }
                 }
             }
+
+            // insert entry into current section (may be empty section name for global)
+            section* sec = ensure_section(current_section);
+            sec->index.emplace(e.key, sec->entries.size());
+            sec->entries.push_back(std::move(e));
         }
 
         return true;
@@ -354,11 +397,21 @@ namespace mino::core::ini {
             const std::string& sec_name = sections_[si].first;
             const section& sec = sections_[si].second;
 
+            // write leading comments for section
+            for (const auto& c : sec.leading_comments) {
+                ofs << c << '\n';
+            }
+
             if (!sec_name.empty()) {
                 ofs << "[" << sec_name << "]\n";
             }
 
             for (const entry& e : sec.entries) {
+                // write leading comments for entry
+                for (const auto& c : e.leading_comments) {
+                    ofs << c << '\n';
+                }
+
                 ofs << e.key << '=';
 
                 if (e.kind == value_kind::String) {
@@ -373,6 +426,11 @@ namespace mino::core::ini {
                     ofs << e.value;
                 } else if (e.kind == value_kind::Double) {
                     ofs << e.value;
+                }
+
+                // inline comment (already includes delimiter)
+                if (!e.inline_comment.empty()) {
+                    ofs << ' ' << e.inline_comment;
                 }
 
                 ofs << '\n';
