@@ -63,7 +63,7 @@ void test_try_opt_bind_void(bool success, int& output) {
     TRY_OPT_BIND_VOID(val, get_value(success)); // success가 false인 경우, get_value()는 return {} 이 되고, TRY_OPT_BIND_VOID는 현재 라인에서 바로 return;(void return) 됩니다. 
     output = val;
 }
-
+ 
 // -----------------------------------------------------------------------------
 // 2-1. TRY_OPT 복합 활용 예제 (한 함수 안에서 여러 번 사용)
 // -----------------------------------------------------------------------------
