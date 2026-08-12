@@ -74,17 +74,21 @@ int main() {
         << std::endl
         << to_console_encoding("모든 섹션과 엔트리 출력")
         << std::endl;
-    auto all = loaded_parser.all_sections();
+    auto all = loaded_parser.all_sections(); // 모든 섹션과 엔트리 복사 반환
     for (const auto& sec_pair : all) {
         const std::string& section_name = sec_pair.first;
         const auto& entries = sec_pair.second;
 
+        // 섹션 출력
         std::cout << "[" << to_console_encoding(section_name) << "]\n";
+
         for (const auto& e : entries) {
+            // 엔트리 출력
             std::cout
                 << "'" << to_console_encoding(e.key) << "' = '"
                 << to_console_encoding(e.value) << "'";
 
+            // 엔트리 종류 및 문자열 모드 출력
             std::cout << "  (kind=";
             switch (e.kind) {
                 case value_kind::String: std::cout << "String"; break;
