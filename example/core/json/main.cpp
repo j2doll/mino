@@ -159,28 +159,48 @@ void test_parser() {
         assert(parsed["object"]["nested_key"].is_string() && parsed["object"]["nested_key"].get_string() == "nested_value");
     }
 
-    if (parsed.has_path("str")) {
+    if (parsed.has_path("/str")) { // 존재하는 경로 
         // 존재함
+        assert(true);
+        std::cout << "Value at path '/str': " << parsed["str"].get_string() << "\n";
     }
     else {
         // 존재하지 않음
         assert(false); // This should not happen
+        std::cout << "Path '/str' does not exist, which is unexpected.\n";
     }
 
-    if (parsed.has_path("/array/1")) {
+    if (parsed.has_path("/str2")) { // 존재하지 않는 경로
         // 존재함
+        assert(false); // This should not happen
+        std::cout << "Value at path '/str2': " << parsed["str2"].get_string() << "\n";
     }
     else {
         // 존재하지 않음
-        assert(false); // This should not happen
+        assert(true);
+        std::cout << "Path '/str2' does not exist, as expected.\n";
     }
 
-    if (parsed.has_path("/object/nested_key")) {
+    if (parsed.has_path("/array/1")) { // 존재하는 array 요소 경로
         // 존재함
+        assert(true);
+        std::cout << "Value at path '/array/1': " << (parsed["array"][1].is_bool() ? (parsed["array"][1].get_bool() ? "true" : "false") : "not a bool") << "\n";
     }
     else {
         // 존재하지 않음
         assert(false); // This should not happen
+        std::cout << "Path '/array/1' does not exist, which is unexpected.\n";
+    }
+
+    if (parsed.has_path("/object/nested_key")) { // 존재하는 object key 경로
+        // 존재함
+        assert(true);
+        std::cout << "Value at path '/object/nested_key': " << parsed["object"]["nested_key"].get_string() << "\n";
+    }
+    else {
+        // 존재하지 않음
+        assert(false); // This should not happen
+        std::cout << "Path '/object/nested_key' does not exist, which is unexpected.\n";
     }
 
     std::cout << "[PASS] parser::parse\n";
