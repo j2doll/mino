@@ -21,16 +21,16 @@
         }
     }
     ```
-    - `CMakePresets.json` 설정
+    - `CMakeSettings.json` 설정 (MSVC 전용 설정 파일)
     ```json
      {
-       // ...
-       "configurePresets": [
-       {
-          "cacheVariables": {
-           "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-         }
-       }
+        // ...
+        "variables": [
+        {
+            "name": "CMAKE_TOOLCHAIN_FILE",
+            "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "type": "FILEPATH"
+        }
      }
     ```
 
@@ -51,8 +51,7 @@ sudo dnf install -y     spdlog-devel     json-devel     libcurl-devel     openss
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
 sudo apt update
-sudo apt install -y   libspdlog-dev   nlohmann-json3-dev   libcurl4-openssl-dev   libssl-dev \
-  libcpp-httplib-dev   libyaml-cpp-dev
+sudo apt install -y   libspdlog-dev   nlohmann-json3-dev   libcurl4-openssl-dev   libssl-dev   libcpp-httplib-dev   libyaml-cpp-dev
 ```
 
 ##### 📦 라이브러리 설치 
