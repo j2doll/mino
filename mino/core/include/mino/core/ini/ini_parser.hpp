@@ -70,6 +70,10 @@ namespace mino::core::ini {
 
         // 섹션 나열(삽입 순서)
         std::vector<std::string> section_names() const;
+        // 특정 섹션의 모든 엔트리를 반환(복사)
+        std::vector<entry> entries(const std::string& section_name) const;
+        // 모든 섹션 이름과 해당 섹션의 엔트리 벡터를 반환(복사)
+        std::vector<std::pair<std::string, std::vector<entry>>> all_sections() const;
 
     private:
         // 섹션 컨테이너 (삽입 순서 보존)

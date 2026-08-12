@@ -534,4 +534,21 @@ namespace mino::core::ini {
         return out;
     }
 
+    std::vector<entry> ini_parser::entries(const std::string& section_name) const
+    {
+        const section* s = find_section(section_name);
+        if (!s) { return {}; }
+        return s->entries; // 복사 반환
+    }
+
+    std::vector<std::pair<std::string, std::vector<entry>>> ini_parser::all_sections() const
+    {
+        std::vector<std::pair<std::string, std::vector<entry>>> out;
+        out.reserve(sections_.size());
+        for (const auto& p : sections_) {
+            out.emplace_back(p.first, p.second.entries); // 섹션 이름 + 엔트리 복사
+        }
+        return out;
+    }
+
 } // namespace mino::core::ini
