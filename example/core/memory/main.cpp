@@ -86,7 +86,7 @@ void test_string_and_vector() {
 
     std::string orig_str = "Hello, Mino Core Memory!";
     std::vector<int> orig_vec = { 10, 20, 30, 40, 50 }; // 고정형 자료가 아닌 vector와 같은 동적 자료형도 직렬화/역직렬화 가능
-    // NOTE: 직렬화는 POD(Plain Old Data) 타입, std::string, std::vector<T>만 지원됨. 
+    // NOTE: mino::core::memory 직렬화는 POD(Plain Old Data) 타입, std::string, std::vector<T>만 지원됨. 
 
     s.serialize(orig_str);
     s.serialize(orig_vec);
