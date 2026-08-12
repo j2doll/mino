@@ -94,18 +94,15 @@ int main() {
         const auto& entries = sec_pair.second;
 
         // print section leading comments if any
-        std::cout << to_console_encoding("\n[Section] ") << to_console_encoding(sec_name) << std::endl;
-        // find section object to access leading_comments (use parser.section_names + entries for printed data)
-        // we already have entries vector; print any leading comments attached to first entry or section via API:
-        // (entry.leading_comments and section.leading_comments were set by modified parser on load)
-        // print leading comments stored at section (via re-fetching section by name)
+        std::cout
+            << to_console_encoding("\n[Section] ")
+            << to_console_encoding(sec_name) << std::endl;
         const section* sec_obj = nullptr;
-        // Because all_sections returns copies, use comment_parser.section_names() + comment_parser.entries(...)
-        // to access section leading comments we need to fetch entries and check entry.leading_comments.
-        // Print section-level leading comments by checking entries of this section and first entry's leading_comments if present.
         if (!entries.empty() && !entries.front().leading_comments.empty()) {
             for (const auto& c : entries.front().leading_comments) {
-                std::cout << to_console_encoding("  [leading comment] ") << to_console_encoding(c) << std::endl;
+                std::cout
+                    << to_console_encoding("  [leading comment] ")
+                    << to_console_encoding(c) << std::endl;
             }
         }
 
@@ -116,11 +113,17 @@ int main() {
                 << std::endl;
             // print entry-level leading comments
             for (const auto& lc : e.leading_comments) {
-                std::cout << to_console_encoding("    entry leading comment: ") << to_console_encoding(lc) << std::endl;
+                std::cout
+                    << to_console_encoding("    entry leading comment: ")
+                    << to_console_encoding(lc)
+                    << std::endl;
             }
             // print inline comment if present
             if (!e.inline_comment.empty()) {
-                std::cout << to_console_encoding("    inline comment: ") << to_console_encoding(e.inline_comment) << std::endl;
+                std::cout
+                    << to_console_encoding("    inline comment: ")
+                    << to_console_encoding(e.inline_comment)
+                    << std::endl;
             }
         }
     }
