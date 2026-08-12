@@ -15,5 +15,5 @@ add_subdirectory(encoding)
 add_subdirectory(enum)
 add_subdirectory(expected)
 add_subdirectory(file)
-
+add_subdirectory(hash)
 

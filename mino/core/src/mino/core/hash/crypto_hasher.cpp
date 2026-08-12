@@ -101,29 +101,41 @@ namespace {
 
         static const uint32_t k[64];
 
-        static uint32_t rotr(uint32_t x, uint32_t n) { return (x >> n) | (x << (32 - n)); }
+        static uint32_t rotr(uint32_t x, uint32_t n) {
+            return (x >> n) | (x << ((32u - n) & 31u));
+        }
 
         void transform() {
-            uint32_t m[64], a, b, c, d, e, f, g, h;
-            for (int i = 0, j = 0; i < 16; ++i, j += 4)
-                m[i] = (buffer[j] << 24) | (buffer[j + 1] << 16) | (buffer[j + 2] << 8) | (buffer[j + 3]);
-            for (int i = 16; i < 64; ++i) {
-                uint32_t s0 = rotr(m[i - 15], 7) ^ rotr(m[i - 15], 18) ^ (m[i - 15] >> 3);
-                uint32_t s1 = rotr(m[i - 2], 17) ^ rotr(m[i - 2], 19) ^ (m[i - 2] >> 10);
-                m[i] = m[i - 16] + s0 + m[i - 7] + s1;
+            uint32_t w[64], a, b, c, d, e, f, g, h;
+
+            for (int i = 0; i < 16; ++i) {
+                w[i] = (static_cast<uint32_t>(buffer[i * 4]) << 24) |
+                    (static_cast<uint32_t>(buffer[i * 4 + 1]) << 16) |
+                    (static_cast<uint32_t>(buffer[i * 4 + 2]) << 8) |
+                    (static_cast<uint32_t>(buffer[i * 4 + 3]));
             }
+
+            for (int i = 16; i < 64; ++i) {
+                uint32_t s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
+                uint32_t s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
+                w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+            }
+
             a = state[0]; b = state[1]; c = state[2]; d = state[3];
             e = state[4]; f = state[5]; g = state[6]; h = state[7];
+
             for (int i = 0; i < 64; ++i) {
                 uint32_t S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
                 uint32_t ch = (e & f) ^ ((~e) & g);
-                uint32_t temp1 = h + S1 + ch + k[i] + m[i];
+                uint32_t temp1 = h + S1 + ch + k[i] + w[i];
                 uint32_t S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
                 uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
                 uint32_t temp2 = S0 + maj;
+
                 h = g; g = f; f = e; e = d + temp1;
                 d = c; c = b; b = a; a = temp1 + temp2;
             }
+
             state[0] += a; state[1] += b; state[2] += c; state[3] += d;
             state[4] += e; state[5] += f; state[6] += g; state[7] += h;
         }
@@ -141,37 +153,38 @@ namespace {
         }
 
         std::vector<uint8_t> final() {
-            size_t i = datalen;
-            if (datalen < 56) {
-                buffer[i++] = 0x80;
-                while (i < 56) buffer[i++] = 0x00;
-            }
-            else {
-                buffer[i++] = 0x80;
-                while (i < 64) buffer[i++] = 0x00;
+            size_t orig_datalen = datalen;
+            uint64_t total_bits = bitlen + (static_cast<uint64_t>(orig_datalen) * 8ull);
+
+            buffer[datalen++] = 0x80;
+
+            if (datalen > 56) {
+                while (datalen < 64) buffer[datalen++] = 0x00;
                 transform();
-                std::fill_n(buffer, 56, 0);
+                datalen = 0;
             }
-            bitlen += datalen * 8;
-            for (int j = 7; j >= 0; --j) {
-                buffer[56 + (7 - j)] = (bitlen >> (j * 8)) & 0xFF;
+
+            while (datalen < 56) buffer[datalen++] = 0x00;
+
+            for (int i = 7; i >= 0; --i) {
+                buffer[56 + (7 - i)] = static_cast<uint8_t>((total_bits >> (i * 8)) & 0xFF);
             }
+
             transform();
+
             std::vector<uint8_t> hash(32);
-            for (int j = 0; j < 4; ++j) {
-                hash[j] = (state[0] >> (24 - j * 8)) & 0xFF;
-                hash[j + 4] = (state[1] >> (24 - j * 8)) & 0xFF;
-                hash[j + 8] = (state[2] >> (24 - j * 8)) & 0xFF;
-                hash[j + 12] = (state[3] >> (24 - j * 8)) & 0xFF;
-                hash[j + 16] = (state[4] >> (24 - j * 8)) & 0xFF;
-                hash[j + 20] = (state[5] >> (24 - j * 8)) & 0xFF;
-                hash[j + 24] = (state[6] >> (24 - j * 8)) & 0xFF;
-                hash[j + 28] = (state[7] >> (24 - j * 8)) & 0xFF;
+            for (size_t i = 0; i < 8; ++i) {
+                hash[i * 4 + 0] = static_cast<uint8_t>((state[i] >> 24) & 0xFF);
+                hash[i * 4 + 1] = static_cast<uint8_t>((state[i] >> 16) & 0xFF);
+                hash[i * 4 + 2] = static_cast<uint8_t>((state[i] >> 8) & 0xFF);
+                hash[i * 4 + 3] = static_cast<uint8_t>(state[i] & 0xFF);
             }
+
             return hash;
         }
     };
 
+    // SHA-256 라운드 상수 (K[62] = 0xbef9a3f7 적용)
     const uint32_t PureSHA256::k[64] = {
         0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
         0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -180,7 +193,7 @@ namespace {
         0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
         0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
         0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
-        0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef4a3f7,0xc67178f2
+        0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
     };
 
     // -------------------------------------------------------------------------
@@ -220,15 +233,16 @@ namespace {
     // -------------------------------------------------------------------------
     std::vector<uint8_t> pure_pbkdf2_sha256(const uint8_t* password, size_t pass_len, const uint8_t* salt, size_t salt_len, int iterations, size_t key_length) {
         std::vector<uint8_t> derived_key;
+        derived_key.reserve(key_length + 32);
         uint32_t block_index = 1;
 
         while (derived_key.size() < key_length) {
             std::vector<uint8_t> salt_with_index(salt_len + 4);
             std::copy(salt, salt + salt_len, salt_with_index.begin());
-            salt_with_index[salt_len] = (block_index >> 24) & 0xFF;
-            salt_with_index[salt_len + 1] = (block_index >> 16) & 0xFF;
-            salt_with_index[salt_len + 2] = (block_index >> 8) & 0xFF;
-            salt_with_index[salt_len + 3] = block_index & 0xFF;
+            salt_with_index[salt_len] = static_cast<uint8_t>((block_index >> 24) & 0xFF);
+            salt_with_index[salt_len + 1] = static_cast<uint8_t>((block_index >> 16) & 0xFF);
+            salt_with_index[salt_len + 2] = static_cast<uint8_t>((block_index >> 8) & 0xFF);
+            salt_with_index[salt_len + 3] = static_cast<uint8_t>(block_index & 0xFF);
 
             auto u = pure_hmac_sha256(password, pass_len, salt_with_index.data(), salt_with_index.size());
             auto u_block = u;
@@ -240,7 +254,9 @@ namespace {
                 }
             }
 
-            derived_key.insert(derived_key.end(), u_block.begin(), u_block.end());
+            for (uint8_t b : u_block) {
+                derived_key.push_back(b);
+            }
             block_index++;
         }
 
