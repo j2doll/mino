@@ -47,7 +47,13 @@ namespace mino::core::json {
 
         value& operator[](const std::string& key) noexcept;
         value& operator[](size_t index) noexcept;
+
+        // 경로 기반 존재 확인. 예: "/obj/arr/0/key"
+        // 객체 키는 문자열로, 배열 요소는 숫자 문자열로 지정합니다.
+        bool has_path(const std::string& path) const noexcept;
     };
 
 } // namespace mino::core::json
+
+
 

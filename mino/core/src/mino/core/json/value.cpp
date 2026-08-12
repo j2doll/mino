@@ -1,5 +1,6 @@
-
 #include "mino/core/json/value.hpp"
+#include <string_view>
+#include <cctype>
 
 namespace mino::core::json {
 
@@ -57,6 +58,53 @@ namespace mino::core::json {
             }
         }
         return dummy;
+    }
+
+    bool value::has_path(const std::string& path) const noexcept {
+        const value* cur = this;
+        size_t n = path.size();
+        size_t i = 0;
+        // 허용: 선행 '/' 무시
+        if (i < n && path[i] == '/') ++i;
+
+        while (i <= n) {
+            size_t j = i;
+            while (j < n && path[j] != '/') ++j;
+            size_t len = (j > i) ? (j - i) : 0;
+
+            if (len == 0) {
+                // 빈 컴포넌트는 건너뜀 (연속된 슬래시 또는 끝의 슬래시)
+                if (j >= n) break;
+                i = j + 1;
+                continue;
+            }
+
+            std::string_view comp(path.data() + i, len);
+
+            if (cur->is_object()) {
+                const auto& obj = std::get<object_t>(cur->data);
+                auto it = obj.find(std::string(comp));
+                if (it == obj.end()) return false;
+                cur = &it->second;
+            } else if (cur->is_array()) {
+                // 배열 인덱스는 숫자 문자열이어야 함
+                size_t idx = 0;
+                for (char c : comp) {
+                    if (!std::isdigit(static_cast<unsigned char>(c))) return false;
+                    idx = idx * 10 + static_cast<size_t>(c - '0');
+                }
+                const auto& arr = std::get<array_t>(cur->data);
+                if (idx >= arr.size()) return false;
+                cur = &arr[idx];
+            } else {
+                return false;
+            }
+
+            if (j >= n) break;
+            i = j + 1;
+        }
+
+        return true;
     }
 
 } // namespace mino::core::json

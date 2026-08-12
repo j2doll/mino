@@ -17,4 +17,4 @@ add_subdirectory(expected)
 add_subdirectory(file)
 add_subdirectory(hash)
 add_subdirectory(ini)
-
+add_subdirectory(json)
