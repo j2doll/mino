@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include <type_traits>
+#include <cstdint>
 
 namespace mino::core::memory {
 
@@ -115,10 +116,10 @@ namespace mino::core::memory {
         template <typename T>
         static bool copy(const T& src, T& dst) {
             serializer s;
-            const_cast<T&>(src).serialize(s);
+            s.serialize(src);
 
             deserializer d(s.buffer);
-            return dst.deserialize(d);
+            return d.deserialize(dst);
         }
 
         // 기존 인터페이스 호환용 (복사 실패 시 기본 생성된 객체 반환)
