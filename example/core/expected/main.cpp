@@ -7,9 +7,6 @@
 #include "mino/core/expected/expected.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
 
-// 네임스페이스 별칭
-namespace cexp = mino::core::expected;
-
 // 커스텀 에러 열거형
 enum class MathError {
     DivisionByZero,
@@ -27,14 +24,14 @@ public:
     // 1. const 멤버 함수: 나눗셈 계산
     //    기대값 타입: int
     //    에러값 타입: std::string 
-    cexp::expected<int, std::string> divide(int numerator, int denominator) const {
+    mino::core::expected::expected<int, std::string> divide(int numerator, int denominator) const {
         if (denominator == 0) {
-            return cexp::unexpected_value<std::string>("0으로 나눌 수 없습니다.");
+            return mino::core::expected::unexpected_value<std::string>("0으로 나눌 수 없습니다.");
         }
 
         int result = numerator / denominator;
         if (std::abs(result) > max_limit_) {
-            return cexp::unexpected_value<std::string>("계산 결과가 한계치를 초과했습니다.");
+            return mino::core::expected::unexpected_value<std::string>("계산 결과가 한계치를 초과했습니다.");
         }
 
         return result; // int 타입의 정상 결과 반환
@@ -43,9 +40,9 @@ public:
     // 2. Enum을 에러 타입으로 사용하는 멤버 함수: 제곱근 계산
     //    기대값 타입: double
     //    에러값 타입: MathError(열거값)
-    cexp::expected<double, MathError> safe_sqrt(double val) const {
+    mino::core::expected::expected<double, MathError> safe_sqrt(double val) const {
         if (val < 0.0) {
-            return cexp::unexpected_value<MathError>(MathError::NegativeSquareRoot);
+            return mino::core::expected::unexpected_value<MathError>(MathError::NegativeSquareRoot);
         }
         return std::sqrt(val); // double 타입의 정상 결과 반환
     }
@@ -53,7 +50,7 @@ public:
     // 3. 상태 변경(non-const) 멤버 함수: 계산 결과를 히스토리에 추가
     //    기대값 타입: int
     //    에러값 타입: std::string
-    cexp::expected<int, std::string> add_to_history(int a, int b) {
+    mino::core::expected::expected<int, std::string> add_to_history(int a, int b) {
         auto res = divide(a, b); // 내부에서 다른 멤버 함수 호출
         if (res) {
             history_.push_back(res.value());
@@ -64,15 +61,15 @@ public:
     // 4. static 멤버 함수: 문자열을 정수로 파싱
     //    기대값 타입: int
     //    에러값 타입: std::string
-    static cexp::expected<int, std::string> parse_int(const std::string& str) {
+    static mino::core::expected::expected<int, std::string> parse_int(const std::string& str) {
         if (str.empty()) {
-            return cexp::unexpected_value<std::string>("빈 문자열입니다.");
+            return mino::core::expected::unexpected_value<std::string>("빈 문자열입니다.");
         }
         try {
             return std::stoi(str); // int 타입의 정상 결과 반환
         }
         catch (...) {
-            return cexp::unexpected_value<std::string>("정수로 변환할 수 없습니다.");
+            return mino::core::expected::unexpected_value<std::string>("정수로 변환할 수 없습니다.");
         }
     }
 
