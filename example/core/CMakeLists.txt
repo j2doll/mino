@@ -21,4 +21,5 @@ add_subdirectory(json)
 add_subdirectory(log)
 add_subdirectory(macro)
 add_subdirectory(memory)
+add_subdirectory(notification)
 
