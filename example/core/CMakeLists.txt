@@ -24,6 +24,6 @@ add_subdirectory(memory)
 add_subdirectory(notification)
 add_subdirectory(notifications)
 add_subdirectory(overload)
- 
+ add_subdirectory(pfr) 
 
 
