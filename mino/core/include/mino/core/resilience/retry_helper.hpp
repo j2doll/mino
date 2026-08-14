@@ -12,8 +12,7 @@
 #include <memory>
 #include <string>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include "mino/core/log/log.hpp"
 
 namespace mino::core::resilience {
 
@@ -24,7 +23,7 @@ namespace mino::core::resilience {
             int max_attempts,
             std::chrono::milliseconds base_delay,
             bool use_backoff,
-            const std::shared_ptr<spdlog::logger>& logger,
+            const std::shared_ptr<mino::core::log::tinylog::logger>& logger,
             func_type&& func,
             args_type&&... args
         ) -> decltype(std::invoke(std::forward<func_type>(func), std::forward<args_type>(args)...))
@@ -44,7 +43,9 @@ namespace mino::core::resilience {
                     else
                     {
                         auto result = std::invoke(std::forward<func_type>(func), std::forward<args_type>(args)...);
-                        if (result == return_t{})
+
+                        // 성공일 때 즉시 반환하도록 조건 반전
+                        if (!(result == return_t{}))
                         {
                             return result;
                         }

@@ -50,8 +50,13 @@ void test_console_sink() {
     std::cout << "[Test 2] Console Sink Test..." << std::endl;
 
     console_sink_config config;
+#ifdef _WIN32
+    config.encoding = encoding_type::cp949;
+    config.eol = eol_type::crlf;
+#else 
     config.encoding = encoding_type::utf8;
     config.eol = eol_type::lf;
+#endif
 
     // 생성자 및 name() 검증
     auto c_sink = std::make_shared<tinylog::console_sink>("console_test_sink", config);

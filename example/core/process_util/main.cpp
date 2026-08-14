@@ -8,7 +8,7 @@
 
 // 프로세스 목록 출력을 돕는 헬퍼 함수
 void print_processes(
-    const std::string& title,
+    const std::string& title, 
     const std::vector<mino::core::process_util::process_info>& processes)
 {
     namespace mcp = mino::core::process_util;
