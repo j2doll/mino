@@ -6,24 +6,12 @@
 #include <stdexcept>
 #include <memory>
 
-// 모듈 헤더 포함
 #include "mino/core/resilience/circuit_breaker.hpp"
 #include "mino/core/resilience/paginated_list.hpp"
 #include "mino/core/resilience/retry_helper.hpp"
+
 #include "mino/core/string/to_console_encoding.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
-
-// 써킷 브레이커 상태 출력 헬퍼 함수
-const char* state_to_string(mino::core::resilience::circuit_breaker::state s) {
-    namespace mcs = mino::core::resilience;
-    using state = mcs::circuit_breaker::state;
-    switch (s) {
-        case state::closed: return "CLOSED";
-        case state::open: return "OPEN";
-        case state::half_open: return "HALF_OPEN";
-    }
-    return "UNKNOWN";
-}
 
 // -----------------------------------------------------------------------------
 // 1. 페이지네이션 (paginated_list) 테스트
@@ -39,33 +27,40 @@ void test_paginated_list() {
     std::vector<int> numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
     int page_size = 5;
 
-    // 1페이지 조회
+    // 1페이지를 조회
+    //  NOTE: 페이지 크기가 5이므로, 1페이지에는 1~5, 2페이지에는 6~10,
+    //   3페이지에는 11~13이 포함됨.
     auto page1 = mcs::to_paginated_list(numbers, 1, page_size);
 
     // 페이지네이션 정보 출력
-    std::cout << to_enc("Total items : ") << page1.total_items << "\n";
-    std::cout << to_enc("Total pages : ") << page1.total_pages << "\n";
+    std::cout << to_enc("Total items : ") << page1.total_items << "\n"; // 13
+    std::cout << to_enc("Total pages : ") << page1.total_pages << "\n"; // 3        
 
-    // 1페이지 데이터 출력
+    // 1페이지 출력
     std::cout << to_enc("Page 1 data : ");
     for (int val : page1.get_page_view()) {
         std::cout << val << " ";
     }
     std::cout << "\n";
+    // 출력값: 1, 2, 3, 4, 5
 
-    // 3페이지 조회 (마지막 페이지)
+    // 3페이지(마지막 페이지) 출력 
     auto page3 = mcs::to_paginated_list(numbers, 3, page_size);
     std::cout << to_enc("Page 3 data : ");
     for (int val : page3.get_page_view()) {
         std::cout << val << " ";
     }
     std::cout << "\n";
+    // 출력값: 11, 12, 13
 
-    // 범위를 벗어난 페이지 요청 시 방어 코드 동작 확인
+    // 범위(1~3)를 벗어난 페이지(99) 요청 시, 방어 코드 동작 확인
     auto page_overflow = mcs::to_paginated_list(numbers, 99, page_size);
     std::cout
         << to_enc("Page 99 요청 -> 실제 적용 페이지: ")
         << page_overflow.current_page << "\n";
+    // Page 99 요청 -> 실제 적용 페이지: 3
+    //  NOTE: 요청 페이지가 총 페이지 수를 초과했으므로,
+    //   실제 적용 페이지는 마지막 페이지(3)로 조정됨.
 }
 
 // -----------------------------------------------------------------------------
@@ -129,7 +124,7 @@ void test_retry_helper() {
         use_backoff,  // 지수 백오프(Exponential Backoff) 사용: true
         logger,       // tinylog 로거 객체 전달
         flaky_func,   // 재시도할 작업 람다 함수
-        param_success_on_attempt // flaky_func의 인자 success_on_attempt
+        param_success_on_attempt // flaky_func의 인자(success_on_attempt)
     );
     // 
     // [작업 실행] 시도 횟수 : 1
@@ -140,82 +135,125 @@ void test_retry_helper() {
     // 
     // [작업 실행] 시도 횟수 : 3
     // 
-    // 최종 결과 : 성공(SUCCESS)
 
     std::cout
         << to_enc("최종 결과: ")
         << (result ? to_enc("성공 (SUCCESS)") : to_enc("실패 (FAILED)"))
         << std::endl;
+    // 최종 결과 : 성공(SUCCESS)
 }
 
 // -----------------------------------------------------------------------------
 // 3. 써킷 브레이커 (circuit_breaker) 테스트
 // -----------------------------------------------------------------------------
+namespace {
+    // 써킷 브레이커 상태 출력 헬퍼 함수
+    const char* state_to_string(mino::core::resilience::circuit_breaker::state s) {
+        namespace mcs = mino::core::resilience;
+        using state = mcs::circuit_breaker::state;
+        switch (s) {
+            case state::closed: return "CLOSED";
+            case state::open: return "OPEN";
+            case state::half_open: return "HALF_OPEN";
+        }
+        return "UNKNOWN";
+    }
+}
+
 void test_circuit_breaker() {
-    namespace mcs = mino::core::resilience;
-    auto to_enc = mino::core::string::to_console_encoding;
+    auto tce = mino::core::string::to_console_encoding;
     using namespace std::chrono_literals;
 
-    std::cout << to_enc("\n========================================\n");
-    std::cout << to_enc(" [3] Circuit Breaker Test\n");
-    std::cout << to_enc("========================================\n");
+    namespace mcs = mino::core::resilience;
+    using config_t = mcs::circuit_breaker::config_t;
+    using circuit_breaker = mcs::circuit_breaker;
+
+    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+    std::ostream& (*endl)(std::ostream&) = std::endl;
+
+    print(endl, tce("========================================"));
+    print(tce(" [3] Circuit Breaker Test"));
+    print(tce("========================================"));
+
+    // NOTE: 써킷 브레이커(Circuit Breaker) 상태
+    //  Open 상태: 써킷 브레이커가 열려서 모든 호출이 차단됨.
+    //  Closed 상태: 써킷 브레이커가 닫혀서 모든 호출이 정상적으로 전달됨.
+    //  Half-Open 상태: 써킷 브레이커가 반쯤 열려서 제한된 호출만 허용되고, 결과에 따라 상태가 전환됨.
 
     // 빠른 테스트를 위한 설정
-    mcs::circuit_breaker::config_t config;
-    config.failure_threshold = 3; // 3회 연속 실패 시 Open
-    config.reset_timeout = 500ms; // 0.5초 후 Half-Open으로 전환
-    config.half_open_success_threshold = 2; // Half-Open에서 2회 연속 성공 시 Closed로 복구
+    config_t config;
+    config.failure_threshold = 3; // 3회 연속 실패 시 Open(차단) 상태로 전환
+    config.reset_timeout = 500ms; // 0.5초 후 Half-Open(부분 허용) 상태로 전환
+    config.half_open_success_threshold = 2; // Half-Open에서 2회 연속 성공 시 Closed(호출) 상태로 전환
 
-    mcs::circuit_breaker cb(config); // 써킷 브레이커 객체 생성
+    circuit_breaker cb(config); // 써킷 브레이커 객체 생성
 
-    std::cout
-        << to_enc("초기 써킷 상태: ")
-        << state_to_string(cb.current_state())
-        << std::endl << std::endl;
+    print(tce("초기 써킷 상태: "), state_to_string(cb.current_state()), endl);
+    // 초기 써킷 상태: CLOSED(써킷 브레이커가 닫혀서 모든 호출이 정상적으로 전달됨)
 
     // 1. 의도적 실패를 유도하여 Open 상태로 만들기
-    std::cout << to_enc("--- [1단계] 연속 3회 실패 발생 시키기 ---\n");
+    print(tce("--- [1단계] 연속 3회 실패 발생 시키기 ---"));
+
     for (int i = 1; i <= 3; ++i) {
-        cb.execute([i, &to_enc]() {
-            std::cout << to_enc("  호출 ") << i << to_enc(" 시도 중... 예외 발생!\n");
+
+        // execute 호출 시, 의도적으로 예외를 발생시켜 실패를 유도
+        cb.execute([i, &tce]() {
+            auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+            print(tce("  호출 "), i, tce(" 시도 중... 예외 발생!"));
+
             throw std::runtime_error("DB 연결 실패");
         });
-        std::cout << to_enc("  -> 현재 상태: ") << state_to_string(cb.current_state()) << "\n";
+
+        print(tce("  -> 현재 상태: "), state_to_string(cb.current_state()));
+        // i가 1이면, 현재 상태: CLOSED
+        // i가 2이면, 현재 상태: CLOSED
+        // i가 3이면, 현재 상태: OPEN (써킷 브레이커가 열려서 모든 호출이 차단됨)
     }
+    //  호출 1 시도 중... 예외 발생!
+    //  -> 현재 상태: CLOSED
+    // 
+    //  호출 2 시도 중... 예외 발생!
+    //  -> 현재 상태: CLOSED
+    // 
+    //  호출 3 시도 중... 예외 발생!
+    //  -> 현재 상태: OPEN
 
     // 2. Open 상태에서 차단되는지 확인
-    std::cout << to_enc("\n--- [2단계] Open 상태에서 차단 여부 확인 ---\n");
-    cb.execute([&to_enc]() {
-        std::cout << to_enc("  이 문장은 출력되지 않아야 합니다.\n");
+    print(endl, tce("--- [2단계] Open 상태에서 차단 여부 확인 ---"), endl);
+
+    // Open 상태에서 execute 호출 시, 예외가 발생하여 차단됨. 
+    cb.execute([&tce]() {
+        std::cerr << tce("  이 문장은 출력되지 않아야 합니다.\n"); 
     });
-    std::cout << to_enc("  차단 후 상태: ") << state_to_string(cb.current_state()) << "\n";
+
+    print(tce("  차단 후 상태: "), state_to_string(cb.current_state()), endl);
+    //  차단 후 상태: OPEN (써킷 브레이커가 열려서 모든 호출이 차단됨)
 
     // 3. reset_timeout 대기 후 Half-Open 진입 확인
-    std::cout << to_enc("\n--- [3단계] Reset Timeout (600ms) 대기 ---\n");
-    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+    print(endl, tce( "--- [3단계] Reset Timeout (600ms) 대기 ---"), endl); 
+    std::this_thread::sleep_for(600ms); // config.reset_timeout(0.5초) 보다 더 대기
 
     // 4. Half-Open 상태에서 성공을 쌓아 Closed로 복구
-    std::cout
-        << to_enc("--- [4단계] Half-Open 복구 시도 (연속 2회 성공 필요) ---")
-        << std::endl;
-
+    print(tce("--- [4단계] Half-Open 복구 시도 (연속 2회 성공 필요) ---"), endl);
     // 첫 번째 성공
-    cb.execute([&to_enc]() {
-        std::cout << to_enc("  Half-Open 첫 번째 성공 호출\n");
+    cb.execute([&tce]() {
+        std::cout << tce("  Half-Open 첫 번째 성공 호출\n");
     });
-    std::cout
-        << to_enc("  -> 상태: ")
-        << state_to_string(cb.current_state())
-        << std::endl;
+    print(tce("  -> 상태: "), state_to_string(cb.current_state()), endl);
+    //
+    //  Half-Open 첫 번째 성공 호출
+    //  -> 상태: HALF_OPEN
 
     // 두 번째 성공
-    cb.execute([&to_enc]() {
-        std::cout << to_enc("  Half-Open 두 번째 성공 호출\n");
+    cb.execute([&tce]() {
+        std::cout << tce("  Half-Open 두 번째 성공 호출\n");
     });
-    std::cout
-        << to_enc("  -> 최종 복구 상태: ")
-        << state_to_string(cb.current_state())
-        << std::endl;
+    print(tce("  -> 최종 복구 상태: "), state_to_string(cb.current_state()), endl);
+    //
+    //  Half-Open 두 번째 성공 호출
+    //  -> 최종 복구 상태: CLOSED
+
 }
 
 // -----------------------------------------------------------------------------

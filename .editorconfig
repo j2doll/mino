@@ -7,9 +7,11 @@ charset = utf-8
 end_of_line = lf # Line endings for Linux (LF)
 insert_final_newline = true
 trim_trailing_whitespace = true
+guidelines = 80 white
 
 [*.{c,cpp,cxx,h,hpp}]
 # Apply to source and header files only
+
 [*.{c,cpp,cxx,h,hpp}]
 indent_style = space
 indent_size = 4
@@ -29,3 +31,7 @@ end_of_line = lf # Line endings for Linux (LF)
 # end_of_line = crlf
 # [*.vcxproj]
 # end_of_line = crlf
+
+
+
+
