@@ -9,13 +9,6 @@
 #include "mino/core/string/to_console_encoding.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 
-namespace {
-    auto tce = mino::core::string::to_console_encoding;
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
-}
-
 #pragma pack(push, 1) // 구조체 멤버들의 메모리 정렬 단위를 1바이트로 설정
 struct TestData {
     int counter;
@@ -24,6 +17,12 @@ struct TestData {
 #pragma pack(pop) // 스택에 백업해 두었던 이전 메모리 정렬 설정을 꺼내와 복원
 
 int main(int argc, char* argv[]) {
+    auto tce = mino::core::string::to_console_encoding;
+
+    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+    std::ostream& (*endl)(std::ostream&) = std::endl;
+
     using shared_memory = mino::core::shared_memory::shared_memory;
     using shm_exclusive_guard = mino::core::shared_memory::shm_exclusive_guard;
     using shm_shared_guard = mino::core::shared_memory::shm_shared_guard;

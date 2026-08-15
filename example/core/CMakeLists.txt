@@ -32,3 +32,6 @@ add_subdirectory(schedule)
 add_subdirectory(server)
 add_subdirectory(service)
 add_subdirectory(shared_memory)
+add_subdirectory(singleton)
+
+
