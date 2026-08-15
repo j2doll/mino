@@ -25,31 +25,18 @@ class test_server_application : public mino::core::server::server_application {
 protected:
     // pre_run() 오버라이드: 메인 루프 진입 전 초기화 작업 수행
     void pre_run() override {
-        if (logger()) {
-            using log_level = mino::core::log::tinylog::log_level;
-            logger()->log(log_level::info, "[TestApp] 로거가 주입되어 있음");
-        }
-        else {
-            print(tce("[TestApp] 로거가 주입되지 않음"));
-        }
+        if (logger()) { logger()->info("[TestApp] 로거가 주입되어 있음"); }
+        else { print(tce("[TestApp] 로거가 주입되지 않음")); }
     }
 
     // run() 오버라이드: 메인 루프 구현
     int run(const std::vector<std::string>& args) override {
-        if (logger()) {
-            logger()->info("[TestApp] 메인 루프 시작. 전달받은 인자 수: {}", args.size());
-        }
-        else {
-            print(tce("[TestApp] 메인 루프 시작. 전달받은 인자 수: "), args.size());
-        }
+        if (logger()) { logger()->info("[TestApp] 메인 루프 시작. 전달받은 인자 수: {}", args.size()); }
+        else { print(tce("[TestApp] 메인 루프 시작. 전달받은 인자 수: "), args.size()); }
 
         for (size_t i = 0; i < args.size(); ++i) {
-            if (logger()) {
-                logger()->info("  - args[{}]: {}", i, args[i]);
-            }
-            else {
-                print(tce("  - args["), i, tce("]: "), args[i]);
-            }
+            if (logger()) { logger()->info("  - args[{}]: {}", i, args[i]); }
+            else { print(tce("  - args["), i, tce("]: "), args[i]); }
         }
 
         int step = 0;
@@ -59,21 +46,14 @@ protected:
             // 내부 일시정지 상태 대기
             check_pause_status();
 
-            if (is_cancelled()) {
+            if (is_cancelled()) { // 안전 종료 요청이 들어오면 루프 탈출
                 break;
             }
 
             // is_paused() 공개 메서드 확인
 
-            if (logger()) {
-                logger()->info("[TestApp] 루프 실행 중... (Step: {}, is_paused: {}, is_cancelled: {})",
-                    ++step, is_paused(), is_cancelled());
-            }
-            else {
-                print(tce("[TestApp] 루프 실행 중... (Step: "), ++step,
-                    tce(", is_paused: "), is_paused(),
-                    tce(", is_cancelled: "), is_cancelled(), tce(")"));
-            }
+            if (logger()) { logger()->info("[TestApp] 루프 실행 중... (Step: {}, is_paused: {}, is_cancelled: {})", ++step, is_paused(), is_cancelled()); }
+            else { print(tce("[TestApp] 루프 실행 중... (Step: "), ++step, tce(", is_paused: "), is_paused(), tce(", is_cancelled: "), is_cancelled(), tce(")")); }
 
             if (step == std::numeric_limits<int>::max()) {
                 step = 0;
@@ -82,44 +62,28 @@ protected:
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
-        if (logger()) {
-            logger()->info("[TestApp] 메인 루프 안전 종료.");
-        }
-        else {
-            print(tce("[TestApp] 메인 루프 안전 종료."));
-        }
+        if (logger()) { logger()->info("[TestApp] 메인 루프 안전 종료."); }
+        else { print(tce("[TestApp] 메인 루프 안전 종료.")); }
 
         return 0;
     }
 
     // on_pause() 오바라이드: 일시정지 이벤트 훅
     void on_pause() override {
-        if ( logger()) {
-            logger()->info("[TestApp Hook] on_pause() 호출됨");
-        }
-        else {
-            print(tce("[TestApp Hook] on_pause() 호출됨"));
-        }
+        if ( logger()) { logger()->info("[TestApp Hook] on_pause() 호출됨");  }
+        else { print(tce("[TestApp Hook] on_pause() 호출됨")); }
     }
 
     // on_resume() 오버라이드: 재개 이벤트 훅
     void on_resume() override {
-        if (logger()) {
-            logger()->info("[TestApp Hook] on_resume() 호출됨");
-        }
-        else {
-            print(tce("[TestApp Hook] on_resume() 호출됨"));
-        }
+        if (logger()) { logger()->info("[TestApp Hook] on_resume() 호출됨"); }
+        else { print(tce("[TestApp Hook] on_resume() 호출됨")); }
     }
 
     // on_terminate() 오버라이드: 안전 종료 이벤트 훅
     void on_terminate() override {
-        if (logger()) {
-            logger()->info("[TestApp Hook] on_terminate() 호출됨");
-        }
-        else {
-            print(tce("[TestApp Hook] on_terminate() 호출됨"));
-        }
+        if (logger()) { logger()->info("[TestApp Hook] on_terminate() 호출됨"); }
+        else { print(tce("[TestApp Hook] on_terminate() 호출됨")); }
     }
 };
 
