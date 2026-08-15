@@ -33,5 +33,5 @@ add_subdirectory(server)
 add_subdirectory(service)
 add_subdirectory(shared_memory)
 add_subdirectory(singleton)
-
+add_subdirectory(string)
 

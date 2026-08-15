@@ -293,6 +293,7 @@ namespace mino::core::string {
                 "with()/guard() scope. Inside with(), only manipulate "
                 "the provided std::string(s).");
         }
+
         struct ReentrancyMark {
             const mutex_string* prev;
             explicit ReentrancyMark(const mutex_string* self);
@@ -310,4 +311,3 @@ namespace mino::core::string {
 
 }  
 
- 
