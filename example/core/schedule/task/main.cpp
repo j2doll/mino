@@ -9,7 +9,7 @@
 
 #include "mino/core/string/to_console_encoding.hpp"
 
-namespace {
+namespace { 
     // 시간을 읽기 쉬운 문자열로 변환하는 유틸리티 함수
     std::string format_time_point(std::chrono::system_clock::time_point tp) {
         namespace mcst = mino::core::schedule::task;
