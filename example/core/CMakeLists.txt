@@ -29,4 +29,4 @@ add_subdirectory(process_util)
 add_subdirectory(resilience)
 add_subdirectory(result)
 add_subdirectory(schedule)
-
+add_subdirectory(server)

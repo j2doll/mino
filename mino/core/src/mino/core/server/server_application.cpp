@@ -36,26 +36,27 @@ namespace mino::core::server {
             setup_signal_handlers();
 
             if (logger_) {
-                logger_->info("Application has successfully completed pre_run and is starting up...");
+                logger_->info("<bright_green>Application</bright_green> has successfully <green>completed</green> pre_run and is starting up...");
             }
 
             return run(arguments_);
         }
         catch (const std::exception& e) {
-            if (logger_) logger_->critical("Unhandled exception: {}", e.what());
-            else std::cerr << "Unhandled exception: " << e.what() << std::endl;
+            if (logger_) logger_->critical("<bright_yellow>Unhandled</bright_yellow> <bright_red>exception</bright_red>: {}", e.what());
+            else
+                std::cerr << "<bright_yellow>Unhandled</bright_yellow> <bright_red>exception</bright_red>: " << e.what() << std::endl;
             return 1;
         }
         catch (...) {
-            if (logger_) logger_->critical("Unknown exception caught");
-            else std::cerr << "Unknown exception caught" << std::endl;
+            if (logger_) logger_->critical("<bright_cyan>Unknown</bright_cyan> <bright_red>exception</bright_red> caught");
+            else std::cerr << "<bright_cyan>Unknown</bright_cyan> <bright_red>exception</bright_red> caught" << std::endl;
             return 1;
         }
     }
 
     void server_application::terminate() {
         if (!is_requested_to_stop_.exchange(true)) {
-            if (logger_) logger_->warn("Termination requested.");
+            if (logger_) logger_->warn("<yellow>Termination</yellow> <bright_white>requested</bright_white>.");
             on_terminate();
             resume();
         }
@@ -63,14 +64,14 @@ namespace mino::core::server {
 
     void server_application::pause() {
         if (!is_paused_.exchange(true)) {
-            if (logger_) logger_->warn("Application pausing...");
+            if (logger_) logger_->warn("<bright_green>Application</bright_green> <yellow>pausing</yellow>...");
             on_pause();
         }
     }
 
     void server_application::resume() {
         if (is_paused_.exchange(false)) {
-            if (logger_) logger_->info("Application resuming...");
+            if (logger_) logger_->info("<bright_green>Application</bright_green> <yellow>resuming</yellow>...");
             on_resume();
             pause_cv_.notify_all();
         }
