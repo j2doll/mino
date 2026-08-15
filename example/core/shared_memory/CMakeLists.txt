@@ -10,6 +10,11 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(Threads REQUIRED)
+if(UNIX AND NOT APPLE)
+    set(CMAKE_THREAD_PREFER_PTHREAD ON) # Set to prioritize using pthreads
+endif()
+
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_core` exists, that target will be used.
 set(MINO_CORE_DIR
@@ -30,6 +35,12 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 if(MSVC)
     target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
+endif()
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+else()
+    target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
 endif()
 
 # Use external / in-tree mino_core via reusable module
