@@ -39,6 +39,15 @@ namespace mino::core::schedule::task {
         void start();
         void stop();
 
+        // 신규: task 목록을 읽기 전용으로 안전하게 반환
+        struct task_info {
+            uint64_t task_id;
+            std::optional<std::string> description;
+            std::chrono::system_clock::time_point next_run_time;
+        };
+
+        std::vector<task_info> list_tasks();
+
     private:
         void run_loop();
         void worker_loop();

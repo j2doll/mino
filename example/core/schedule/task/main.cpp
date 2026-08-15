@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include "mino/core/schedule/task/task.hpp"
-
 #include "mino/core/string/to_console_encoding.hpp"
 
 namespace { 
@@ -24,6 +23,19 @@ namespace {
             << std::setfill('0') << std::setw(2) << parts.minute << ":"
             << std::setfill('0') << std::setw(2) << parts.second;
         return oss.str(); // YYYY-MM-DD HH:MM:SS 형식의 문자열 반환
+    }
+
+    std::string time_point_to_string(const std::chrono::system_clock::time_point& tp) {
+        std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+        std::tm tm;
+#if defined(_WIN32)
+        localtime_s(&tm, &tt);
+#else
+        localtime_r(&tt, &tm);
+#endif
+        std::ostringstream ss;
+        ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+        return ss.str();
     }
 }
 
@@ -116,7 +128,7 @@ void test_scheduler_execution() {
             std::cout << tce(">>> [실행] Task 1 작업 완료! (")
                 << tce(format_time_point(current)) << tce(")") << std::endl;
         },
-        "Task 1 (반복 실행)" // 설명 (생략 가능)
+        "태스크 1 (반복 실행)" // 설명 (생략 가능)
     );
 
     // Task 2 등록 (삭제 테스트용)
@@ -128,16 +140,48 @@ void test_scheduler_execution() {
             std::cout << tce(">>> [실행] Task 2 작업 완료! (")
                 << tce(format_time_point(current)) << tce(")") << std::endl;
         },
-        "Task 2 (취소 대상)" // 설명
+        "태스크 2 (취소 대상)" // 설명
     );
 
     // 스케줄러 시작
     scheduler.start();
     print(tce(">> 스케줄러가 시작되었습니다."), endl);
 
+    // 목록 조회 
+    {
+        auto tasks = scheduler.list_tasks();
+        std::cout << "\nRegistered tasks: " << tasks.size() << "\n";
+        for (const auto& t : tasks) {
+            std::cout
+                << "  ID: "
+                << t.task_id
+                << ", desc: "
+                << (t.description ? tce(*t.description) : "(none)")
+                << ", next_run: "
+                << time_point_to_string(t.next_run_time) << "\n";
+        }
+        std::cout << std::endl;
+    }
+
     // Task 2 삭제 테스트 (실행되기 전 바로 제거)
     print(tce(">> Task 2(ID: "), task2_id, tce(")를 제거합니다."));
     scheduler.remove_task(task2_id);
+
+    // 목록 조회 (Task2 제거 후)
+    {
+        auto tasks = scheduler.list_tasks();
+        std::cout << "\nRegistered tasks: " << tasks.size() << "\n";
+        for (const auto& t : tasks) {
+            std::cout
+                << "  ID: "
+                << t.task_id
+                << ", desc: "
+                << (t.description ? tce(*t.description) : "(none)")
+                << ", next_run: "
+                << time_point_to_string(t.next_run_time) << "\n";
+        }
+        std::cout << std::endl;
+    }
 
     // Task 1이 실행될 때까지 약 5초간 대기
     print(tce(">> 약 5초 동안 스케줄러를 관찰합니다..."));

@@ -79,6 +79,17 @@ namespace mino::core::schedule::task {
         log_info("Scheduler stopped safely.");
     }
 
+    // 신규: 현재 등록된 task 목록을 안전하게 복사하여 반환
+    std::vector<task_scheduler::task_info> task_scheduler::list_tasks() {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        std::vector<task_info> result;
+        result.reserve(tasks_.size());
+        for (const auto& t : tasks_) {
+            result.push_back({ t.task_id, t.description, t.next_run_time });
+        }
+        return result;
+    }
+
     void task_scheduler::run_loop() {
         while (is_running_) {
             auto now = std::chrono::system_clock::now();
