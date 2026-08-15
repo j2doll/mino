@@ -52,7 +52,7 @@ int main() {
     // 2. dump_schedule() 테스트[cite: 1]
     // ----------------------------------------------------
     print(tce("[TEST 1] dump_schedule() Output:"));
-    std::string dumped = dump_schedule(sample_ranges); // 스케줄 덤프 문자열 생성
+    std::string dumped = mcsw::dump_schedule(sample_ranges); // 스케줄 덤프 문자열 생성
     print(tce(dumped)); // 스케쥴 출력
     assert(!dumped.empty());
     // [TEST 1] dump_schedule() Output:
@@ -65,18 +65,18 @@ int main() {
     print(tce("[TEST 2] schedule_normalizer::normalize():"));
     weekly_ranges normalized = schedule_normalizer::normalize(sample_ranges); // 스케줄 정규화 (중복 제거 및 범위 병합)
     print(tce("Normalized ranges count: "), normalized.size()); // 정규화된 범위 수 출력
-    print(tce(dump_schedule(normalized))); // 정규화된 스케줄 출력
+    print(tce(mcsw::dump_schedule(normalized))); // 정규화된 스케줄 출력
     // [TEST 2] schedule_normalizer::normalize():
     // Normalized ranges count: 3
     // Mon 9:0 -> Mon 18:0
     // Fri 22:0 -> Fri 23:59
-    // Sat 0:0 -> Sat 4:0
+    // Sat 0:0 -> Sat 4:0 
 
     // ----------------------------------------------------
     // 4. to_xml() 테스트[cite: 5]
     // ----------------------------------------------------
     print(tce("[TEST 3] to_xml() Output:"));
-    std::string xml_output = to_xml(sample_ranges); // 스케줄을 XML 형식으로 변환
+    std::string xml_output = mcsw::to_xml(sample_ranges); // 스케줄을 XML 형식으로 변환
     print(tce(xml_output), endl);
     // [TEST 3] to_xml() Output:
     // <?xml version="1.0" encoding="UTF-8"?>
