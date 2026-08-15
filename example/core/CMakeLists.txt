@@ -27,4 +27,6 @@ add_subdirectory(overload)
 add_subdirectory(pfr)
 add_subdirectory(process_util)
 add_subdirectory(resilience)
+add_subdirectory(result)
+add_subdirectory(schedule)
 

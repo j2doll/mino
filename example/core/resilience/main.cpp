@@ -162,15 +162,15 @@ namespace {
 
 void test_circuit_breaker() {
     auto tce = mino::core::string::to_console_encoding;
+    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+    std::ostream& (*endl)(std::ostream&) = std::endl;
+
     using namespace std::chrono_literals;
 
     namespace mcs = mino::core::resilience;
     using config_t = mcs::circuit_breaker::config_t;
     using circuit_breaker = mcs::circuit_breaker;
-
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
 
     print(endl, tce("========================================"));
     print(tce(" [3] Circuit Breaker Test"));
