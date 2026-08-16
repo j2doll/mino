@@ -234,5 +234,10 @@ namespace mino::core::system {
             return ss.str();
         }
 
+        // 추가된 접근자 구현: 등록된 옵션 정의를 읽기 전용으로 반환
+        const std::vector<command_line::option_def>& command_line::options() const
+        {
+            return m_defs;
+        }
 
 }

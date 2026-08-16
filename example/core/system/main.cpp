@@ -52,6 +52,23 @@ void test_command_line() {
     bool parse_ok = cmd.parse(argc, argv.data()); // 파싱 수행
     assert(parse_ok && "command_line::parse failed!"); // 파싱 결과 확인
 
+    // 옵션 정의 열거 및 출력
+    std::cout << std::endl;
+    for (const auto& d : cmd.options()) {
+        auto long_name = d.long_name.empty() ? "(no long name)" : d.long_name;
+        auto short_name = std::string( 1, (d.short_name ? d.short_name : '-') );
+        auto requires_value = d.requires_value ? "true" : "false";
+        auto desc = d.description.empty() ? "(no description)" : d.description;
+        std::cout
+            << "\t"
+            << tce(long_name)
+            << ", short: " << tce(short_name)
+            << ", requires_value: " << std::boolalpha << requires_value
+            << ", desc: " << tce(desc)
+            << std::endl;
+    }
+    std::cout << std::endl;
+
     // has 및 get 검증
     assert(cmd.has("output") && "output option should exist"); // 존재 여부 확인
     assert(cmd.get("output") == "result.txt"); // 값 확인
@@ -66,8 +83,15 @@ void test_command_line() {
     assert(!cmd.has("non_existent")); // 존재하지 않는 옵션 확인
     assert(cmd.get("non_existent", "default_val") == "default_val"); // 기본값 확인
 
+        
+
     // 위치 인자(positionals) 검증
     auto positionals = cmd.positional(); // 위치 인자 반환
+    for (auto& pos : positionals) {
+        print(tce("  -> 위치 인자: "), tce(pos));
+    }
+    std::cout << std::endl;
+
     assert(positionals.size() == 2);
     assert(positionals[0] == "input1.txt");
     assert(positionals[1] == "input2.txt");

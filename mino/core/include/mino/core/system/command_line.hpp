@@ -48,6 +48,9 @@ namespace mino::core::system {
             // 사용법 문자열 생성
             std::string usage() const;
 
+            // 등록된 옵션 정의를 열거하기 위한 접근자 (읽기 전용)
+            const std::vector<option_def>& options() const;
+
         private:
             std::vector<option_def> m_defs;
             std::unordered_map<std::string, std::string> m_values; // long_name -> value (빈 값은 플래그)
