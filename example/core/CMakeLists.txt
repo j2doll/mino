@@ -35,4 +35,5 @@ add_subdirectory(shared_memory)
 add_subdirectory(singleton)
 add_subdirectory(string)
 add_subdirectory(system)
+add_subdirectory(thread)
 
