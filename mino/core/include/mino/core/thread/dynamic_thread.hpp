@@ -36,7 +36,7 @@ namespace mino::core::thread {
         void start(Callable&& func, Args&&... args) {
             if (running_.load(std::memory_order_acquire)) {
                 if (s_logger_) {
-                    s_logger_->warn("Thread is already running.");
+                    s_logger_->warn("<green>Thread</green> is already <yellow>running</yellow>.");
                 }
                 return;
             }
@@ -51,7 +51,7 @@ namespace mino::core::thread {
         void start(thread_task& obj) {
             if (running_.load(std::memory_order_acquire)) {
                 if (s_logger_) {
-                    s_logger_->warn("Thread is already running.");
+                    s_logger_->warn("<green>Thread</green> is already <yellow>running</yellow>.");
                 }
                 return;
             }
@@ -69,7 +69,7 @@ namespace mino::core::thread {
         void start(std::shared_ptr<thread_task> obj) {
             if (running_.load(std::memory_order_acquire)) {
                 if (s_logger_) {
-                    s_logger_->warn("Thread is already running.");
+                    s_logger_->warn("<green>Thread</green> is already <yellow>running</yellow>.");
                 }
                 return;
             }
