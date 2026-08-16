@@ -13,7 +13,8 @@
 namespace mino::core::thread {
 
     // 스레드에서 주기적으로 실행할 작업의 인터페이스
-    class thread_task {
+    // NOTE: thread_task를 상속받는 클래스를 만들어 strart()에 등록하여 사용
+    class thread_task { 
     public:
         virtual ~thread_task() = default;   // 다형 삭제를 위한 가상 소멸자
         virtual void performTask() = 0;     // 실제 작업 본문
@@ -79,7 +80,7 @@ namespace mino::core::thread {
             workerThread_ = std::thread(&dynamic_thread::threadFunction, this);
         }
 
-        // 스레드 정지
+        // 스레드 정지 (NOTE: 쓰레드 정지 기능은 std::thread에는 없는 기능)
         void stop();
 
         // 실행 여부 확인
