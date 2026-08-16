@@ -4,7 +4,6 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <typeinfo>
 #include <type_traits>
 #include <limits>
 
@@ -12,52 +11,61 @@
 
 namespace mino::core::string {
 
-    // 부동소수점 타입(float, double) 전용 to_string (정밀도 미지정)  
-    template <typename T>
-    std::string to_string(typename std::enable_if< std::is_floating_point<T>::value, T >::type value)
+    // Floating-point types (float, double) to_string (default precision)
+    template <typename T, typename std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    std::string to_string(T value)
     {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(std::numeric_limits<T>::max_digits10) << value;
-        std::string ret = oss.str();
-        return ret;
+        return oss.str();
     }
 
-    // 부동소수점 타입(float, double) 전용 to_string (정밀도 지정)
-    template <typename T>
-    std::string to_string(typename std::enable_if< std::is_floating_point<T>::value, T >::type value, long long precision)
+    // Floating-point types (float, double) to_string (precision specified)
+    template <typename T, typename std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    std::string to_string(T value, long long precision)
     {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(precision) << value;
-        std::string ret = oss.str();
-        return ret;
+        oss << std::fixed << std::setprecision(static_cast<int>(precision)) << value;
+        return oss.str();
     }
 
-    // 부동소수점 타입(float, double)이 동일한 값인지 확인 (정밀도 지정)
+    // Integral types to_string
+    template <typename T, typename std::enable_if_t<std::is_integral<T>::value, int> = 0>
+    std::string to_string(T value)
+    {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
+    }
+
+    // Fallback for other printable types (e.g., user types with operator<<).
+    // Constrain to types that are neither integral nor floating-point to avoid ambiguity.
+    template <typename T, typename std::enable_if_t<!std::is_integral<T>::value && !std::is_floating_point<T>::value, int> = 0>
+    std::string to_string(const T& value)
+    {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
+    }
+
+    // Floating-point equality with precision (uses string comparison of formatted values)
     template <typename T>
     bool is_equal(T value1, T value2, long long precision)
     {
         std::string str1 = to_string<T>(value1, precision);
         std::string str2 = to_string<T>(value2, precision);
 
-        if (str1 == str2) {
-            return true;
-        }
-
-        return false;
+        return (str1 == str2);
     }
 
-    // 부동소수점 타입(float, double)이 동일한 값인지 확인 (정밀도 미지정)
+    // Floating-point equality (default precision)
     template <typename T>
     bool is_equal(T value1, T value2)
     {
         std::string str1 = to_string<T>(value1);
         std::string str2 = to_string<T>(value2);
 
-        if (str1 == str2) {
-            return true;
-        }
-
-        return false;
+        return (str1 == str2);
     }
 
-} 
+}
