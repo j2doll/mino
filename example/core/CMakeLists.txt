@@ -36,4 +36,6 @@ add_subdirectory(singleton)
 add_subdirectory(string)
 add_subdirectory(system)
 add_subdirectory(thread)
+add_subdirectory(tpm)
+
 

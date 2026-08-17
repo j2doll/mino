@@ -16,8 +16,6 @@
 #include <tuple>
 #include <type_traits>
 
-// #include <spdlog/spdlog.h>
-// #include <spdlog/sinks/stdout_color_sinks.h>
 #include "mino/core/log/tinylog/tinylog.hpp"
 
 namespace mino::core::tpm {
@@ -65,9 +63,13 @@ namespace mino::core::tpm {
         tp_monitor& operator=(const tp_monitor&) = delete;
 
         // 워커 스레드를 `num_workers` 만큼 시작합니다.
-        // 내부적으로 호출 시 이미 시작된 워커가 있으면 추가로 시작하거나,
-        // 내부 정리 로직에 따라 다르게 동작할 수 있습니다(구현체 확인 필요).
-        void start_workers(size_t num_workers);
+        // 이미 워커가 실행 중이면 아무 작업도 하지 않고 `false`를 반환합니다.
+        // 성공적으로 워커를 시작하면 `true`를 반환합니다.
+        bool start_workers(size_t num_workers);
+
+        // 현재 실행 중인 워커 스레드 개수를 반환합니다.
+        // 스레드 안전성을 위해 내부에서 큐 뮤텍스를 잠급니다.
+        size_t worker_count();
 
         // 공통 모니터 로거 설정/획득
         void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger);
@@ -225,4 +227,4 @@ namespace mino::core::tpm {
         return res;
     }
 
-} 
+}

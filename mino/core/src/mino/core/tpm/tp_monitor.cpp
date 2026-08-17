@@ -26,7 +26,7 @@ namespace mino::core::tpm {
         if (logger_) logger_->info("Shutting down TP Monitor system cleanly...");
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            stop_ = true; // 💡 오타 수정 완료
+            stop_ = true;
         }
         cv_.notify_all();
         for (auto& worker : workers_) {
@@ -36,12 +36,12 @@ namespace mino::core::tpm {
         }
     }
 
-    void tp_monitor::start_workers(size_t num_workers) {
+    bool tp_monitor::start_workers(size_t num_workers) {
         std::lock_guard<std::mutex> lock(queue_mutex_);
 
         if (!workers_.empty()) {
             if (logger_) logger_->warn("Workers are already running. Ignore start_workers({}) request.", num_workers);
-            return;
+            return false;
         }
 
         if (logger_) logger_->info("Initializing TP Monitor with {} workers via start_workers().", num_workers);
@@ -49,6 +49,14 @@ namespace mino::core::tpm {
         for (size_t i = 0; i < num_workers; ++i) {
             workers_.emplace_back(&tp_monitor::worker_loop, this);
         }
+
+        return true;
+    }
+
+    // 현재 실행 중인 워커 스레드 개수를 반환합니다.
+    size_t tp_monitor::worker_count() {
+        std::lock_guard<std::mutex> lock(queue_mutex_);
+        return workers_.size();
     }
 
     void tp_monitor::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
@@ -62,12 +70,11 @@ namespace mino::core::tpm {
     }
 
     void tp_monitor::register_service(const std::string& service_name, service_function func) {
-        std::unique_lock<std::shared_mutex> lock(service_mutex_); // 💡 컴파일 에러 수정 완료
+        std::unique_lock<std::shared_mutex> lock(service_mutex_);
         services_[service_name] = func;
         if (logger_) logger_->info("Service [{}] registered successfully.", service_name);
     }
 
-    // 💡 서비스별 개별 로거 추가 세팅 함수 구현 (Write 락)
     void tp_monitor::set_ctx_logger(std::string service_name, std::shared_ptr<mino::core::log::tinylog::logger> logger) {
         if (!logger) return;
 
@@ -94,4 +101,4 @@ namespace mino::core::tpm {
         }
     }
 
-} 
+}
