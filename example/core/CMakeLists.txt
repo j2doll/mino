@@ -37,5 +37,6 @@ add_subdirectory(string)
 add_subdirectory(system)
 add_subdirectory(thread)
 add_subdirectory(tpm)
-
-
+add_subdirectory(uuid)
+add_subdirectory(validation)
+add_subdirectory(xml)

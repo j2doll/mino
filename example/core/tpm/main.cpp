@@ -28,6 +28,18 @@ public:
 };
 
 int main() {
+    namespace mclt = mino::core::log::tinylog;
+
+    using console_sink_config = mclt::console_sink_config;
+    console_sink_config ccfg;
+#ifdef _WIN32
+    ccfg.encoding = mclt::encoding_type::cp949;
+    ccfg.eol = mclt::eol_type::crlf;
+#else
+    ccfg.encoding = mclt::encoding_type::utf8;
+    ccfg.eol = mclt::eol_type::lf;
+#endif
+
     std::cout << "========================================\n";
     std::cout << "  TP Monitor Full Interface Unit Test   \n";
     std::cout << "========================================\n";
@@ -54,16 +66,6 @@ int main() {
         assert(ctx.is_aborted == true);
 
         // 1-5. set_logger() 및 get_logger() 인터페이스 정상 동작 확인
-        namespace mclt = mino::core::log::tinylog;
-        using console_sink_config = mclt::console_sink_config;
-        console_sink_config ccfg;
-#ifdef _WIN32
-        ccfg.encoding = mclt::encoding_type::cp949;
-        ccfg.eol = mclt::eol_type::crlf;
-#else
-        ccfg.encoding = mclt::encoding_type::utf8;
-        ccfg.eol = mclt::eol_type::lf;
-#endif
         auto dummy_logger = std::make_shared<mclt::logger>("test_logger");
         dummy_logger->add_sink(std::make_shared<mclt::console_sink>("console", ccfg));
 
@@ -82,16 +84,7 @@ int main() {
     tp_monitor monitor; // 인스턴스 생성
 
     // 2-1. tp_monitor::set_logger() 및 tp_monitor::get_logger() 검증
-    namespace mclt = mino::core::log::tinylog;
-    using console_sink_config = mclt::console_sink_config;
-    console_sink_config ccfg;
-#ifdef _WIN32
-    ccfg.encoding = mclt::encoding_type::cp949;
-    ccfg.eol = mclt::eol_type::crlf;
-#else
-    ccfg.encoding = mclt::encoding_type::utf8;
-    ccfg.eol = mclt::eol_type::lf;
-#endif
+
     auto monitor_logger = std::make_shared<mclt::logger>("monitor_logger");
     monitor_logger->add_sink(std::make_shared<mclt::console_sink>("console", ccfg));
 
@@ -114,8 +107,9 @@ int main() {
     // =========================================================================
     std::cout << "\n[Test 3] Service Registration & Context Logger Routing\n";
 
-    auto dedicated_service_logger = std::make_shared<mino::core::log::tinylog::logger>("calc_service_logger");
-
+    auto dedicated_service_logger = std::make_shared<mclt::logger>("calc_service_logger");
+    dedicated_service_logger->add_sink(std::make_shared<mclt::console_sink>("console", ccfg));
+ 
     // 3-1. 정상 계산 서비스 등록: 가변 인자 전달 및 연산 결과 세팅
     monitor.register_service(
         "CalcService", // 서비스 이름
