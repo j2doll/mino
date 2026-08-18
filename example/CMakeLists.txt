@@ -8,3 +8,7 @@ add_subdirectory(template)
 # mino core example
 add_subdirectory(core)
 
+# mino external example
+add_subdirectory(external)
+
+

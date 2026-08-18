@@ -66,16 +66,19 @@ rmdir /s /q build
 :: 작업 경로 삭제 (Linux)
 rm -rf build
 
-:: cmake 설정 (Windows)
+:: cmake 설정 (Windows) (vcpkg 미사용)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 
 :: -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능
 
+:: cmake 설정 (vcpkg 사용 시) (Release)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+
+:: cmake 설정 (vcpkg 사용 시) (Debug)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+
 :: cmake 설정 (Linux)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
-
-:: cmake 설정 (vcpkg 사용 시)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
 :: 빌드
 cmake --build build -j

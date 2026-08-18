@@ -18,7 +18,7 @@ set(MINO_DIR
     "Path to installed or built mino root (contains include/ and lib/)"
 )
 # NOTE: Set the path to the installation path with the following directory structure.
-# MINO_CORE_DIR
+# MINO_DIR
 #   ├── include
 #   │   └── mino
 #   └── lib

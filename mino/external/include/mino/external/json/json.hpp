@@ -2,59 +2,42 @@
 
 #include <string>
 #include <type_traits>
-#include <limits>
-#include <cmath>
 
 #include <nlohmann/json.hpp>
 
 namespace mino::external::json {
 
-    // nlohmann json 관련 별칭
-    using nj = nlohmann::json;
-    using njj = nlohmann::json_pointer<std::string>; 
+    using nj  = nlohmann::json;
+    using njj = nlohmann::json::json_pointer;
 
-    // 내부 헬퍼 선언 (정의는 .cpp)
-    // _mutable 은 const가 아닌 버전으로, 수정 가능 노드 포인터를 반환
+    // Node access (defined in .cpp)
     const nj* get_node(const nj& j, const njj& ptr) noexcept;
     nj* get_node_mutable(nj& j, const njj& ptr) noexcept;
 
-    // 숫자 변환 템플릿 선언(정의는 .cpp, 필요 타입 명시적 인스턴스화)
+    // Numeric conversion template (defined in .cpp and explicitly instantiated there)
     template <class T>
     bool try_number_cast(const nj& node, T& out) noexcept;
 
-    // value_or 오버로드 선언 (정의는 .cpp)
+    // value_or overloads (defined in .cpp)
     std::string value_or(const nj& j, const njj& ptr, const std::string& defval) noexcept;
     bool value_or(const nj& j, const njj& ptr, bool defval) noexcept;
 
     template <class T>
     T value_or(const nj& j, const njj& ptr, T defval) noexcept;
 
-    // 경로 문자열 버전 선언 (정의는 .cpp)
+    // value_or_path overloads (defined in .cpp)
     std::string value_or_path(const nj& j, const std::string& path, const std::string& defval) noexcept;
     bool value_or_path(const nj& j, const std::string& path, bool defval) noexcept;
 
     template <class T>
     T value_or_path(const nj& j, const std::string& path, T defval) noexcept;
 
-    //--------------------------------------------------------------
-    // 외부 공개 API (예외 없음) - 기존대로 선언만
-    //--------------------------------------------------------------
-    bool  exists(const nj& j, const std::string& path) noexcept;
+    // Existence and convenience getters (defined in .cpp)
+    bool exists(const nj& j, const std::string& path) noexcept;
 
-    std::string  get_string(const nj& j,
-        const std::string& path,
-        const std::string& defval) noexcept;
+    std::string get_string(const nj& j, const std::string& path, const std::string& defval) noexcept;
+    int         get_int   (const nj& j, const std::string& path, int defval) noexcept;
+    bool        get_bool  (const nj& j, const std::string& path, bool defval) noexcept;
+    double      get_double(const nj& j, const std::string& path, double defval) noexcept;
 
-    int  get_int(const nj& j,
-        const std::string& path,
-        int defval) noexcept;
-
-    bool  get_bool(const nj& j,
-        const std::string& path,
-        bool defval) noexcept;
-
-    double  get_double(const nj& j,
-        const std::string& path,
-        double defval) noexcept;
-
-}  
+} // namespace mino::external::json
