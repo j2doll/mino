@@ -12,11 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_external` exists, that target will be used.
-set(MINO_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino"
-    CACHE PATH
-    "Path to installed or built mino root (contains include/ and lib/)"
-)
+set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+
+# set("C:/opt/mino") # 사전에 Debug 빌드인지 Release 빌드인지 확인할 것
+
 # NOTE: Set the path to the installation path with the following directory structure.
 # MINO_DIR
 #   ├── include
@@ -40,4 +39,8 @@ use_mino_external(${EXE_NAME} "${MINO_DIR}")
 # third-party dependencies
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+find_package(yaml-cpp CONFIG REQUIRED)
+
+target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog yaml-cpp::yaml-cpp)
+
+

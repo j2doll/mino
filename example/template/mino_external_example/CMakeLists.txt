@@ -38,5 +38,6 @@ use_mino_external(${EXE_NAME} "${MINO_DIR}")
 # third-party dependencies
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+find_package(yaml-cpp CONFIG REQUIRED)
+target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog yaml-cpp::yaml-cpp)
 
