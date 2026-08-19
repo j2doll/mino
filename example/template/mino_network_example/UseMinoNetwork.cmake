@@ -32,6 +32,86 @@ function(use_mino_network EXE_NAME MINO_DIR)
             )
         endif()
 
+        # third-party dependencies
+        find_package(Threads REQUIRED)
+        find_package(OpenSSL REQUIRED)
+        if(TARGET crypto AND TARGET ssl)
+            add_library(OpenSSL::Crypto ALIAS crypto)
+            add_library(OpenSSL::SSL ALIAS ssl)
+        endif()
+        find_package(CURL REQUIRED)
+        set(MINO_BROTLI_AVAILABLE FALSE)
+        if(
+            DEFINED VCPKG_ROOT
+            OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg")
+        )
+            # Using vcpkg toolchain -> prefer vcpkg namespace
+            find_package(unofficial-brotli CONFIG REQUIRED)
+            set(MINO_BROTLI_AVAILABLE TRUE)
+            message(STATUS "unofficial-brotli found (vcpkg)")
+        else()
+            # Not using vcpkg toolchain: try common CMake package names quietly
+            find_package(Brotli CONFIG QUIET)
+            if(BROTLI_FOUND)
+                set(MINO_BROTLI_AVAILABLE TRUE)
+                message(STATUS "Brotli found via standard package config")
+            else()
+                find_package(brotli CONFIG QUIET)
+                if(BROTLI_FOUND)
+                    set(MINO_BROTLI_AVAILABLE TRUE)
+                    message(STATUS "brotli found via standard package config")
+                else()
+                    message(
+                        STATUS
+                        "Brotli package config not found; continuing without guaranteed brotli targets"
+                    )
+                endif()
+            endif()
+        endif()
+        find_package(httplib REQUIRED)
+
+        # third-party dependencies for mino external module
+        find_package(spdlog REQUIRED)
+        find_package(nlohmann_json REQUIRED)
+        find_package(yaml-cpp CONFIG REQUIRED)
+
+        # link libraries to the executable target
+        target_link_libraries(${EXE_NAME} PRIVATE
+            nlohmann_json::nlohmann_json
+            spdlog::spdlog
+            Threads::Threads
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            CURL::libcurl
+            httplib::httplib
+        )
+
+        if(MINO_BROTLI_AVAILABLE)
+            # Link whichever brotli target is available in common package namespaces
+            if(TARGET unofficial-brotli::brotli)
+                target_link_libraries(${EXE_NAME} PRIVATE unofficial-brotli::brotli)
+            elseif(TARGET Brotli::brotli)
+                target_link_libraries(${EXE_NAME} PRIVATE Brotli::brotli)
+            elseif(TARGET brotli::brotli)
+                target_link_libraries(${EXE_NAME} PRIVATE brotli::brotli)
+            elseif(TARGET Brotli::Brotli)
+                target_link_libraries(${EXE_NAME} PRIVATE Brotli::Brotli)
+            endif()
+        endif()
+
+        # Detect the yaml-cpp target name provided by the package and use it
+        if(TARGET yaml-cpp::yaml-cpp)
+            set(YAMLCPP_TARGET yaml-cpp::yaml-cpp)
+        elseif(TARGET yaml-cpp)
+            set(YAMLCPP_TARGET yaml-cpp)
+        elseif(TARGET YAML::YAML)
+            set(YAMLCPP_TARGET YAML::YAML)
+        else()
+            message(FATAL_ERROR "yaml-cpp target not found after find_package. Expected one of: yaml-cpp::yaml-cpp, yaml-cpp, YAML::YAML")
+        endif()
+        target_link_libraries(${EXE_NAME} PRIVATE ${YAMLCPP_TARGET})
+
+        # link mino network library to the executable target
         target_link_libraries(${EXE_NAME} PRIVATE mino_network::mino_network)
         message(STATUS "Using external mino_network from ${MINO_DIR}")
     endif()

@@ -11,6 +11,6 @@ add_subdirectory(core)
 # mino external example
 add_subdirectory(external)
 
-
-# add_subdirectory(network)
+# mino network example
+add_subdirectory(network)
 
