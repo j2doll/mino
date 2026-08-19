@@ -16,7 +16,7 @@ int main() {
     const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
     const auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
     std::ostream& (*endl)(std::ostream&) = std::endl;
-    auto tce = mino::core::string::to_console_encoding;
+    auto tce = mino::core::string::to_console_encoding; 
 
     // ------------------------------------------------------------------------
     // (2) 함수 내부 네임스페이스 별칭 정의
