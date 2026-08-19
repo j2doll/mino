@@ -11,10 +11,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Set for shared memory function
-find_package(Threads REQUIRED)
-if(UNIX AND NOT APPLE)
-    set(CMAKE_THREAD_PREFER_PTHREAD ON) # Set to prioritize using pthreads
-endif()
+#find_package(Threads REQUIRED)
+#if(UNIX AND NOT APPLE)
+#    set(CMAKE_THREAD_PREFER_PTHREAD ON) # Set to prioritize using pthreads
+#endif()
 
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_core` exists, that target will be used.
