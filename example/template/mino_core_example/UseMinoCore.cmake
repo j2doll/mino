@@ -28,6 +28,9 @@ function(use_mino_core EXE_NAME MINO_DIR)
             INTERFACE_INCLUDE_DIRECTORIES "${MINO_CORE_INCLUDE_DIR}"
         )
 
+        target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
+        message(STATUS "Using external mino_core from ${MINO_DIR}")
+
         # Set for shared memory function
         find_package(Threads REQUIRED)
         if(UNIX AND NOT APPLE)
@@ -35,8 +38,5 @@ function(use_mino_core EXE_NAME MINO_DIR)
         else()
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
         endif()
-
-        target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
-        message(STATUS "Using external mino_core from ${MINO_DIR}")
     endif()
 endfunction()
