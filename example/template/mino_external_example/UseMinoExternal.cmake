@@ -1,4 +1,8 @@
 function(use_mino_external EXE_NAME MINO_DIR)
+    if(MSVC)
+        target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
+    endif()
+
     # Warn if caller didn't create the executable target (we expect the caller to create it)
     if(NOT TARGET ${EXE_NAME})
         message(WARNING "use_mino_external: target ${EXE_NAME} does not exist. Proceeding to configure linking; create the executable target before calling this function.")
@@ -45,6 +49,35 @@ function(use_mino_external EXE_NAME MINO_DIR)
                 INTERFACE_INCLUDE_DIRECTORIES "${MINO_INCLUDE_DIR}"
             )
         endif()
+
+        # third-party dependencies
+        find_package(Threads REQUIRED)
+        find_package(nlohmann_json CONFIG REQUIRED)
+        find_package(spdlog CONFIG REQUIRED)
+        find_package(yaml-cpp CONFIG REQUIRED)
+
+        if(UNIX AND NOT APPLE)
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+        endif()
+
+        target_link_libraries(${EXE_NAME} PRIVATE
+            nlohmann_json::nlohmann_json
+            spdlog::spdlog
+        )
+
+        # Detect the yaml-cpp target name provided by the package and use it
+        if(TARGET yaml-cpp::yaml-cpp)
+            set(YAMLCPP_TARGET yaml-cpp::yaml-cpp)
+        elseif(TARGET yaml-cpp)
+            set(YAMLCPP_TARGET yaml-cpp)
+        elseif(TARGET YAML::YAML)
+            set(YAMLCPP_TARGET YAML::YAML)
+        else()
+            message(FATAL_ERROR "yaml-cpp target not found after find_package. Expected one of: yaml-cpp::yaml-cpp, yaml-cpp, YAML::YAML")
+        endif()
+        target_link_libraries(${EXE_NAME} PRIVATE ${YAMLCPP_TARGET})
 
         if(TARGET mino_external::mino_external)
             target_link_libraries(${EXE_NAME} PRIVATE mino_external::mino_external)

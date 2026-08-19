@@ -1,4 +1,8 @@
 function(use_mino_network EXE_NAME MINO_DIR)
+    if(MSVC)
+        target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
+    endif()
+
     # Warn if caller didn't create the executable target
     if(NOT TARGET ${EXE_NAME})
         message(WARNING "use_mino_network: target ${EXE_NAME} does not exist. Proceeding to configure linking; create the executable target before calling this function.")
@@ -11,12 +15,12 @@ function(use_mino_network EXE_NAME MINO_DIR)
         message(STATUS "Linking to out-of-tree target: mino_network")
 
         if(MINO_DIR)
-            find_path(MINO_INCLUDE_DIR NAMES "mino/network/interface/network_interface.hpp"
+            find_path(MINO_INCLUDE_DIR NAMES "mino/network/network.hpp"
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_NETWORK_LIBRARY NAMES mino_network
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
         else()
-            find_path(MINO_INCLUDE_DIR NAMES "mino/network/interface/network_interface.hpp")
+            find_path(MINO_INCLUDE_DIR NAMES "mino/network/network.hpp")
             find_library(MINO_NETWORK_LIBRARY NAMES mino_network)
         endif()
 
@@ -34,11 +38,13 @@ function(use_mino_network EXE_NAME MINO_DIR)
 
         # third-party dependencies
         find_package(Threads REQUIRED)
+
         find_package(OpenSSL REQUIRED)
         if(TARGET crypto AND TARGET ssl)
             add_library(OpenSSL::Crypto ALIAS crypto)
             add_library(OpenSSL::SSL ALIAS ssl)
         endif()
+
         find_package(CURL REQUIRED)
         set(MINO_BROTLI_AVAILABLE FALSE)
         if(
@@ -68,6 +74,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
                 endif()
             endif()
         endif()
+
         find_package(httplib REQUIRED)
 
         # third-party dependencies for mino external module
@@ -76,10 +83,15 @@ function(use_mino_network EXE_NAME MINO_DIR)
         find_package(yaml-cpp CONFIG REQUIRED)
 
         # link libraries to the executable target
+		if(UNIX AND NOT APPLE)
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+        endif()
+
         target_link_libraries(${EXE_NAME} PRIVATE
             nlohmann_json::nlohmann_json
             spdlog::spdlog
-            Threads::Threads
             OpenSSL::SSL
             OpenSSL::Crypto
             CURL::libcurl

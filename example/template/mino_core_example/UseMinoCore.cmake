@@ -1,4 +1,8 @@
 function(use_mino_core EXE_NAME MINO_DIR)
+    if(MSVC)
+        target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
+    endif()
+
     if(TARGET mino_core)
         message(STATUS "Linking to in-tree target: mino_core")
         target_link_libraries(${EXE_NAME} PRIVATE mino_core)
@@ -23,6 +27,14 @@ function(use_mino_core EXE_NAME MINO_DIR)
             IMPORTED_LOCATION "${MINO_CORE_LIBRARY}"
             INTERFACE_INCLUDE_DIRECTORIES "${MINO_CORE_INCLUDE_DIR}"
         )
+
+        # Set for shared memory function
+        find_package(Threads REQUIRED)
+        if(UNIX AND NOT APPLE)
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+        endif()
 
         target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
         message(STATUS "Using external mino_core from ${MINO_DIR}")

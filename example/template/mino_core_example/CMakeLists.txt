@@ -28,9 +28,6 @@ set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to ins
 # Gather all .cpp files in the current directory
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
-if(MSVC)
-    target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
-endif()
 
 # Use external / in-tree mino_core via reusable module
 include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoCore.cmake")
