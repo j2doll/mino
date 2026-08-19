@@ -22,14 +22,14 @@ function(use_mino_external EXE_NAME MINO_DIR)
         message(STATUS "Linking to out-of-tree(external) targets: mino_core / mino_external")
 
         if(MINO_DIR)
-            find_path(MINO_INCLUDE_DIR NAMES "mino/core/core.hpp"
+            find_path(MINO_INCLUDE_DIR NAMES "mino/external/external.hpp"
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_EXTERNAL_LIBRARY NAMES mino_external
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_CORE_LIBRARY NAMES mino_core
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
         else()
-            find_path(MINO_INCLUDE_DIR NAMES "mino/core/core.hpp")
+            find_path(MINO_INCLUDE_DIR NAMES "mino/external/external.hpp")
             find_library(MINO_EXTERNAL_LIBRARY NAMES mino_external)
             find_library(MINO_CORE_LIBRARY NAMES mino_core)
         endif()
