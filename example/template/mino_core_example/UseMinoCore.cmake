@@ -22,6 +22,14 @@ function(use_mino_core EXE_NAME MINO_DIR)
             message(FATAL_ERROR "mino_core not found. Either add mino as a subdirectory or set -DMINO_DIR=/path/to/mino/install")
         endif()
 
+        # Set for shared memory function
+        find_package(Threads REQUIRED)
+        if(UNIX AND NOT APPLE)
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+        endif()
+
         add_library(mino_core::mino_core UNKNOWN IMPORTED)
         set_target_properties(mino_core::mino_core PROPERTIES
             IMPORTED_LOCATION "${MINO_CORE_LIBRARY}"
@@ -30,13 +38,5 @@ function(use_mino_core EXE_NAME MINO_DIR)
 
         target_link_libraries(${EXE_NAME} PRIVATE mino_core::mino_core)
         message(STATUS "Using external mino_core from ${MINO_DIR}")
-
-        # Set for shared memory function
-        find_package(Threads REQUIRED)
-        if(UNIX AND NOT APPLE)
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
-        else()
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
-        endif()
     endif()
 endfunction()
