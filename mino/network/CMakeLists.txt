@@ -133,6 +133,9 @@ endif()
 
 if(MINO_CURL_LINKS)
     target_link_libraries(mino_network PUBLIC ${MINO_CURL_LINKS})
+    # Define USE_CURL so curl-backed implementation files (guarded by #ifdef USE_CURL)
+    # are compiled into the library.
+    target_compile_definitions(mino_network PUBLIC USE_CURL)
 else()
     message(FATAL_ERROR "CURL not found.")
 endif()
