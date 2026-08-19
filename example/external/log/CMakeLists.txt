@@ -4,5 +4,6 @@ project(mino_external_log_example_project)
 
 add_subdirectory(adapter)
 add_subdirectory(factory)
+add_subdirectory(spd)
 
 
