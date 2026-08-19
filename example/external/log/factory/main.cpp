@@ -3,6 +3,9 @@
 #include <utility>
 
 #include <spdlog/spdlog.h>
+// NOTE: spdlog는 한들 인코딩 방식을 지원하지 않고, UTF8으로만 처리되는 것을 유념.
+//      따라서, 콘솔 출력 시 한글이 깨지지 않도록 UTF8 → 콘솔 인코딩 변환을 수행해야 함.
+// 만약 인코딩 처리를 하면 콘솔, 파일 인코딩 시, 두 가지 모두 변환이 적용되므로 주의할 것.
 
 #include "mino/external/log/factory/factory.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
@@ -56,7 +59,10 @@ int main(int argc, char* argv[]) {
 
     // logger_registry::get()
     auto reg_logger = registry.get("reg_direct");
-    reg_logger << tce(fmt::format("logger_registry::create 성공: {}", "reg_direct"));
+    reg_logger << tce(fmt::format(
+        "logger_registry::create 성공: {}",
+        "reg_direct"
+    ));
 
     // ----------------------------------------------------------------
     print(tce("\n=== [2] 전역 헬퍼 함수 (create / get) 테스트 ==="));
@@ -119,7 +125,10 @@ int main(int argc, char* argv[]) {
 
     // 전역 get()
     auto& g_logger = log_factory::get("g_logger_lvl");
-    g_logger << tce(fmt::format("전역 create 및 get 호출 성공: 레벨={}", static_cast<int>(spdlog::level::trace)));
+    g_logger << tce(fmt::format(
+        "전역 create 및 get 호출 성공: 레벨={}",
+        static_cast<int>(spdlog::level::trace
+    )));
 
     // ----------------------------------------------------------------
     print(tce("\n=== [3] tiny_logger 독립 생성자 및 멤버 함수 테스트 ==="));
@@ -141,9 +150,15 @@ int main(int argc, char* argv[]) {
         0, // 회전 시간 (0시)
         0); // 회전 분 (0분)
 
-    custom_logger << tce(fmt::format("custom_logger format 로깅: 정수={}, 문자열={}", 100, "OK"));
+    custom_logger << tce(fmt::format(
+        "custom_logger format 로깅: 정수={}, 문자열={}",
+        100, "OK"
+    ));
 
-    custom_logger << tce(fmt::format("custom_logger stream 로깅: 값={}", 999.99));
+    custom_logger << tce(fmt::format(
+        "custom_logger stream 로깅: 값={}",
+        999.99
+    ));
 
     // ----------------------------------------------------------------
     print(tce("\n=== [4] tiny_logger::stream_proxy 멤버 테스트 (생성, 이동, 스트림, 소멸) ==="));
