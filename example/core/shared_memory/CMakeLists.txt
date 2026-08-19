@@ -18,13 +18,13 @@ endif()
 
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_core` exists, that target will be used.
-set(MINO_CORE_DIR
+set(MINO_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino/core"
     CACHE PATH
     "Path to installed or built mino root (contains include/ and lib/)"
 )
 # NOTE: Set the path to the installation path with the following directory structure.
-# MINO_CORE_DIR
+# MINO_DIR
 #   ├── include
 #   │   └── mino
 #   └── lib
@@ -48,4 +48,4 @@ endif()
 # Use external / in-tree mino_core via reusable module
 # include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoCore.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
-use_mino_core(${EXE_NAME} "${MINO_CORE_DIR}")
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
