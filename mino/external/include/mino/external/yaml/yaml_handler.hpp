@@ -51,29 +51,89 @@ namespace mino::external::yml {
         template <typename T>
         std::optional<T> get_value(std::string_view key) const {
             try {
-                if (!config_node_.IsMap()) {
+                if (!config_node_.IsDefined() || config_node_.IsNull()) {
                     return std::nullopt;
                 }
 
+                // Split key into parts
                 std::string k(key);
-                auto sub_node = config_node_[k];
-                if (!sub_node || sub_node.IsNull()) {
+                std::vector<std::string> parts;
+                std::size_t start = 0;
+                while (start <= k.size()) {
+                    std::size_t pos = k.find('.', start);
+                    if (pos == std::string::npos) {
+                        parts.push_back(k.substr(start));
+                        break;
+                    }
+                    parts.push_back(k.substr(start, pos - start));
+                    start = pos + 1;
+                }
+
+                if (parts.empty()) {
                     return std::nullopt;
                 }
-                return sub_node.as<T>();
+
+                // Traverse full dotted path from root; if any node missing => nullopt
+                YAML::Node node = config_node_;
+                for (const auto& part : parts) {
+                    if (!node.IsMap()) {
+                        return std::nullopt;
+                    }
+                    YAML::Node next = node[part];
+                    if (!next.IsDefined() || next.IsNull()) {
+                        return std::nullopt;
+                    }
+                    node.reset(next);
+                }
+                return node.as<T>();
             }
             catch (const std::exception& e) {
-                log_error("Failed to convert value for key ({}): {}", key, e.what());
+                log_error("Failed to convert value for key", key, e.what());
             }
             return std::nullopt;
         }
 
         template <typename T>
         void set_value(std::string_view key, const T& value) {
-            if (!config_node_.IsMap()) {
-                config_node_ = YAML::Load("{}");
+            if (!config_node_.IsDefined() || !config_node_.IsMap()) {
+                config_node_ = YAML::Node(YAML::NodeType::Map);
             }
-            config_node_[std::string(key)] = value;
+
+            // Split key into parts
+            std::string k(key);
+            std::vector<std::string> parts;
+            std::size_t start = 0;
+            while (start <= k.size()) {
+                std::size_t pos = k.find('.', start);
+                if (pos == std::string::npos) {
+                    parts.push_back(k.substr(start));
+                    break;
+                }
+                parts.push_back(k.substr(start, pos - start));
+                start = pos + 1;
+            }
+
+            if (parts.empty()) {
+                return;
+            }
+
+            // If single part, set at top-level
+            if (parts.size() == 1) {
+                config_node_[parts[0]] = value;
+                return;
+            }
+
+            // Always create/traverse nested nodes along the dotted path and set the final value.
+            YAML::Node node = config_node_;
+            for (std::size_t i = 0; i + 1 < parts.size(); ++i) {
+                const auto& part = parts[i];
+                if (!node[part] || !node[part].IsDefined() || node[part].IsNull() || !node[part].IsMap()) {
+                    node[part] = YAML::Node(YAML::NodeType::Map);
+                }
+                YAML::Node next = node[part];
+                node.reset(next);
+            }
+            node[parts.back()] = value;
         }
 
         void set_block_scalar(std::string_view key, std::string_view text, bool is_literal = true);
@@ -92,4 +152,4 @@ namespace mino::external::yml {
         std::shared_ptr<spdlog::logger> logger_ = nullptr;
     };
 
-}
+} // namespace mino::external::yml

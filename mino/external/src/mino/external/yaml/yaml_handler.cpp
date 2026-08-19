@@ -146,7 +146,7 @@ namespace mino::external::yml {
 
     void yaml_handler::node_to_json(const YAML::Node& node, std::ostream& os)
     {
-        if (!node || node.IsNull()) {
+        if (!node || !node.IsDefined() || node.IsNull()) {
             os << "null";
             return;
         }
@@ -274,7 +274,7 @@ namespace mino::external::yml {
     {
         auto indent = [&](int d) { for (int i = 0; i < d; ++i) os << "  "; };
 
-        if (!node || node.IsNull()) {
+        if (!node || !node.IsDefined() || node.IsNull()) {
             indent(depth);
             os << "<" << tag_name << "/>\n";
             return;
@@ -337,15 +337,41 @@ namespace mino::external::yml {
 
     void yaml_handler::set_block_scalar(std::string_view key, std::string_view text, bool is_literal)
     {
-        if (!config_node_.IsMap()) {
-            config_node_ = YAML::Load("{}");
+        if (!config_node_.IsDefined() || !config_node_.IsMap()) {
+            config_node_ = YAML::Node(YAML::NodeType::Map);
         }
 
-        std::string key_str(key);
-        config_node_[key_str] = std::string(text);
+        std::string k(key);
+        std::vector<std::string> parts;
+        std::size_t start = 0;
+        while (start <= k.size()) {
+            std::size_t pos = k.find('.', start);
+            if (pos == std::string::npos) {
+                parts.push_back(k.substr(start));
+                break;
+            }
+            parts.push_back(k.substr(start, pos - start));
+            start = pos + 1;
+        }
 
+        if (parts.empty()) {
+            return;
+        }
+
+        YAML::Node node = config_node_;
+        for (std::size_t i = 0; i + 1 < parts.size(); ++i) {
+            const auto& part = parts[i];
+            if (!node[part] || !node[part].IsDefined() || node[part].IsNull() || !node[part].IsMap()) {
+                node[part] = YAML::Node(YAML::NodeType::Map);
+            }
+            YAML::Node next = node[part];
+            node.reset(next);
+        }
+
+        const auto& final_key = parts.back();
+        node[final_key] = std::string(text);
         if (is_literal) {
-            config_node_[key_str].SetStyle(YAML::EmitterStyle::Block);
+            node[final_key].SetStyle(YAML::EmitterStyle::Block);
         }
     }
 
@@ -400,4 +426,4 @@ namespace mino::external::yml {
         return out;
     }
 
-}
+} // namespace mino::external::yml
