@@ -6,7 +6,7 @@
 
 #include "mino/core/string/to_console_encoding.hpp" // mino core lib class
 
-#include "mino/external/json/json.hpp"
+#include "mino/external/json/json.hpp" // mino external json lib class
 
 // ----------------------------------------------------------------------------
 // 1. 노드 탐색 및 수정 함수 테스트 (get_node, get_node_mutable)
@@ -164,15 +164,19 @@ void test_external_api() {
     // [1. 경로 존재 여부 및 특수문자 이스케이프 (~0, ~1) 테스트][cite: 4]
     nlohmann::json config_json = {
         {"config", {
-            {"database", {
-                {"host", "db.local"},
-                {"port", 5432},
-                {"ssl", true}
-            }},
-            {"weird", {
-                {"a/b", 1}, // '/' 포함 키
-                {"c~d", 2}  // '~' 포함 키
-            }}
+            {"database",
+                {
+                    {"host", "db.local"},
+                    {"port", 5432},
+                    {"ssl", true}
+                }
+            },
+            {"weird",
+                {
+                    {"a/b", 1}, // '/' 포함 키
+                    {"c~d", 2}  // '~' 포함 키
+                }
+            }
         }}
     };
 

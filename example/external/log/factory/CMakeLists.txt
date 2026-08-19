@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(external_json_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "external_json_example")
+project(external_log_factory_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "external_log_factory_example")
 
 # Set C++ standard to C++17 if not already defined
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_external` exists, that target will be used.
-set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
 
 # MSVC(Windows) 경로 설정 예제 
 # set("C:/opt/mino") # 사전에 Debug 빌드인지 Release 빌드인지 확인할 것
@@ -34,7 +34,7 @@ endif()
 
 # Use external / in-tree mino_core via reusable module
 # include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoExternal.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_external_example/UseMinoExternal.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../../../template/mino_external_example/UseMinoExternal.cmake")
 use_mino_external(${EXE_NAME} "${MINO_DIR}")
 
 # third-party dependencies

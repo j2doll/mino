@@ -14,7 +14,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # If empty and in-tree targets named `mino_core` and `mino_external` exist, those targets will be used.
 set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
 
-# set(MINO_DIR "C:/opt/mino") # 사전에 Debug 빌드인지 Release 빌드인지 확인할 것
+# MSVC (Windows) example
+# set(MINO_DIR "C:/opt/mino")
+# Make sure to check beforehand whether this is a Debug or Release build
 
 # NOTE: Set the path to the installation path with the following directory structure.
 # MINO_DIR
