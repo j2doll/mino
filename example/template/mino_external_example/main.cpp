@@ -7,7 +7,7 @@
 int main() {
     namespace mjson = mino::external::json;
     using json_t = nlohmann::json;
-    using json_ptr_t = nlohmann::json_pointer<std::string>;
+    using json_ptr_t = nlohmann::json::json_pointer; // use project's json_pointer specialization
 
     // Build a JSON object
     json_t j;
@@ -21,7 +21,7 @@ int main() {
 
     // --- Examples using functions from mino/external/json/json.hpp ---
 
-    // 1) Use JSON pointer overloads (njj is an alias to nlohmann::json_pointer<std::string>)
+    // 1) Use JSON pointer overloads (njj is an alias to nlohmann::json::json_pointer)
     json_ptr_t ptrEnabled("/nested/enabled");
     bool enabledPtr = mjson::value_or(j, ptrEnabled, false);
     std::cout << "/nested/enabled : " << std::boolalpha << enabledPtr << "\n";
