@@ -29,6 +29,6 @@ set(MINO_DIR
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 
-# Use external / in-tree mino_core via reusable module
+# Use mino core
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
 use_mino_core(${EXE_NAME} "${MINO_DIR}")

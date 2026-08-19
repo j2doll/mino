@@ -10,12 +10,6 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set for shared memory function
-#find_package(Threads REQUIRED)
-#if(UNIX AND NOT APPLE)
-#    set(CMAKE_THREAD_PREFER_PTHREAD ON) # Set to prioritize using pthreads
-#endif()
-
 # Allow user to specify where the mino install/build is located.
 # If empty and an in-tree target named `mino_core` exists, that target will be used.
 set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino/core" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
@@ -32,7 +26,7 @@ set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino/core" CACHE PATH "Path t
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 
-# Use external / in-tree mino_core via reusable module
+# Use mino core
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 
