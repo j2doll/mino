@@ -17,7 +17,7 @@ auto tce = mino::core::string::to_console_encoding;
 void test_yaml_wrapper_basic();
 void test_yaml_wrapper_conversions();
 void test_yaml_wrapper_move_semantics();
-void test_yaml_handler_direct(); // 추가: yaml_handler 직접 검사
+void test_yaml_handler_direct();  
 
 int main() {
     try {

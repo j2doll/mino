@@ -5,6 +5,8 @@
 #include <optional>
 #include <memory>
 
+// NOTE: yaml wrapper는 yaml-cpp 헤더 포함 없이 사용 가능.
+
 namespace spdlog {
     class logger;
 } 
