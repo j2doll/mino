@@ -267,3 +267,6 @@ dist/
 # Kate
 *.kate-swp
 .kateproject.*
+
+# sftp 
+sftp_host_key

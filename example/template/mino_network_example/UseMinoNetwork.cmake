@@ -87,6 +87,8 @@ function(use_mino_network EXE_NAME MINO_DIR)
 
         find_package(httplib REQUIRED)
 
+        find_package(Libssh2 REQUIRED)
+
         # third-party dependencies for mino external module
         find_package(spdlog REQUIRED)
         find_package(nlohmann_json REQUIRED)
@@ -106,6 +108,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
             OpenSSL::Crypto
             CURL::libcurl
             httplib::httplib
+            Libssh2::libssh2
         )
 
         if(MINO_BROTLI_AVAILABLE)

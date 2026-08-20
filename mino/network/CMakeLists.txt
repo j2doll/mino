@@ -73,6 +73,10 @@ message(STATUS "spdlog version: ${spdlog_VERSION}")
 find_package(nlohmann_json REQUIRED)
 message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
+# 3-7. libssh2
+find_package(Libssh2 CONFIG REQUIRED)
+message(STATUS "libssh2 version: ${Libssh2_VERSION}")
+
 # 4. Configure the library source code
 file(
     GLOB_RECURSE SRC_FILES
@@ -181,6 +185,9 @@ if(MINO_JSON_LIBS)
 else()
     message(FATAL_ERROR "nlohmann_json not found.")
 endif()
+
+# 6-6. libssh2 link settings
+target_link_libraries(mino_network PRIVATE Libssh2::libssh2)
 
 # 7. [Dependency] If network uses xxx, link it here.
 target_link_libraries(mino_network PUBLIC mino_core mino_external)

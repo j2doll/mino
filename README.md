@@ -44,40 +44,45 @@
 
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
-# 1. EPEL 저장소 활성화
-sudo dnf install -y epel-release
+sudo dnf install -y epel-release dnf-plugins-core
+sudo dnf config-manager --set-enabled powertools
 
-# 2. SFTP 지원을 위해 libcurl-minimal을 정식 libcurl로 교체 (충돌 해결 필수)
 sudo dnf swap -y libcurl-minimal libcurl
 
-# 3. 개발 라이브러리 및 HTTPS/SFTP 의존성 패키지 설치
 sudo dnf install -y \
-    spdlog-devel \
-    json-devel \
-    libcurl-devel \
+    gcc-c++ \
+    cmake \
+    make \
+    pkgconfig \
+    openssl-devel \
     libssh2-devel \
     libssh-devel \
-    openssl-devel \
-    ca-certificates \
-    cpp-httplib-devel \
+    libcurl-devel \
+    spdlog-devel \
+    json-devel \
     yaml-cpp \
-    yaml-cpp-devel
+    yaml-cpp-devel \
+    cpp-httplib-devel \
+    ca-certificates
 ```
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
-# 1. 패키지 목록 업데이트
-sudo apt-get update
+sudo apt update -y
 
-# 2. 개발 라이브러리 및 HTTPS/SFTP 의존성 패키지 설치
-sudo apt-get install -y \
+sudo apt install -y \
+    build-essential \
+    cmake \
+    pkg-config \
+    libssl-dev \
+    libssh2-1-dev \
+    libssh-dev \
+    libcurl4-openssl-dev \
     libspdlog-dev \
     nlohmann-json3-dev \
-    libcurl4-openssl-dev \
-    libssh2-1-dev \
-    libssl-dev \
-    ca-certificates \
-    libyaml-cpp-dev
+    libyaml-cpp-dev \
+    libcpp-httplib-dev \
+    ca-certificates
 ```
 
 ##### 📦 라이브러리 설치 
