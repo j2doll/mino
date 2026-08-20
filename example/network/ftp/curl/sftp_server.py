@@ -2,6 +2,8 @@ import os
 import socket
 import sys
 import errno
+
+# pip install paramiko
 import paramiko
 from paramiko import SFTPServerInterface, SFTPServer, SFTP_OK, SFTP_NO_SUCH_FILE, SFTP_PERMISSION_DENIED, SFTP_FAILURE, SFTPAttributes
 
