@@ -428,7 +428,12 @@ bool sftp_client::connect(const std::string& host, int p, const std::string& use
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_DIRLISTONLY, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 5L);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     std::ostringstream dummy;
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
@@ -463,7 +468,12 @@ bool sftp_client::upload(const std::string& local_file, const std::string& remot
     curl_easy_setopt(curl_handle, CURLOPT_UPLOAD, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl_handle, CURLOPT_READDATA, &file);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     if (progress_listener) {
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
@@ -499,7 +509,12 @@ bool sftp_client::download(const std::string& remote_file, const std::string& lo
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &file);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     if (progress_listener) {
         curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
@@ -527,7 +542,12 @@ bool sftp_client::delete_file(const std::string& remote_file) {
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, user_name.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_POSTQUOTE, headerlist);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     std::ostringstream dummy;
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
@@ -563,7 +583,12 @@ std::vector<file_info> sftp_client::list_directory(const std::string& path) {
     curl_easy_setopt(curl_handle, CURLOPT_DIRLISTONLY, 1L);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     CURLcode res = curl_easy_perform(curl_handle);
     if (res != CURLE_OK) {
@@ -599,7 +624,12 @@ bool sftp_client::create_directory(const std::string& path) {
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, user_name.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_POSTQUOTE, headerlist);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     std::ostringstream dummy;
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
@@ -627,7 +657,12 @@ bool sftp_client::remove_directory(const std::string& path) {
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, user_name.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_POSTQUOTE, headerlist);
+
+    // SSH 키 검증 비활성화 설정
     curl_easy_setopt(curl_handle, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_PASSWORD);
+    curl_easy_setopt(curl_handle, CURLOPT_SSH_KNOWNHOSTS, NULL);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
 
     std::ostringstream dummy;
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_callback);
