@@ -2,13 +2,14 @@
 #include <memory>
 #include <utility>
 
-#include <spdlog/spdlog.h>
-// NOTE: spdlog는 한들 인코딩 방식을 지원하지 않고, UTF8으로만 처리되는 것을 유념.
-//      따라서, 콘솔 출력 시 한글이 깨지지 않도록 UTF8 → 콘솔 인코딩 변환을 수행해야 함.
-// 만약 인코딩 처리를 하면 콘솔, 파일 인코딩 시, 두 가지 모두 변환이 적용되므로 주의할 것.
-
-#include "mino/external/log/factory/factory.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
+
+// mino external log factory
+#include <spdlog/spdlog.h>
+#include "mino/external/log/factory/factory.hpp"
+// NOTICE: spdlog는 한글 인코딩 방식을 지원하지 않고, UTF8으로만 처리되는 것을 유념.
+//  따라서, 콘솔 출력 시 한글이 깨지지 않도록 UTF8 → 콘솔 인코딩 변환을 수행해야 함.
+//  만약 인코딩 처리를 하면 콘솔, 파일 인코딩 시, 두 가지 모두 변환이 적용되므로 주의할 것.
 
 const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
 const auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };

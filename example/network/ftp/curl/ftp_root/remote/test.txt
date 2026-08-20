@@ -1,0 +1,2 @@
+Hello, this is an automated test file for FTP/SFTP upload.
+Created at runtime by main.cpp.

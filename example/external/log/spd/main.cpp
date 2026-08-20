@@ -4,10 +4,11 @@
 #include <mutex>
 #include <filesystem>
 
-#include <spdlog/spdlog.h>
-
-#include "mino/external/log/spd/spd.hpp"
 #include "mino/core/string/string.hpp"
+
+// mino external log spd
+#include <spdlog/spdlog.h>
+#include "mino/external/log/spd/spd.hpp"
 
 int main() {
     // ------------------------------------------------------------------------

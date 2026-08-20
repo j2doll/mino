@@ -5,10 +5,11 @@
 #include <filesystem>
 #include <sstream>
 
-// #define USE_CURL
-#include "mino/network/downloader/curl/multipart_downloader.hpp"
-
 #include "mino/core/string/string.hpp"
+
+// mino network downloader curl
+#include "mino/network/ethernet.hpp"
+#include "mino/network/downloader/curl/multipart_downloader.hpp"
 
 // 출력 헬퍼 정의
 const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -47,6 +48,15 @@ public:
 // NOTE: 예제를 테스트하기 전에 python server.py 를 사전에 실행할 것.
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        eprint(tce("WSAStartup 실패, 에러 코드: "), result);
+        return 1;
+    }
+#endif
+
     std::string test_url = (argc > 1) ? argv[1] : "http://127.0.0.1:8080/download";
     std::string output_dir = (argc > 2) ? argv[2] : "./downloads";
 

@@ -5,7 +5,14 @@
     "spdlog",
     "nlohmann-json",
     "openssl",
-    "curl",
+    {
+      "name": "curl",
+      "features": [
+        "ssh",
+        "ssl",
+        "non-http"
+      ]
+    },
     "cpp-httplib",
     "yaml-cpp"
   ]

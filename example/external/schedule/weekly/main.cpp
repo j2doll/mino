@@ -4,11 +4,11 @@
 #include <vector>
 #include <optional>
 
-#include <nlohmann/json.hpp>
-
-#include "mino/core/schedule/weekly/schedule_types.hpp"
 #include "mino/core/string/string.hpp"
+#include "mino/core/schedule/weekly/schedule_types.hpp"
 
+// mino external schedule weekly
+#include <nlohmann/json.hpp>
 #include "mino/external/schedule/weekly/schedule_json.hpp"
 
 // 출력 및 콘솔 인코딩 유틸리티 설정

@@ -2,10 +2,12 @@
 #include <cassert>
 #include <string>
 
+#include "mino/core/string/string.hpp"
+
+// mino external yaml 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
-#include "mino/core/string/string.hpp"
+#include <yaml-cpp/yaml.h>
 #include "mino/external/yaml/yaml.hpp"
 
 // 출력 유틸리티 정의

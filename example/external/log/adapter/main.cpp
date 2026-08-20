@@ -3,12 +3,12 @@
 #include <utility>
 #include <cassert>
 
-// NOTE: log adpater는 spdlog 기반으로 작동됨
+#include "mino/core/string/to_console_encoding.hpp"
+
+// mino external log adapter
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
 #include "mino/external/log/adapter/adapter.hpp"
-#include "mino/core/string/to_console_encoding.hpp"
 
 // 전역 유틸리티 람다들 정의
 // print: 여러 인자를 받아 std::cout에 순차적으로 출력 후 개행
