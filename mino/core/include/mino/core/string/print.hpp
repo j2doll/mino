@@ -23,7 +23,7 @@ namespace mino::core::string::print {
                 write_arg(os, arg);
                 last_pos = pos + 2; // "{}" 길이만큼 건너뜀
             }
-            };
+        };
 
         // C++17 폴드 표현식으로 각 인자 순차 처리
         (replace_next(args), ...);
