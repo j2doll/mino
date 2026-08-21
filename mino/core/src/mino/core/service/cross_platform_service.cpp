@@ -6,6 +6,12 @@
 #include "mino/core/service/cross_platform_service.hpp"
 
 #ifdef _WIN32
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
     #include <windows.h>
     SERVICE_STATUS g_service_status = { 0 };
     SERVICE_STATUS_HANDLE g_status_handle = nullptr;

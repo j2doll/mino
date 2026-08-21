@@ -6,6 +6,13 @@
 
 #ifdef _WIN32
     // Windows SEH 핸들러
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    // Windows SEH 핸들러
     #include <windows.h> // Windows 전용: _EXCEPTION_POINTERS 사용을 위해 여기서만 포함
 #else
     // POSIX 시그널 핸들러 (SIGSEGV, SIGABRT 등)
