@@ -7,6 +7,7 @@ add_subdirectory(ftp)
 add_subdirectory(interface)
 add_subdirectory(log)
 add_subdirectory(memory_store)
+add_subdirectory(rest)
 
 
 
