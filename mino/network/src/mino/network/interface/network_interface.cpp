@@ -2,23 +2,24 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cstring>
 
 #include "mino/network/network.hpp"
 
 #ifdef _WIN32
-    #include <winsock2.h>
-    #include <iphlpapi.h>
-    #include <ws2tcpip.h>
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
 
-    #pragma comment(lib, "iphlpapi.lib")
-    #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 #else
-    #include <ifaddrs.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <net/if.h>
-    #include <sys/socket.h>
-    #include <unistd.h>
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 #include "mino/network/interface/network_interface.hpp"
@@ -28,7 +29,7 @@ namespace mino {
         namespace iface {
 
 #ifdef _WIN32
-            std::vector< mino::network::iface::interface_info> interface_manager::get_interfaces() {
+            std::vector<mino::network::iface::interface_info> interface_manager::get_interfaces() {
                 std::vector<interface_info> result;
                 ULONG outBufLen = 15000;
                 PIP_ADAPTER_ADDRESSES pAddresses = (IP_ADAPTER_ADDRESSES*)malloc(outBufLen);
@@ -83,9 +84,16 @@ namespace mino {
                     info.name = ifa->ifa_name;
                     info.is_running = (ifa->ifa_flags & IFF_UP);
 
+                    // IPv4 주소 추출
                     char host[INET_ADDRSTRLEN];
                     inet_ntop(AF_INET, &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr, host, INET_ADDRSTRLEN);
                     info.ip_address = host;
+
+                    // MAC 주소 추출 (/sys/class/net/<interface>/address 읽기)
+                    std::ifstream mac_file("/sys/class/net/" + info.name + "/address");
+                    if (mac_file.is_open()) {
+                        std::getline(mac_file, info.mac_address);
+                    }
 
                     // Linux 통계 (/proc/net/dev 파싱)
                     std::ifstream file("/proc/net/dev");
