@@ -48,14 +48,25 @@ function(use_mino_network EXE_NAME MINO_DIR)
 
         # third-party dependencies
         find_package(Threads REQUIRED)
+		if(UNIX AND NOT APPLE)
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+        endif()
 
+        # openssl 
         find_package(OpenSSL REQUIRED)
         if(TARGET crypto AND TARGET ssl)
             add_library(OpenSSL::Crypto ALIAS crypto)
             add_library(OpenSSL::SSL ALIAS ssl)
         endif()
+        target_link_libraries(${EXE_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
+        # curl 
         find_package(CURL REQUIRED)
+        target_link_libraries(${EXE_NAME} PRIVATE CURL::libcurl)
+
+        # brotli
         set(MINO_BROTLI_AVAILABLE FALSE)
         if(
             DEFINED VCPKG_ROOT
@@ -84,33 +95,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
                 endif()
             endif()
         endif()
-
-        find_package(httplib REQUIRED)
-
-        find_package(Libssh2 REQUIRED)
-
-        # third-party dependencies for mino external module
-        find_package(spdlog REQUIRED)
-        find_package(nlohmann_json REQUIRED)
-        find_package(yaml-cpp CONFIG REQUIRED)
-
-        # link libraries to the executable target
-		if(UNIX AND NOT APPLE)
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
-        else()
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
-        endif()
-
-        target_link_libraries(${EXE_NAME} PRIVATE
-            nlohmann_json::nlohmann_json
-            spdlog::spdlog
-            OpenSSL::SSL
-            OpenSSL::Crypto
-            CURL::libcurl
-            httplib::httplib
-            Libssh2::libssh2
-        )
-
         if(MINO_BROTLI_AVAILABLE)
             # Link whichever brotli target is available in common package namespaces
             if(TARGET unofficial-brotli::brotli)
@@ -124,7 +108,38 @@ function(use_mino_network EXE_NAME MINO_DIR)
             endif()
         endif()
 
-        # Detect the yaml-cpp target name provided by the package and use it
+        # httplib
+        find_package(httplib REQUIRED)
+        arget_link_libraries(${EXE_NAME} PRIVATE httplib::httplib)
+
+        # spdlog
+        find_package(spdlog REQUIRED)
+        target_link_libraries(${EXE_NAME} PRIVATE spdlog::spdlog)
+
+        # nlohmann json
+        find_package(nlohmann_json REQUIRED)
+        target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
+
+        # libssh2 
+        find_package(Libssh2 CONFIG QUIET)
+        if(TARGET Libssh2::libssh2)
+            message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
+        else()
+            find_package(PkgConfig REQUIRED)
+            pkg_check_modules(LIBSSH2 REQUIRED IMPORTED_TARGET libssh2)
+            message(STATUS "Found libssh2 via PkgConfig (${LIBSSH2_VERSION})")
+        endif()
+
+        if(TARGET Libssh2::libssh2)
+            target_link_libraries(${EXE_NAME} PRIVATE Libssh2::libssh2)
+        elseif(TARGET PkgConfig::LIBSSH2)
+            target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::LIBSSH2)
+        else()
+            message(FATAL_ERROR "libssh2 target not available.")
+        endif()
+
+        # yaml-cpp
+        find_package(yaml-cpp CONFIG REQUIRED)
         if(TARGET yaml-cpp::yaml-cpp)
             set(YAMLCPP_TARGET yaml-cpp::yaml-cpp)
         elseif(TARGET yaml-cpp)

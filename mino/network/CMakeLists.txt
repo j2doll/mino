@@ -74,8 +74,14 @@ find_package(nlohmann_json REQUIRED)
 message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
 # 3-7. libssh2
-find_package(Libssh2 CONFIG REQUIRED)
-message(STATUS "libssh2 version: ${Libssh2_VERSION}")
+find_package(Libssh2 CONFIG QUIET)
+if(TARGET Libssh2::libssh2)
+    message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBSSH2 REQUIRED IMPORTED_TARGET libssh2)
+    message(STATUS "Found libssh2 via PkgConfig (${LIBSSH2_VERSION})")
+endif()
 
 # 4. Configure the library source code
 file(
@@ -187,7 +193,13 @@ else()
 endif()
 
 # 6-6. libssh2 link settings
-target_link_libraries(mino_network PRIVATE Libssh2::libssh2)
+if(TARGET Libssh2::libssh2)
+    target_link_libraries(mino_network PRIVATE Libssh2::libssh2)
+elseif(TARGET PkgConfig::LIBSSH2)
+    target_link_libraries(mino_network PRIVATE PkgConfig::LIBSSH2)
+else()
+    message(FATAL_ERROR "libssh2 target not available.")
+endif()
 
 # 7. [Dependency] If network uses xxx, link it here.
 target_link_libraries(mino_network PUBLIC mino_core mino_external)
