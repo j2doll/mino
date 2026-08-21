@@ -31,6 +31,9 @@ void run_client_test(
     const std::string& user,
     const std::string& pass);
 
+// NOTE: main 구동 하기 전에 다음을 수행한다.
+//   python ftp_server.py
+//   python sftp_server.py
 int main(int argc, char* argv[]) {
 #ifdef _WIN32
     WSADATA wsaData;
@@ -56,7 +59,6 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     WSACleanup();
 #endif
-
     return 0;
 }
 
@@ -106,12 +108,12 @@ public:
 
 // 공통 테스트 루틴 (FTP, SFTP 공용)
 void run_client_test(
-    const std::string& label,
-    mino::network::ftp::tcp::ftp_client_base& client,
-    const std::string& host,
-    int port,
-    const std::string& user,
-    const std::string& pass)
+    const std::string& label, // 테스트용 라벨 "FTP" 또는 "SFTP"
+    mino::network::ftp::tcp::ftp_client_base& client, // FTP/SFTP 클라이언트 객체
+    const std::string& host, // FTP/SFTP 서버 호스트
+    int port, // FTP/SFTP 서버 포트
+    const std::string& user, // 사용자 이름
+    const std::string& pass) // 사용자 비밀번호
 {
     namespace mnftcp = mino::network::ftp::tcp;
     using filtered_progress_listener = mnftcp::filtered_progress_listener;
@@ -122,7 +124,7 @@ void run_client_test(
 
     // 1. 커스텀 프로그레스 리스너 설정 (1% 단위 또는 50ms 주기로 필터링)
     custom_progress_listener custom_listener;
-    filtered_progress_listener filtered(&custom_listener, 1, 50); // 1% 단위 또는 50ms 주기로 필터링
+    filtered_progress_listener filtered(&custom_listener, 1, 50); // 1% 단위 변화 또는 50ms 주기로 필터링
     client.set_progress_listener(&filtered); // 진행률 리스너 설정
 
     // 2. 연결 테스트
@@ -149,9 +151,12 @@ void run_client_test(
     std::string downloaded_file = "downloaded_" + label + ".txt";
 
     {
+        // 50000 라인짜리 테스트 파일 생성
         std::ofstream ofs(local_file);
         for (int i = 0; i < 50000; ++i) {
-            ofs << label << " Client Custom Progress Test Payload Line #" << i << "\n";
+            ofs << label
+                << " Client Custom Progress Test Payload Line #"
+                << i << "\n";
         }
     }
 
@@ -173,7 +178,7 @@ void run_client_test(
         print(tce("[+] Download Success!"));
     }
 
-    // 7. 디렉터리 생성 및 삭제 테스트
+    // 7. 원격 디렉터리 생성 및 삭제 테스트
     std::string test_dir = "test_folder_" + label;
     print(tce("\n>> [5] Directory Operations: " + test_dir));
     if (client.create_directory(test_dir)) {

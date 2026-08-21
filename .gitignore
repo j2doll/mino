@@ -270,3 +270,5 @@ dist/
 
 # sftp 
 sftp_host_key
+ftp_root/
+sftp_root/

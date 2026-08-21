@@ -50,6 +50,9 @@ public:
     }
 };
 
+// NOTE: main 구동 하기 전에 다음을 수행한다.
+//   python ftp_server.py
+//   python sftp_server.py
 int main(int argc, char* argv[]) {
 #ifdef _WIN32
     WSADATA wsaData;
@@ -171,5 +174,8 @@ int main(int argc, char* argv[]) {
     ftp.remove_progress_listener();
     sftp.remove_progress_listener();
 
+#ifdef _WIN32
+    WSACleanup();
+#endif
     return 0;
 }

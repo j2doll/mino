@@ -4,4 +4,5 @@ project(mino_network_example_project)
 
 add_subdirectory(download)
 add_subdirectory(ftp)
+add_subdirectory(interface)
 
