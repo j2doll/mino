@@ -17,6 +17,7 @@
 #  define CMAKE_SOURCE_DIR_PATH "."
 #endif
 
+//
 // NOTE: logger_manager 과 hybrid_logger_manager 비교
 // 
 // 콘솔 출력 (Console Logging)
@@ -55,8 +56,10 @@
 int main(int argc, char* argv[]) {
 
     // 1. INI 설정 파일 경로 구성
-    std::filesystem::path basePath(CMAKE_SOURCE_DIR_PATH);
-    std::filesystem::path configPath = basePath / "logger_manager_config.ini";
+    namespace fs = std::filesystem;
+
+    fs::path basePath(CMAKE_SOURCE_DIR_PATH);
+    fs::path configPath = basePath / "logger_manager_config.ini";
     std::string configPathStr = configPath.string();
 
     std::string sectionName = "Log"; // "logger_manager_config.ini" 의 INI 섹션 이름
@@ -87,15 +90,13 @@ int main(int argc, char* argv[]) {
     // [Public] getLogger() 호출
     auto std_logger = std_mgr.getLogger();
     if (!std_logger) {
-        // spdlog 레지스트리를 통한 fallback 획득
         std_logger = ::spdlog::get(default_logger_name);
     }
 
-    // [Public] reloadIfChanged() 수동 호출 테스트
+    // 수동 호출 테스트
     std_mgr.reloadIfChanged(); // INI 변경 감지 및 로거 설정 재적용
-
-    // [Public] startAutoReload() 호출 (INI 변경 감지 스레드 실행, 기본 주기 60초)
     std_mgr.startAutoReload(60); // INI 변경 감지 스레드 실행 (60초 주기)
+    // NOTE: 위의 함수들은 반드시 호출할 필요는 없습니다. 
 
     // =========================================================================
     // 3. mino::network::log::manager::hybrid_logger_manager 초기화 및 퍼블릭 멤버 활용
@@ -123,9 +124,10 @@ int main(int argc, char* argv[]) {
         hybrid_logger = ::spdlog::get(hybrid_logger_name);
     }
 
-    // [Public] reloadIfChanged() 및 startAutoReload() 호출
-    hybrid_mgr.reloadIfChanged();
-    hybrid_mgr.startAutoReload(60);
+    // 수동 호출 테스트
+    hybrid_mgr.reloadIfChanged(); // INI 변경 감지 및 로거 설정 재적용
+    hybrid_mgr.startAutoReload(60); // INI 변경 감지 스레드 실행 (60초 주기)
+    // NOTE: 위의 함수들은 반드시 호출할 필요는 없습니다. 
 
     std::cout << "=== Logging Loop Start (Press Ctrl+C to terminate) ===" << std::endl;
 
