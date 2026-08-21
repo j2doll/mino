@@ -177,6 +177,38 @@ namespace mino::network::memory_store {
         return 0;
     }
 
+    int memory_store_client::delete_all() {
+        if (!client_.is_connected()) {
+            if (logger_) logger_->error("[memory_store_client] delete_all failed: Disconnected");
+            return -1;
+        }
+
+        // 1. latency를 조회하여 dump 요청 대기 시간 계산
+        long latency_ms = request_server_latency_ms();
+        std::chrono::seconds dump_timeout = timeout_;
+        if (latency_ms > 0) {
+            dump_timeout = std::chrono::seconds(std::max<long>(timeout_.count(), (latency_ms / 1000) + 3));
+        }
+
+        // 2. 서버에 있는 모든 키/값 덤프
+        auto entries = request_server_dump(dump_timeout);
+        if (entries.empty()) {
+            return 0; // 이미 비어있거나 데이터 없음
+        }
+
+        // 3. 각 키를 순회하며 삭제
+        int deleted_count = 0;
+        for (const auto& [key, _] : entries) {
+            deleted_count += del(key);
+        }
+
+        if (logger_) {
+            logger_->info("[memory_store_client] delete_all completed. Total {} keys erased.", deleted_count);
+        }
+
+        return deleted_count;
+    }
+
     bool memory_store_client::request_server_save() {
         return send_and_wait("SAVE", timeout_) == "+OK";
     }

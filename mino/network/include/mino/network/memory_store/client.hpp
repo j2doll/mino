@@ -44,6 +44,7 @@ namespace mino::network::memory_store {
         bool set(const std::string& key, const std::string& value);
         std::optional<std::string> get(const std::string& key);
         int del(const std::string& key);
+        int delete_all();
 
         bool request_server_save();
         bool request_server_load();
