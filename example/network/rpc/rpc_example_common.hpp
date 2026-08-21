@@ -53,7 +53,8 @@ namespace my_app::domain {
     inline void from_json(const nlohmann::json& j, task_response& p) {
         j.at("is_success").get_to(p.is_success);
         j.at("message").get_to(p.message);
-        j.at("details").get_to(p.details);
+        // assign directly for nlohmann::json field (get_to isn't selected for basic_json)
+        p.details = j.at("details");
     }
 
 } // namespace my_app::domain
