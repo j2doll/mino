@@ -4,12 +4,12 @@
 
 #include "mino/core/string/string.hpp"
 
-// network rest curl
+// network rest httplib
 #include "mino/network/ethernet.hpp"
-#include "mino/network/rest/curl/get_client.hpp"
-#include "mino/network/rest/curl/post_client.hpp"
+#include "mino/network/rest/httplib/get_client.hpp"
+#include "mino/network/rest/httplib/post_client.hpp"
 
-namespace rest_namespace = mino::network::rest::curl;
+namespace rest_namespace = mino::network::rest::httplib; 
 
 using get_client = rest_namespace::get_client;
 void test_get_no_except();
@@ -40,10 +40,10 @@ int main(int argc, char* argv[])
     namespace mcsp = ::mino::core::string::print;
     auto print = [](std::string_view fmt, auto&&... args) {
         mcsp::print(fmt, std::forward<decltype(args)>(args)...);
-    };
+        };
     auto println = [](std::string_view fmt, auto&&... args) {
         mcsp::println(fmt, std::forward<decltype(args)>(args)...);
-    };
+        };
     // println("TEST");
     // mcsp::println("TEST");
 
@@ -51,16 +51,16 @@ int main(int argc, char* argv[])
     println("=== GET Request (noexcept) ===");
     test_get_no_except(); // REST API GET 요청 (noexcept 버전)
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== GET Request (exception) ===\n";
+    println("==============================");
+    println("=== GET Request (exception) ===");
     test_get_except(); // REST API GET 요청 (exception 버전)
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== POST Request (noexcept) ===\n";
+    println("==============================");
+    println("=== POST Request (noexcept) ===");
     test_post_no_except(); // REST API POST 요청 (noexcept 버전)
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== POST Request (exception) ===\n";
+    println("==============================");
+    println("=== POST Request (exception) ===");
     test_post_except(); // REST API POST 요청 (exception 버전)
 
 #ifdef _WIN32 
@@ -251,7 +251,7 @@ void test_get_except()
 
 
 //---------------------------------------------------
- 
+
 
 // ---------------------------------------------------
 // POST example (noexcept version)

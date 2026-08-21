@@ -4,6 +4,19 @@
 #include <string_view>
 #include <sstream>
 
+// NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
+// 
+// namespace mcsp = ::mino::core::string::print;
+// auto print = [](std::string_view fmt, auto&&... args) {
+//     mcsp::print(fmt, std::forward<decltype(args)>(args)...);
+//     };
+// auto println = [](std::string_view fmt, auto&&... args) {
+//     mcsp::println(fmt, std::forward<decltype(args)>(args)...);
+//     };
+// 
+// 람다로 간단하게 호출   println("TEST");
+// 또는 직접 호출도 가능  mcsp::println("TEST");
+
 namespace mino::core::string::print {
 
     // 1. 단일 인자를 출력 스트림으로 보내는 헬퍼
