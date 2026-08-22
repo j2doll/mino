@@ -97,12 +97,18 @@ namespace mino::network::udp {
     }
 
     udp_sender::udp_sender()
-#ifdef _WIN32
-        : socket_fd_(INVALID_SOCKET)
-#else
-        : socket_fd_(-1)
-#endif
     {
+        server_ip_.clear();
+        server_port_ = 0;
+        address_family_ = AF_INET;
+
+#ifdef _WIN32
+        socket_fd_ = INVALID_SOCKET;
+#else
+        socket_fd_ = -1;
+#endif
+        // memset(&server_addr_, 0, sizeof(server_addr_));
+        server_addr_len_ = 0;
     }
 
     udp_sender::~udp_sender() {
@@ -251,7 +257,7 @@ namespace mino::network::udp {
         return sendto(socket_fd_, data.c_str(), static_cast<int>(data.size()), 0, reinterpret_cast<struct sockaddr*>(&server_addr_), server_addr_len_);
     }
 
-    ssize_t udp_sender::send_data_to(const std::string& data, const std::string& ip, unsigned short port, int fam) {
+    ssize_t udp_sender::send_data_to(const std::string& data, const std::string& ip, unsigned short port) {
 #ifdef _WIN32
         if (socket_fd_ == INVALID_SOCKET)
             return -1;
@@ -262,8 +268,7 @@ namespace mino::network::udp {
         sockaddr_storage dest{};
         socklen_t dest_len = 0;
 
-        
-
+        int fam = address_family_; // AF_INET, AF_INET6
         if (!fill_sockaddr(ip, port, dest, dest_len, fam))
             return -1;
 

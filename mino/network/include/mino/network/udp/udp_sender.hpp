@@ -40,7 +40,7 @@ namespace mino::network::udp {
         bool create(int fam, bool resur_add, bool use_multicast);
 
         ssize_t send_data(const std::string& data);
-        ssize_t send_data_to(const std::string& data, const std::string& ip, unsigned short port, int fam = AF_INET);
+        ssize_t send_data_to(const std::string& data, const std::string& ip, unsigned short port);
 
         void stop();
         void shutdown_by_force();
