@@ -61,7 +61,7 @@ namespace mino::network::rpc {
         {
             std::ostringstream ss;
             ss << std::this_thread::get_id();
-            if (logger) logger->warn("[RPC Client Core] Connection broken. Aborting calls. thread_id={}", ss.str());
+            if (logger) logger->warn("[RPC Client Core] Connection <orange>broken</orange>. Aborting calls. thread_id={}", ss.str());
         }
 
         std::unordered_map<std::string, std::promise<json>> temp_map;
@@ -135,7 +135,7 @@ namespace mino::network::rpc {
         }
 
         if (logger) {
-            logger->info("[RPC Client Core] Connected and verified broker session successfully.");
+            logger->info("[RPC Client Core] Connected and verified broker session <green>successfully</green>.");
         }
         return true;
     }

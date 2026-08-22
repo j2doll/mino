@@ -18,12 +18,12 @@ namespace mino::network::message_broker {
             for (const auto& topic : sub_topics) {
                 std::string sub_packet = make_packet(msg_type::subscribe, topic, "");
                 client.send_data(sub_packet);
-                if (logger) logger->info("[Subscriber] Sent subscription packet for topic: {}", topic);
+                if (logger) logger->info("[Subscriber] Sent subscription packet for topic: <yellow>{0}</yellow>", topic);
             }
         });
 
         client.set_on_close([this]() {
-            if (logger) logger->warn("[Subscriber] Connection closed. Clearing stream buffer.");
+            if (logger) logger->warn("[Subscriber] Connection <green>closed</green>. Clearing stream buffer.");
             stream_buffer.clear();
         });
 

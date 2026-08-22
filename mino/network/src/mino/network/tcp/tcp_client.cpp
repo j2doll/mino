@@ -1,6 +1,7 @@
 #include <cerrno>
 #include <cstring>
 #include <sstream>
+#include <system_error>
 
 #include <spdlog/spdlog.h>
 
@@ -128,12 +129,14 @@ namespace mino::network::tcp {
     void tcp_client::close_connection() {
 #ifdef _WIN32
         if (socket_fd == INVALID_SOCKET) {
-            if (logger) logger->debug("[tcp_client] close_connection() called but socket already INVALID_SOCKET");
+            if (logger)
+                logger->debug("[tcp_client] close_connection() called but socket already INVALID_SOCKET");
             return;
         }
 #else
         if (socket_fd < 0) {
-            if (logger) logger->debug("[tcp_client] close_connection() called but socket_fd < 0");
+            if (logger)
+                logger->debug("[tcp_client] close_connection() called but socket_fd < 0");
             return;
         }
 #endif
@@ -157,25 +160,37 @@ namespace mino::network::tcp {
         if (logger) {
 #ifdef _WIN32
             int err = WSAGetLastError();
+            auto err_msg = std::system_category().message(err);
             std::ostringstream ss;
             ss << std::this_thread::get_id();
-            logger->info("[tcp_client] close_connection() executed. Last WSA error: {} thread_id={}", err, ss.str());
+            auto thread_id = ss.str();
+            logger->info(
+                "[tcp_client] close_connection() executed."
+                " Last WSA error: <orange>{0}</orange> ({1}) thread_id={2}",
+                err, err_msg, thread_id);
 #else
             std::ostringstream ss;
             ss << std::this_thread::get_id();
-            logger->info("[tcp_client] close_connection() executed. errno: {} ({}) thread_id={}", errno, std::strerror(errno), ss.str());
+            auto err_msg = std::strerror(errno);
+            auto thread_id = ss.str();
+            logger->info(
+                "[tcp_client] close_connection() executed."
+                " errno: <orange>{0}</orange> ({1}) thread_id={2}",
+                errno, err_msg, thread_id);
 #endif
         }
 
-        if (on_close) on_close();
+        if (on_close)
+            on_close();
     }
 
-    bool tcp_client::is_connected() const { return is_connected_flag; }
+    bool tcp_client::is_connected() const {
+        return is_connected_flag;
+    }
 
     void tcp_client::connect_to_server(std::chrono::seconds sleep_time) {
         thread_running = true;
         while (!stop_flag) {
-            // [수정] 데드락 해결을 위해 socket 생성 시 불필요한 전체 락을 제거합니다.
             socket_t tmp_fd = ::socket(address_family, SOCK_STREAM, 0);
 #ifdef _WIN32
             if (tmp_fd == INVALID_SOCKET) {
@@ -228,11 +243,21 @@ namespace mino::network::tcp {
             {
 #ifdef _WIN32
                 int err = WSAGetLastError();
-                if (logger) logger->warn("[tcp_client] connect() failed. WSAGetLastError: {}", err);
+                std::string err_msg = std::system_category().message(err);
+                if (logger) logger->warn(
+                    "[tcp_client] connect() failed."
+                    " WSAGetLastError: <orange>{0}</orange> ({1})",
+                    err, err_msg
+                );
                 closesocket(tmp_fd);
 #else
                 int err = errno;
-                if (logger) logger->warn("[tcp_client] connect() failed. errno: {} ({})", err, std::strerror(err));
+                auto err_msg = std::strerror(err);
+                if (logger) logger->warn(
+                    "[tcp_client] connect() failed."
+                    " errno: <orange>{0}</orange> ({1})",
+                    err, err_msg
+                );
                 close(tmp_fd);
 #endif
             }
@@ -251,7 +276,8 @@ namespace mino::network::tcp {
             int bytes_received = ::recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
 #endif
             if (bytes_received > 0) {
-                if (on_receive) on_receive(std::string(buffer, bytes_received));
+                if (on_receive)
+                    on_receive(std::string(buffer, bytes_received));
             }
             else
             {
@@ -260,17 +286,33 @@ namespace mino::network::tcp {
                 if (logger) {
 #ifdef _WIN32
                     int err = WSAGetLastError();
+                    auto err_msg = std::system_category().message(err);
                     std::ostringstream ss;
                     ss << std::this_thread::get_id();
-                    logger->warn("[tcp_client] recv returned {}. WSAGetLastError: {} thread_id={}", bytes_received, err, ss.str());
+                    auto thread_id = ss.str();
+                    logger->warn(
+                        "[tcp_client] recv returned {0}."
+                        " WSAGetLastError: <orange>{1}</orange> ({2}) thread_id={3}",
+                        bytes_received, err, err_msg, thread_id
+                    ); 
 #else
                     int err = errno;
                     std::ostringstream ss;
                     ss << std::this_thread::get_id();
+                    auto thread_id = ss.str();
                     if (bytes_received == 0) {
-                        logger->warn("[tcp_client] recv returned 0 (peer closed connection). thread_id={}", ss.str());
+                        logger->warn(
+                            "[tcp_client] recv returned 0 (peer closed connection)."
+                            " thread_id={0}",
+                            thread_id
+                        );
                     } else {
-                        logger->warn("[tcp_client] recv returned {}. errno: {} ({}) thread_id={}", bytes_received, err, std::strerror(err), ss.str());
+                        auto err_msg = std::strerror(err);
+                        logger->warn(
+                            "[tcp_client] recv returned {0}."
+                            " errno: <orange>{1}</orange> ({2}) thread_id={3}",
+                            bytes_received, err, err_msg, thread_id
+                        );
                     }
 #endif
                 }
@@ -283,7 +325,7 @@ namespace mino::network::tcp {
         if (logger) {
             std::ostringstream ss;
             ss << std::this_thread::get_id();
-            logger->info("[tcp_client] receive_loop exiting. thread_id={}", ss.str());
+            logger->info("[tcp_client] receive_loop exiting. thread_id={0}", ss.str());
         }
 
         close_connection();
@@ -320,7 +362,10 @@ namespace mino::network::tcp {
                     if (logger) {
                         std::ostringstream ss;
                         ss << std::this_thread::get_id();
-                        logger->warn("[tcp_client] shutdown_by_force() called from client thread; skipping join to avoid deadlock. thread_id={}", ss.str());
+                        auto thread_id = ss.str();
+                        logger->warn(
+                            "[tcp_client] shutdown_by_force() called from client thread;"
+                            " skipping join to avoid deadlock. thread_id={}", thread_id);
                     }
                 }
             }
@@ -344,11 +389,15 @@ namespace mino::network::tcp {
             }
 
         } catch (const std::exception& ex) {
-            if (logger) logger->error("Exception in shutdown_by_force: {}", ex.what());
-            else std::cerr << "Exception in shutdown_by_force: " << ex.what() << std::endl;
+            if (logger)
+                logger->error("Exception in shutdown_by_force: {}", ex.what());
+            else
+                std::cerr << "Exception in shutdown_by_force: " << ex.what() << std::endl;
         } catch (...) {
-            if (logger) logger->error("Unknown exception in shutdown_by_force.");
-            else std::cerr << "Unknown exception in shutdown_by_force." << std::endl;
+            if (logger)
+                logger->error("Unknown exception in shutdown_by_force.");
+            else
+                std::cerr << "Unknown exception in shutdown_by_force." << std::endl;
         } 
     }
 

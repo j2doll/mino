@@ -1,9 +1,9 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include <string>
 #include <vector>
+
+#include <nlohmann/json.hpp>
 
 namespace my_app::domain {
 
@@ -74,7 +74,7 @@ namespace my_app::domain {
 //         std::vector<double> parameters;
 //     };
 //     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(task_request, command, target_id, parameters)
-//         // 구조체 직렬화 처리를 놀먼JSON 직렬화 매크로를 사용하여 정의.   
+//     // 구조체 직렬화 처리를 놀먼JSON 직렬화 매크로를 사용하여 정의
 // 
 //         // "task_analysis_service" RPC 서버스의 응답(Response) 결과  
 //         struct task_response {

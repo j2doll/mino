@@ -67,7 +67,7 @@ namespace mino::network::message_broker {
             return { false, "socket_error" };
         }
 
-        if (logger) logger->info("[Publisher] Packet sent for topic: {}, kind: {}, message length: {}", topic, msg_kind, message.size());
+        if (logger) logger->info("[Publisher] Packet sent for topic: <yellow>{0}</yellow>, kind: <orange>{1}</orange>, message length: <grey>{2}</grey>", topic, msg_kind, message.size());
 
         return { true, "success" };
     }

@@ -1,8 +1,8 @@
 //-----------------------------------------------
 // Execute broker before running server and client:
-//     1. Start broker 
-//     2. Start server 
-//     3. Start client 
+//  1. Start broker ( network / message_broker / broker )
+//  2. Start server ( network / rpc / server )
+//  3. Start client ( network / rpc / client )
 //-----------------------------------------------
 
 #include <iostream>
@@ -10,14 +10,17 @@
 #include "mino/core/string/string.hpp"
 #include "mino/external/log/spd/auto_color_sink.hpp"
 
+// network rpc server
 #include "mino/network/ethernet.hpp"
 #include "mino/network/rpc/rpc_server_base.hpp"
 
+// RPC 연동을 위한 공통 자료
 #include "../rpc_example_common.hpp" 
 
 // custom business log class 
 class my_business_server : public mino::network::rpc::rpc_server_base {
 public:
+    // rpc_example_common.hpp 에서 정의된 요청(Request)과 응답(Response) 타입을 사용
     using req_t = my_app::domain::task_request;
     using res_t = my_app::domain::task_response;
 
@@ -55,6 +58,7 @@ public:
     }
 
 private:
+    // 실제 분석 로직을 수행하는 함수 (여기서는 단순히 요청을 확인하고 응답을 생성)
     res_t execute_analysis_logic(const req_t& req) {
         res_t res;
         if (req.command == "analyze") {
@@ -79,13 +83,13 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    my_business_server server;
+    my_business_server server; // RPC 서버 객체 생성
 
     namespace mels = mino::external::log::spd;
     auto rpc_server_console_sink = std::make_shared<mels::auto_color_sink<std::mutex>>();
-    std::vector<spdlog::sink_ptr> sinks{ rpc_server_console_sink };
-    auto rpc_server_logger = std::make_shared<spdlog::logger>("broker_logger", sinks.begin(), sinks.end());
-    rpc_server_logger->set_level(spdlog::level::debug);
+    std::vector<::spdlog::sink_ptr> sinks{ rpc_server_console_sink };
+    auto rpc_server_logger = std::make_shared<::spdlog::logger>("broker_logger", sinks.begin(), sinks.end());
+    rpc_server_logger->set_level(::spdlog::level::debug);
     server.setup_logger(rpc_server_logger); // 로거 설정
 
     std::string broker_ip = "127.0.0.1";
