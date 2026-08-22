@@ -15,13 +15,18 @@
 class my_tcp_server_handler {
 public:
     void on_receive(socket_t client_socket, const std::string& message) {
-        std::cout << "my_handler::on_receive: " << client_socket << " - " << message << std::endl;
+        std::string ret = "my_handler::on_receive: " + std::to_string(client_socket) + " - " + message;
+        std::cout << ret << std::endl;
     }
+
     void on_connect(socket_t client_socket, const std::string& message) {
-        std::cout << "my_handler::on_connect: " << client_socket << " - " << message << std::endl;
+        std::string ret = "my_handler::on_connect: " + std::to_string(client_socket) + " - " + message;
+        std::cout << ret << std::endl;
     }
+
     void on_close(socket_t client_socket, const std::string& message) {
-        std::cout << "my_handler::on_close: " << client_socket << " - " << message << std::endl;
+        std::string ret = "my_handler::on_close: " + std::to_string(client_socket) + " - " + message;
+        std::cout << ret << std::endl;
     }
 };
 
