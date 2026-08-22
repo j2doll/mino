@@ -10,4 +10,7 @@ add_subdirectory(memory_store)
 add_subdirectory(message_broker)
 add_subdirectory(rest)
 add_subdirectory(rpc)
+add_subdirectory(tcp)
+add_subdirectory(udp)
+# add_subdirectory(util)
 

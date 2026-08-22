@@ -31,13 +31,13 @@ namespace mino::network::udp {
         udp_sender();
         ~udp_sender();
 
-        void set_server(const std::string& ip, unsigned short port);
-        void set_multicast_ttl(int ttl);
+        void set_server(const std::string& ip, unsigned short port, int family = AF_INET);
+        bool set_multicast_ttl(int ttl);
 
-        bool create();
+        bool create(int fam = AF_INET, bool resur_add = true, bool use_multicast = false);
 
         ssize_t send_data(const std::string& data);
-        ssize_t send_data_to(const std::string& data, const std::string& ip, unsigned short port);
+        ssize_t send_data_to(const std::string& data, const std::string& ip, unsigned short port, int fam = AF_INET);
 
         void stop();
         void shutdown_by_force();

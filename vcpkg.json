@@ -4,7 +4,6 @@
   "version-string": "1.0.0",
   "dependencies": [
     "brotli",
-    "cgltf",
     {
       "name": "cpp-httplib",
       "features": [
@@ -21,10 +20,7 @@
         "sspi"
       ]
     },
-    "dirent",
-    "drlibs",
     "fmt",
-    "glfw3",
     {
       "name": "libssh2",
       "features": [
@@ -32,12 +28,9 @@
         "zlib"
       ]
     },
-    "miniaudio",
     "mmx",
-    "nanosvg",
     "nlohmann-json",
     "openssl",
-    "qoi",
     {
       "name": "spdlog",
       "features": [
@@ -45,7 +38,6 @@
         "tz-offset"
       ]
     },
-    "stb",
     "yaml-cpp",
     "zlib"
   ]
