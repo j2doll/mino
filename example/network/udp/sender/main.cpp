@@ -86,7 +86,7 @@ int main() {
         std::exit(0);
     });
 
-    sender.set_server("127.0.0.1", 12345);
+    // sender.set_server("127.0.0.1", 12345);
 
     bool reuse_address = true;
     bool use_multicast = true;

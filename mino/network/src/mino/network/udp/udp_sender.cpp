@@ -98,9 +98,9 @@ namespace mino::network::udp {
 
     udp_sender::udp_sender()
 #ifdef _WIN32
-        : socket_fd(INVALID_SOCKET)
+        : socket_fd_(INVALID_SOCKET)
 #else
-        : socket_fd(-1)
+        : socket_fd_(-1)
 #endif
     {
     }
@@ -110,28 +110,56 @@ namespace mino::network::udp {
     }
 
     void udp_sender::set_server(const std::string& ip, unsigned short port, int fam) {
-        server_ip = ip;
-        server_port = port;
+        server_ip_ = ip;
+        server_port_ = port;
 
         // address_family는 기본 AF_INET이나, fill_sockaddr가 감지한 값으로 변경됩니다.
-        fill_sockaddr(server_ip, server_port, server_addr, server_addr_len, fam);
-        address_family = fam;
+        fill_sockaddr(server_ip_, server_port_, server_addr_, server_addr_len_, fam);
+        address_family_ = fam;
+    }
+
+    bool udp_sender::is_created() const {
+#ifdef _WIN32
+        if (socket_fd_ == INVALID_SOCKET) {
+            return false;
+        }
+        return true;
+#else
+        if (socket_fd_ < 0) {
+            return false;
+        }
+        return true;
+#endif 
+    }
+
+    bool udp_sender::is_ipv4() const {
+        if (address_family_ == AF_INET) {
+            return true;
+        }
+        return false;
+    }
+
+    bool udp_sender::is_ipv6() const {
+        if (address_family_ == AF_INET6) {
+            return true;
+        }
+        return false;
     }
 
     bool udp_sender::create(int fam, bool resur_add, bool use_multicast) {
 
-        address_family = fam; // ipv4:AF_INET, ipv6:AF_INET6
+        address_family_ = fam; // ipv4:AF_INET, ipv6:AF_INET6
 
 #ifdef _WIN32
-        socket_fd = socket(fam, SOCK_DGRAM, IPPROTO_UDP);
-        if (socket_fd == INVALID_SOCKET) {
+        socket_fd_ = socket(fam, SOCK_DGRAM, IPPROTO_UDP);
+        if (socket_fd_ == INVALID_SOCKET) {
             int err = WSAGetLastError();
             if (logger) logger->error("socket() failed: {}", std::system_category().message(err));
             return false;
         }
 #else
-        socket_fd = socket(fam, SOCK_DGRAM, 0);
-        if (socket_fd < 0) {
+        socket_fd_ = socket(fam, SOCK_DGRAM, 0);
+        if (socket_fd_ < 0) {
             int err = errno;
             if (logger) logger->error("socket() failed: {}", strerror(err));
             return false;
@@ -142,12 +170,12 @@ namespace mino::network::udp {
         if (resur_add) {
             int reuse = 1;
 #ifdef _WIN32
-            if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), static_cast<int>(sizeof(reuse))) == SOCKET_ERROR) {
+            if (setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse), static_cast<int>(sizeof(reuse))) == SOCKET_ERROR) {
                 int err = WSAGetLastError();
                 if (logger) logger->warn("setsockopt(SO_REUSEADDR) failed: {}", std::system_category().message(err));
             }
 #else
-            if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, static_cast<socklen_t>(sizeof(reuse))) < 0) {
+            if (setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuse, static_cast<socklen_t>(sizeof(reuse))) < 0) {
                 int err = errno;
                 if (logger) logger->warn("setsockopt(SO_REUSEADDR) failed: {}", strerror(err));
             }
@@ -156,31 +184,31 @@ namespace mino::network::udp {
 
         if (use_multicast) {
             // If IPv4 socket, allow broadcast sends (needed when destination is broadcast)
-            if (address_family == AF_INET) {
+            if (address_family_ == AF_INET) {
                 int broadcast = 1;
 #ifdef _WIN32
-                if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&broadcast), static_cast<int>(sizeof(broadcast))) == SOCKET_ERROR) {
+                if (setsockopt(socket_fd_, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&broadcast), static_cast<int>(sizeof(broadcast))) == SOCKET_ERROR) {
                     int err = WSAGetLastError();
                     if (logger) logger->warn("setsockopt(SO_BROADCAST) failed: {}", std::system_category().message(err));
                 }
 #else
-                if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, static_cast<socklen_t>(sizeof(broadcast))) < 0) {
+                if (setsockopt(socket_fd_, SOL_SOCKET, SO_BROADCAST, &broadcast, static_cast<socklen_t>(sizeof(broadcast))) < 0) {
                     int err = errno;
                     if (logger) logger->warn("setsockopt(SO_BROADCAST) failed: {}", strerror(err));
                 }
 #endif
             } 
 
-            if (address_family == AF_INET6) {
+            if (address_family_ == AF_INET6) {
                 // Optional: make socket IPv6-only to avoid ambiguous behavior on dual-stack systems.
                 int v6only = 1;
 #ifdef _WIN32
-                if (setsockopt(socket_fd, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char*>(&v6only), static_cast<int>(sizeof(v6only))) == SOCKET_ERROR) {
+                if (setsockopt(socket_fd_, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char*>(&v6only), static_cast<int>(sizeof(v6only))) == SOCKET_ERROR) {
                     int err = WSAGetLastError();
                     if (logger) logger->warn("setsockopt(IPV6_V6ONLY) failed: {}", std::system_category().message(err));
                 }
 #else
-                if (setsockopt(socket_fd, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, static_cast<socklen_t>(sizeof(v6only))) < 0) {
+                if (setsockopt(socket_fd_, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, static_cast<socklen_t>(sizeof(v6only))) < 0) {
                     int err = errno;
                     if (logger) logger->warn("setsockopt(IPV6_V6ONLY) failed: {}", strerror(err));
                 }
@@ -188,17 +216,17 @@ namespace mino::network::udp {
 
                 // If server_addr was filled and contains a scope id (link-local or interface-scoped address),
                 // set the outgoing multicast interface so IPv6 multicast/link-local packets use the correct NIC.
-                if (server_addr_len >= static_cast<socklen_t>(sizeof(sockaddr_in6))) {
-                    auto* sin6 = reinterpret_cast<sockaddr_in6*>(&server_addr);
+                if (server_addr_len_ >= static_cast<socklen_t>(sizeof(sockaddr_in6))) {
+                    auto* sin6 = reinterpret_cast<sockaddr_in6*>(&server_addr_);
                     unsigned int ifidx = sin6->sin6_scope_id;
                     if (ifidx != 0) {
 #ifdef _WIN32
-                        if (setsockopt(socket_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, reinterpret_cast<const char*>(&ifidx), static_cast<int>(sizeof(ifidx))) == SOCKET_ERROR) {
+                        if (setsockopt(socket_fd_, IPPROTO_IPV6, IPV6_MULTICAST_IF, reinterpret_cast<const char*>(&ifidx), static_cast<int>(sizeof(ifidx))) == SOCKET_ERROR) {
                             int err = WSAGetLastError();
                             if (logger) logger->warn("setsockopt(IPV6_MULTICAST_IF) failed: {}", std::system_category().message(err));
                         }
 #else
-                        if (setsockopt(socket_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifidx, static_cast<socklen_t>(sizeof(ifidx))) < 0) {
+                        if (setsockopt(socket_fd_, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifidx, static_cast<socklen_t>(sizeof(ifidx))) < 0) {
                             int err = errno;
                             if (logger) logger->warn("setsockopt(IPV6_MULTICAST_IF) failed: {}", strerror(err));
                         }
@@ -213,35 +241,37 @@ namespace mino::network::udp {
 
     ssize_t udp_sender::send_data(const std::string& data) {
 #ifdef _WIN32
-        if (socket_fd == INVALID_SOCKET)
+        if (socket_fd_ == INVALID_SOCKET)
             return -1;
 #else
         if (socket_fd < 0)
             return -1;
 #endif
-        std::lock_guard<std::mutex> lock(send_mutex);
-        return sendto(socket_fd, data.c_str(), static_cast<int>(data.size()), 0, reinterpret_cast<struct sockaddr*>(&server_addr), server_addr_len);
+        std::lock_guard<std::mutex> lock(send_mutex_);
+        return sendto(socket_fd_, data.c_str(), static_cast<int>(data.size()), 0, reinterpret_cast<struct sockaddr*>(&server_addr_), server_addr_len_);
     }
 
     ssize_t udp_sender::send_data_to(const std::string& data, const std::string& ip, unsigned short port, int fam) {
 #ifdef _WIN32
-        if (socket_fd == INVALID_SOCKET)
+        if (socket_fd_ == INVALID_SOCKET)
             return -1;
 #else
-        if (socket_fd < 0)
+        if (socket_fd_ < 0)
             return -1;
 #endif
         sockaddr_storage dest{};
         socklen_t dest_len = 0;
+
+        
 
         if (!fill_sockaddr(ip, port, dest, dest_len, fam))
             return -1;
 
         int flags = 0;
 
-        std::lock_guard<std::mutex> lock(send_mutex);
+        std::lock_guard<std::mutex> lock(send_mutex_);
         auto ret = sendto(
-            socket_fd,
+            socket_fd_,
             data.c_str(), static_cast<int>(data.size()),
             flags,
             reinterpret_cast<struct sockaddr*>(&dest), dest_len);
@@ -266,25 +296,25 @@ namespace mino::network::udp {
     bool udp_sender::set_multicast_ttl(int ttl) {
         if (
 #ifdef _WIN32
-            socket_fd == INVALID_SOCKET
+            socket_fd_ == INVALID_SOCKET
 #else
-            socket_fd < 0
+            socket_fd_ < 0
 #endif
             ) {
             return false;
         }
 
-        if (address_family == AF_INET) {
+        if (address_family_ == AF_INET) {
             unsigned char v = static_cast<unsigned char>(ttl);
-            auto ret = setsockopt(socket_fd, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char*>(&v), static_cast<socklen_t>(sizeof(v)));
+            auto ret = setsockopt(socket_fd_, IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char*>(&v), static_cast<socklen_t>(sizeof(v)));
             if (ret >= 0) {
                 return true;
             }
         }
 
-        if (address_family == AF_INET6) {
+        if (address_family_ == AF_INET6) {
             int v = ttl;
-            auto ret = setsockopt(socket_fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, reinterpret_cast<const char*>(&v), static_cast<socklen_t>(sizeof(v)));
+            auto ret = setsockopt(socket_fd_, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, reinterpret_cast<const char*>(&v), static_cast<socklen_t>(sizeof(v)));
             if (ret >= 0) {
                 return true;
             }
@@ -295,13 +325,13 @@ namespace mino::network::udp {
 
     void udp_sender::stop() {
 #ifdef _WIN32
-        if (socket_fd == INVALID_SOCKET) return;
-        closesocket(socket_fd);
-        socket_fd = INVALID_SOCKET;
+        if (socket_fd_ == INVALID_SOCKET) return;
+        closesocket(socket_fd_);
+        socket_fd_ = INVALID_SOCKET;
 #else
-        if (socket_fd < 0) return;
-        close(socket_fd);
-        socket_fd = -1;
+        if (socket_fd_ < 0) return;
+        close(socket_fd_);
+        socket_fd_ = -1;
 #endif
     }
 
@@ -314,18 +344,18 @@ namespace mino::network::udp {
 
             // 강제 종료: SO_LINGER{l_onoff=1, l_linger=0} 적용 후 즉시 닫음
 #ifdef _WIN32
-            if (socket_fd == INVALID_SOCKET) return;
+            if (socket_fd_ == INVALID_SOCKET) return;
 #else
-            if (socket_fd < 0) return;
+            if (socket_fd_ < 0) return;
 #endif
 
             // 잠깐 락으로 동시 접근 방지
-            std::lock_guard<std::mutex> lock(send_mutex);
-            close_socket_without_timewait(socket_fd);
+            std::lock_guard<std::mutex> lock(send_mutex_);
+            close_socket_without_timewait(socket_fd_);
 #ifdef _WIN32
-            socket_fd = INVALID_SOCKET;
+            socket_fd_ = INVALID_SOCKET;
 #else
-            socket_fd = -1;
+            socket_fd_ = -1;
 #endif
 
         }
