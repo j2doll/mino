@@ -244,7 +244,7 @@ namespace mino::network::udp {
         if (socket_fd_ == INVALID_SOCKET)
             return -1;
 #else
-        if (socket_fd < 0)
+        if (socket_fd_ < 0)
             return -1;
 #endif
         std::lock_guard<std::mutex> lock(send_mutex_);
