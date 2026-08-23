@@ -1,20 +1,25 @@
 function(use_mino_network EXE_NAME MINO_DIR)
+    # 1. Set C++ standard to C++17 if not already defined
     if(MSVC)
         target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
     endif()
 
+    # 2. Allow user to specify where the mino install/build is located.
     # Warn if caller didn't create the executable target
     if(NOT TARGET ${EXE_NAME})
         message(WARNING "use_mino_network: target ${EXE_NAME} does not exist. Proceeding to configure linking; create the executable target before calling this function.")
     endif()
 
+    # 3. Link to mino_network target if it exists, otherwise find and link external mino_network
     if(TARGET mino_network)
+        # 3-1. If an in-tree target named `mino_network` exists, link to it directly
         message(STATUS "Linking to in-tree target: mino_network")
         target_link_libraries(${EXE_NAME} PRIVATE mino_network)
     # elseif(TARGET mino_external)
     #    message(STATUS "Linking to in-tree target: mino_external")
     #    target_link_libraries(${EXE_NAME} PRIVATE mino_external)
     elseif(TARGET mino_core)
+        # 3-2. If an in-tree target named `mino_core` exists, link to it directly
         message(STATUS "Linking to in-tree target: mino_core")
         if(UNIX AND NOT APPLE)
             target_link_libraries(${EXE_NAME} PRIVATE mino_core rt)
@@ -22,8 +27,10 @@ function(use_mino_network EXE_NAME MINO_DIR)
             target_link_libraries(${EXE_NAME} PRIVATE mino_core)
         endif()
     else()
+        # 4-1. If no in-tree target exists, find and link to an external mino_network library
         message(STATUS "Linking to out-of-tree target: mino_network")
 
+        # 4-2. Find mino_network library and include directory
         if(MINO_DIR)
             find_path(MINO_INCLUDE_DIR NAMES "mino/network/network.hpp"
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
@@ -34,10 +41,12 @@ function(use_mino_network EXE_NAME MINO_DIR)
             find_library(MINO_NETWORK_LIBRARY NAMES mino_network)
         endif()
 
+        # 4-3. Check if mino_network was found
         if(NOT MINO_INCLUDE_DIR OR NOT MINO_NETWORK_LIBRARY)
             message(FATAL_ERROR "mino_network not found. Either add mino as a subdirectory or set -DMINO_DIR=/path/to/mino/install")
         endif()
 
+        # 4-4. Create an imported target for mino_network if it doesn't already exist
         if(NOT TARGET mino_network::mino_network AND MINO_NETWORK_LIBRARY)
             add_library(mino_network::mino_network UNKNOWN IMPORTED)
             set_target_properties(mino_network::mino_network PROPERTIES
@@ -46,7 +55,9 @@ function(use_mino_network EXE_NAME MINO_DIR)
             )
         endif()
 
-        # third-party dependencies
+        # 4-5. Link third-party dependencies
+
+        # 4-5-1. Threads
         find_package(Threads REQUIRED)
 		if(UNIX AND NOT APPLE)
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
@@ -54,7 +65,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
         endif()
 
-        # openssl 
+        # 4-5-2. OpenSSL
         find_package(OpenSSL REQUIRED)
         if(TARGET crypto AND TARGET ssl)
             add_library(OpenSSL::Crypto ALIAS crypto)
@@ -62,11 +73,11 @@ function(use_mino_network EXE_NAME MINO_DIR)
         endif()
         target_link_libraries(${EXE_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-        # curl 
+        # 4-5-3. CURL
         find_package(CURL REQUIRED)
         target_link_libraries(${EXE_NAME} PRIVATE CURL::libcurl)
 
-        # brotli
+        # 4-5-4. Brotli
         set(MINO_BROTLI_AVAILABLE FALSE)
         if(
             DEFINED VCPKG_ROOT
@@ -108,19 +119,19 @@ function(use_mino_network EXE_NAME MINO_DIR)
             endif()
         endif()
 
-        # httplib
+        # 4-5-5. httplib
         find_package(httplib REQUIRED)
         arget_link_libraries(${EXE_NAME} PRIVATE httplib::httplib)
 
-        # spdlog
-        find_package(spdlog REQUIRED)
-        target_link_libraries(${EXE_NAME} PRIVATE spdlog::spdlog)
+        # 4-5-6. spdlog
+        # find_package(spdlog REQUIRED)
+        # target_link_libraries(${EXE_NAME} PRIVATE spdlog::spdlog)
 
-        # nlohmann json
+        # 4-5-7. nlohmann json
         find_package(nlohmann_json REQUIRED)
         target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
-        # libssh2 
+        # 4-5-8. libssh2
         find_package(Libssh2 CONFIG QUIET)
         if(TARGET Libssh2::libssh2)
             message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
@@ -138,7 +149,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
             message(FATAL_ERROR "libssh2 target not available.")
         endif()
 
-        # yaml-cpp
+        # 4-5-9. yaml-cpp
         find_package(yaml-cpp CONFIG REQUIRED)
         if(TARGET yaml-cpp::yaml-cpp)
             set(YAMLCPP_TARGET yaml-cpp::yaml-cpp)
@@ -151,7 +162,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
         endif()
         target_link_libraries(${EXE_NAME} PRIVATE ${YAMLCPP_TARGET})
 
-        # iphlpapi
+        # 4-5-10. Windows-specific libraries
         if(WIN32)
             # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses
             target_link_libraries(${EXE_NAME} PRIVATE ws2_32 iphlpapi)

@@ -84,8 +84,9 @@ sudo apt install -y \
     libspdlog-dev \
     nlohmann-json3-dev \
     libyaml-cpp-dev \
-    libhttplib-dev \
     ca-certificates
+
+sudo wget https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h -O /usr/local/include/httplib.h
 
 # Ubuntu 24.04 LTS (Noble Numbat)
 sudo apt install -y \

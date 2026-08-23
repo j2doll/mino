@@ -66,8 +66,8 @@ find_package(httplib REQUIRED)
 message(STATUS "httplib version: ${httplib_VERSION}")
 
 # 3-5. spdlog
-find_package(spdlog REQUIRED)
-message(STATUS "spdlog version: ${spdlog_VERSION}")
+# find_package(spdlog REQUIRED)
+# message(STATUS "spdlog version: ${spdlog_VERSION}")
 
 # 3-6. nlohmann json
 find_package(nlohmann_json REQUIRED)
@@ -166,19 +166,19 @@ else()
 endif()
 
 # 6-4. spdlog link settings
-set(MINO_SPDLOG_LIBS "")
-# Prefer compiled spdlog target first, fallback to header-only when available.
-if(TARGET spdlog::spdlog)
-    set(MINO_SPDLOG_LIBS spdlog::spdlog)
-elseif(TARGET spdlog::spdlog_header_only)
-    set(MINO_SPDLOG_LIBS spdlog::spdlog_header_only)
-endif()
-
-if(MINO_SPDLOG_LIBS)
-    target_link_libraries(mino_network PUBLIC ${MINO_SPDLOG_LIBS})
-else()
-    message(FATAL_ERROR "spdlog not found.")
-endif()
+# set(MINO_SPDLOG_LIBS "")
+# # Prefer compiled spdlog target first, fallback to header-only when available.
+# if(TARGET spdlog::spdlog)
+#     set(MINO_SPDLOG_LIBS spdlog::spdlog)
+# elseif(TARGET spdlog::spdlog_header_only)
+#     set(MINO_SPDLOG_LIBS spdlog::spdlog_header_only)
+# endif()
+# 
+# if(MINO_SPDLOG_LIBS)
+#     target_link_libraries(mino_network PUBLIC ${MINO_SPDLOG_LIBS})
+# else()
+#     message(FATAL_ERROR "spdlog not found.")
+# endif()
 
 # 6-5. nlohmann_json link settings
 set(MINO_JSON_LIBS "")
