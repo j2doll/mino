@@ -44,6 +44,7 @@
 
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
+# Rocky 8
 sudo dnf install -y epel-release dnf-plugins-core
 sudo dnf config-manager --set-enabled powertools
 
@@ -68,8 +69,10 @@ sudo dnf install -y \
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
-sudo apt update -y
+sudo add-apt-repository universe
+sudo apt update
 
+# Ubuntu 22.04 LTS (Jammy Jellyfish)
 sudo apt install -y \
     build-essential \
     cmake \
@@ -81,8 +84,24 @@ sudo apt install -y \
     libspdlog-dev \
     nlohmann-json3-dev \
     libyaml-cpp-dev \
-    libcpp-httplib-dev \
+    libhttplib-dev \
     ca-certificates
+
+# Ubuntu 24.04 LTS (Noble Numbat)
+sudo apt install -y \
+    build-essential \
+    cmake \
+    pkg-config \
+    libssl-dev \
+    libssh2-1-dev \
+    libssh-dev \
+    libcurl4-openssl-dev \
+    libspdlog-dev \
+    nlohmann-json3-dev \
+    libyaml-cpp-dev \
+    libhttplib-dev \
+    ca-certificates
+
 ```
 
 ##### 📦 라이브러리 설치 
