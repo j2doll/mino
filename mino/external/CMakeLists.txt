@@ -70,10 +70,11 @@ target_include_directories(
 target_link_libraries(
   mino_external
   PUBLIC
-    Threads::Threads
     $<BUILD_INTERFACE:spdlog::spdlog>
     $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
     $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>
+  PRIVATE
+    Threads::Threads
 )
 
 # 7. [Dependency] If external uses core, link it here.
