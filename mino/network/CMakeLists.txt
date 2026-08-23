@@ -32,11 +32,8 @@ message(STATUS "CURL version: ${CURL_VERSION}")
 # 3-3. brotli (check vcpkg-specific namespace first when vcpkg is used,
 # otherwise try standard package names quietly)
 set(MINO_BROTLI_AVAILABLE FALSE)
-
-if(
-    DEFINED VCPKG_ROOT
-    OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg")
-)
+if(DEFINED VCPKG_ROOT
+   OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
     # Using vcpkg toolchain -> prefer vcpkg namespace
     find_package(unofficial-brotli CONFIG REQUIRED)
     set(MINO_BROTLI_AVAILABLE TRUE)
@@ -61,7 +58,7 @@ else()
     endif()
 endif()
 
-# 3-4. httplib
+# 3-4. cpp httplib
 find_package(httplib REQUIRED)
 message(STATUS "httplib version: ${httplib_VERSION}")
 
@@ -70,8 +67,8 @@ message(STATUS "httplib version: ${httplib_VERSION}")
 # message(STATUS "spdlog version: ${spdlog_VERSION}")
 
 # 3-6. nlohmann json
-find_package(nlohmann_json REQUIRED)
-message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
+# find_package(nlohmann_json REQUIRED)
+# message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
 # 3-7. libssh2
 find_package(Libssh2 CONFIG QUIET)
@@ -181,16 +178,16 @@ endif()
 # endif()
 
 # 6-5. nlohmann_json link settings
-set(MINO_JSON_LIBS "")
-if(TARGET nlohmann_json::nlohmann_json)
-    set(MINO_JSON_LIBS nlohmann_json::nlohmann_json)
-endif()
-
-if(MINO_JSON_LIBS)
-    target_link_libraries(mino_network PUBLIC ${MINO_JSON_LIBS})
-else()
-    message(FATAL_ERROR "nlohmann_json not found.")
-endif()
+# set(MINO_JSON_LIBS "")
+# if(TARGET nlohmann_json::nlohmann_json)
+#     set(MINO_JSON_LIBS nlohmann_json::nlohmann_json)
+# endif()
+# 
+# if(MINO_JSON_LIBS)
+#     target_link_libraries(mino_network PUBLIC ${MINO_JSON_LIBS})
+# else()
+#     message(FATAL_ERROR "nlohmann_json not found.")
+# endif()
 
 # 6-6. libssh2 link settings
 if(TARGET Libssh2::libssh2)

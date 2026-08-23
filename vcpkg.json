@@ -28,7 +28,6 @@
         "zlib"
       ]
     },
-    "mmx",
     "nlohmann-json",
     "openssl",
     {
@@ -37,8 +36,7 @@
         "fmt",
         "tz-offset"
       ]
-    },
-    "yaml-cpp",
-    "zlib"
+    }, 
+    "yaml-cpp"
   ]
 }

@@ -128,8 +128,8 @@ function(use_mino_network EXE_NAME MINO_DIR)
         # target_link_libraries(${EXE_NAME} PRIVATE spdlog::spdlog)
 
         # 4-5-7. nlohmann json
-        find_package(nlohmann_json REQUIRED)
-        target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
+        # find_package(nlohmann_json REQUIRED)
+        # target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
         # 4-5-8. libssh2
         find_package(Libssh2 CONFIG QUIET)
