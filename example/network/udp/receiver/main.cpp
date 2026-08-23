@@ -14,7 +14,9 @@ class my_udp_receiver_handler {
 public:
     my_udp_receiver_handler(const std::string& name) : name_(name) {}
     void onReceive(const std::string& message, const std::string& ip, uint16_t port) {
-        std::string ret = "[" + name_ + "] Received from " + ip + ":" + std::to_string(port) + " - " + message;
+        std::string ret =
+            "[" + name_ + "] Received from " +
+            ip + ":" + std::to_string(port) + " - " + message;
         std::cout << ret << std::endl;
     }
 private: 

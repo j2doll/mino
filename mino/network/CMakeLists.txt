@@ -201,6 +201,15 @@ else()
     message(FATAL_ERROR "libssh2 target not available.")
 endif()
 
+# 6-7. iphlpapi (Windows only))
+if(WIN32)
+    # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses
+    target_link_libraries(mino_network PRIVATE ws2_32 iphlpapi)
+
+    # Prevent unnecessary header inclusion and avoid min/max macro conflicts on Windows
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+endif()
+
 # 7. [Dependency] If network uses xxx, link it here.
 target_link_libraries(mino_network PUBLIC mino_core mino_external)
 

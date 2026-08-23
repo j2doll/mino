@@ -151,6 +151,15 @@ function(use_mino_network EXE_NAME MINO_DIR)
         endif()
         target_link_libraries(${EXE_NAME} PRIVATE ${YAMLCPP_TARGET})
 
+        # iphlpapi
+        if(WIN32)
+            # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses
+            target_link_libraries(${EXE_NAME} PRIVATE ws2_32 iphlpapi)
+
+            # Prevent unnecessary header inclusion and avoid min/max macro conflicts on Windows
+            add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+        endif()
+
         # link mino network library to the executable target
         target_link_libraries(${EXE_NAME} PRIVATE mino_network::mino_network)
         message(STATUS "Using external mino_network from ${MINO_DIR}")
