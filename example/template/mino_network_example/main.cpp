@@ -8,16 +8,13 @@
 #include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/tcp/tcp.hpp"
-
+ 
 void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
 {
     if (tcp_server) {
         tcp_server->quit();
     }
     std::cout << std::endl << "Resources cleaned up. Exiting." << std::endl;
-#ifdef _WIN32
-    WSACleanup();
-#endif
 }
 
 int main() {
@@ -26,6 +23,9 @@ int main() {
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (result != 0) {
         std::cerr << "WSAStartup failed, Error Code: " << result << std::endl;
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return 1;
     }
 #endif
@@ -80,18 +80,21 @@ int main() {
         return 1;
     }
 
-    logger->info("TCP server started on port {}. Press Enter to stop, or Ctrl-C to quit.", port_number);
+    logger->info(
+        "<yellow>TCP server</yellow> started on port <green>{0}</green>."
+        " Press <bright_cyan>Enter</bright_cyan> to stop,"
+        " or <bright_cyan>Ctrl-C</bright_cyan> to quit.",
+        port_number);
 
     // 간단한 종료 대기: Enter 입력 시 종료
     std::cin.get();
 
-    logger->info("Stopping server...");
+    logger->info("<magenta>Stopping</magenta> server...");
     server.quit();
-    logger->info("Server stopped.");
+    logger->info("Server <bright_white>stopped</bright_white>.");
 
 #ifdef _WIN32
     WSACleanup();
 #endif
-
     return 0;
 }
