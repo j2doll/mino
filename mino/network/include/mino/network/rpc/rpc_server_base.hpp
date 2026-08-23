@@ -8,8 +8,7 @@
 #include <functional>
 #include <chrono>
 
-#include <nlohmann/json.hpp>
-
+#include "mino/core/json/json.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
@@ -19,7 +18,7 @@ namespace mino::network::rpc {
     // RPC 기반 클래스
     class rpc_server_base {
     public:
-        using json = nlohmann::json;
+        using json = mino::core::json::value;
         using raw_handler = std::function<json(const json&)>;
 
     protected:

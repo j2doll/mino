@@ -9,8 +9,7 @@
 #include <atomic>
 #include <utility>
 
-#include <nlohmann/json.hpp>
-
+#include "mino/core/json/json.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
@@ -20,7 +19,7 @@ namespace mino::network::rpc {
 
     class rpc_client_base {
     public:
-        using json = nlohmann::json;
+        using json = mino::core::json::value;
 
     protected:
         mino::network::message_broker::publisher pub; // Publisher 멤버 변수
@@ -46,28 +45,23 @@ namespace mino::network::rpc {
         virtual ~rpc_client_base();
 
         // id 설정 
-        void set_id(
-            std::string unique_id); // 클라이언트 고유 ID 설정 (응답 토픽 생성에 사용)
+        void set_id(std::string unique_id); // 클라이언트 고유 ID 설정 (응답 토픽 생성에 사용)
 
         // tinylog 로거 설정
         void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger);
 
         // 브로커 설정
-        void set_broker(
-            const std::string& ip, // 브로커 IP 주소
-            unsigned short port); // 브로커 포트 번호
+        void set_broker(const std::string& ip, unsigned short port); // 브로커 설정
 
-        void set_connection_timeout( // 브로커 연결 타임아웃 설정
-            std::chrono::milliseconds timeout); // 타임아웃 시간 (밀리초 단위)
+        void set_connection_timeout(std::chrono::milliseconds timeout); // 브로커 연결 타임아웃 설정
 
-        bool connect(std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60)); // 브로커에 연결 시도 (성공 시 true, 실패 시 false 반환)
+        bool connect(std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60)); // 브로커에 연결 시도
         void disconnect(); // 브로커와의 연결을 정상적으로 종료
 
         std::pair<rpc_status, json> call_raw( // RPC 호출 함수
             std::string_view service_name, // 호출할 서비스 이름
             const json& raw_argument, // 서비스에 전달할 인자 JSON
-            std::chrono::seconds timeout); // RPC 호출 타임아웃 (초 단위, 기본값 5초)
-
+            std::chrono::seconds timeout); // RPC 호출 타임아웃 (초 단위)
     };
 
 }

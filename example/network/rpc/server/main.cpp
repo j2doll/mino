@@ -6,9 +6,11 @@
 //-----------------------------------------------
 
 #include <iostream>
+#include <stdexcept>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
+#include "mino/core/json/json.hpp"
 
 // network rpc server
 #include "mino/network/ethernet.hpp"
@@ -20,56 +22,94 @@
 // custom business log class 
 class my_business_server : public mino::network::rpc::rpc_server_base {
 public:
-    // rpc_example_common.hpp 에서 정의된 요청(Request)과 응답(Response) 타입을 사용
     using req_t = my_app::domain::task_request;
     using res_t = my_app::domain::task_response;
 
-    void initialize_services() { // 서비스 초기화
-        register_raw_service( // 서비스 등록
-            my_app::domain::service_name, // 서비스 이름
-            [this](const nlohmann::json& raw_arg) -> nlohmann::json // 핸들러 함수
+    void initialize_services() {
+        register_raw_service(
+            std::string(my_app::domain::service_name),
+            [this](const json& raw_arg) -> json
             {
                 try {
-                    auto req = raw_arg.get<req_t>();
+                    req_t req = parse_request(raw_arg);
                     res_t res = execute_analysis_logic(req);
-                    return nlohmann::json(res);
+                    return to_json(res);
                 }
-                catch (const nlohmann::json::exception& ex) {
+                catch (const std::invalid_argument& ex) {
                     res_t res;
                     res.is_success = false;
                     res.message = std::string("Invalid request: ") + ex.what();
-                    res.details = { {"node_id", -1} };
-                    return nlohmann::json(res);
+                    res.details["node_id"] = -1;
+                    return to_json(res);
                 }
                 catch (const std::exception& ex) {
                     res_t res;
                     res.is_success = false;
                     res.message = std::string("Internal error: ") + ex.what();
-                    res.details = { {"node_id", -2} };
-                    return nlohmann::json(res);
+                    res.details["node_id"] = -2;
+                    return to_json(res);
                 }
 
                 res_t res;
                 res.is_success = false;
                 res.message = "Unknown error occurred during request processing.";
-                res.details = { {"node_id", -3} };
-                return nlohmann::json(res);
+                res.details["node_id"] = -3;
+                return to_json(res);
             });
     }
 
 private:
-    // 실제 분석 로직을 수행하는 함수 (여기서는 단순히 요청을 확인하고 응답을 생성)
+    // mino::core::json::value -> task_request DTO 변환
+    req_t parse_request(const json& val) {
+        if (!val.is_object()) {
+            throw std::invalid_argument("Request payload is not a JSON object");
+        }
+
+        req_t req;
+        if (val.has_path("command")) {
+            req.command = const_cast<json&>(val)["command"].get_string();
+        }
+        else {
+            throw std::invalid_argument("Missing required field: 'command'");
+        }
+
+        if (val.has_path("count")) {
+            req.count = static_cast<int>(const_cast<json&>(val)["count"].get_number());
+        }
+
+        if (val.has_path("parameters")) {
+            auto& params_val = const_cast<json&>(val)["parameters"];
+            if (params_val.is_array()) {
+                const auto& arr = std::get<mino::core::json::array_t>(params_val.data);
+                for (const auto& item : arr) {
+                    req.parameters.push_back(item.get_number());
+                }
+            }
+        }
+        return req;
+    }
+
+    // task_response DTO -> mino::core::json::value 변환
+    json to_json(const res_t& res) {
+        json j;
+        j["is_success"] = res.is_success;
+        j["message"] = res.message;
+        j["details"] = res.details;
+        return j;
+    }
+
+    // 실제 분석 로직
     res_t execute_analysis_logic(const req_t& req) {
         res_t res;
         if (req.command == "analyze") {
             res.is_success = true;
             res.message = "Analysis node response success.";
-            res.details = { {"node_id", 1} };
+            res.details["node_id"] = 1;
         }
         else {
             res.is_success = false;
             res.message = "Unknown command. Analysis failed.";
-            res.details = { {"node_id", -1} };
+            res.details["node_id"] = -1;
         }
         return res;
     }
@@ -83,7 +123,7 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    my_business_server server; // RPC 서버 객체 생성
+    my_business_server server;
 
     // tinylog 기반 콘솔 싱크 및 로거 설정
     namespace mclt = mino::core::log::tinylog;
@@ -93,17 +133,16 @@ int main(int argc, char* argv[]) {
     rpc_server_logger->set_level(mclt::log_level::debug);
     mclt::logger::register_logger(rpc_server_logger);
 
-    server.setup_logger(rpc_server_logger); // 로거 설정
+    server.setup_logger(rpc_server_logger);
 
     std::string broker_ip = "127.0.0.1";
     unsigned short broker_port = 54321;
-    server.set_broker(broker_ip, broker_port); // 브로커 설정
-    server.set_startup_timeout(std::chrono::milliseconds(3000)); // 시작 타임아웃 설정
-    server.initialize_services(); // 서비스 초기화
+    server.set_broker(broker_ip, broker_port);
+    server.set_startup_timeout(std::chrono::milliseconds(3000));
+    server.initialize_services();
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
-    if (!server.start(tcp_sleep_time)) { // RPC 서버 시작
-        // NOTE: broker 와 연결 실패 시, 연결 재시도를 해도 됨.
+    if (!server.start(tcp_sleep_time)) {
         rpc_server_logger->error("<bright_yellow>Failed</bright_yellow> to start RPC Server. "
             "Check broker connection and configurations.");
 #ifdef _WIN32
@@ -113,9 +152,9 @@ int main(int argc, char* argv[]) {
     }
 
     rpc_server_logger->info("RPC Server started. <bright_yellow>Press Enter to stop...</bright_yellow>");
-    std::cin.get(); // Wait for user input to stop the server
+    std::cin.get();
 
-    server.stop(); // RPC 서버 중지
+    server.stop();
 
 #ifdef _WIN32
     WSACleanup();

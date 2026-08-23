@@ -1,7 +1,7 @@
 #include <thread>
+#include <stdexcept>
 
-#include <nlohmann/json.hpp>
-
+#include "mino/core/json/json.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/rpc/rpc_server_base.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
@@ -28,9 +28,13 @@ namespace mino::network::rpc {
         json argument;
 
         try {
-            auto j = json::parse(body);
-            req_id = j["request_id"].get<std::string>();
-            res_topic = j["response_topic"].get<std::string>();
+            auto j = mino::core::json::parser::parse(body);
+            if (!j.is_object() || !j.has_path("request_id") || !j.has_path("response_topic")) {
+                if (logger) logger->error("[RPC Server Core] Invalid packet format: parsed JSON is not a valid RPC request object");
+                return;
+            }
+            req_id = j["request_id"].get_string();
+            res_topic = j["response_topic"].get_string();
             argument = j["argument"];
         }
         catch (const std::exception& e) {
@@ -51,7 +55,7 @@ namespace mino::network::rpc {
                 json result_json = handler(argument);
                 res_body = rpc_protocol_util::serialize_response(req_id, true, "", result_json);
             }
-            catch (const json::exception& e) {
+            catch (const std::invalid_argument& e) {
                 res_body = rpc_protocol_util::serialize_response(req_id, false, "invalid_argument", std::string("Argument schema mismatch: ") + e.what());
             }
             catch (const std::exception& e) {

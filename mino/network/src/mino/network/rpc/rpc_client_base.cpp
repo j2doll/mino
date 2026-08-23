@@ -2,8 +2,7 @@
 #include <thread>
 #include <sstream>
 
-#include <nlohmann/json.hpp>
-
+#include "mino/core/json/json.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/rpc/rpc_client_base.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
@@ -19,7 +18,7 @@ namespace mino::network::rpc {
     }
 
     void rpc_client_base::on_message_received(
-        std::string_view, // topic,
+        std::string_view, // topic
         std::string_view msg_kind,
         std::string_view body,
         uint64_t // timestamp
@@ -29,8 +28,13 @@ namespace mino::network::rpc {
             return;
 
         try {
-            auto j = json::parse(body);
-            std::string req_id = j["request_id"].get<std::string>();
+            auto j = mino::core::json::parser::parse(body);
+            if (!j.is_object() || !j.has_path("request_id")) {
+                if (logger) logger->error("[RPC Client Core] Invalid RPC response format: missing request_id or not an object");
+                return;
+            }
+
+            std::string req_id = j["request_id"].get_string();
 
             std::promise<json> target_promise;
             bool found = false;
@@ -46,11 +50,11 @@ namespace mino::network::rpc {
             }
 
             if (found) {
-                target_promise.set_value(j);
+                target_promise.set_value(std::move(j));
             }
         }
         catch (const std::exception& e) {
-            if (logger) logger->error("[RPC Client Core] JSON Parse Error: {}", e.what());
+            if (logger) logger->error("[RPC Client Core] Message Handling Error: {}", e.what());
         }
     }
 
@@ -134,11 +138,12 @@ namespace mino::network::rpc {
 
     std::pair<rpc_status, rpc_client_base::json> rpc_client_base::call_raw(
         std::string_view service_name,
-        const json& raw_argument, std::chrono::seconds timeout)
+        const json& raw_argument,
+        std::chrono::seconds timeout)
     {
         if (!pub.is_connected()) {
             handle_disconnection();
-            return { { rpc_error_code::connection_broken, "Link already dead" }, json::object() };
+            return { { rpc_error_code::connection_broken, "Link already dead" }, mino::core::json::value(mino::core::json::object_t{}) };
         }
 
         std::string req_id = client_id + "_" + std::to_string(++sequence_id);
@@ -155,31 +160,31 @@ namespace mino::network::rpc {
         if (!send_ok) {
             std::scoped_lock lock(map_mutex);
             response_map.erase(req_id);
-            return { { rpc_error_code::connection_broken, "Publish failed: " + err_msg }, json::object() };
+            return { { rpc_error_code::connection_broken, "Publish failed: " + err_msg }, mino::core::json::value(mino::core::json::object_t{}) };
         }
 
         try {
             if (future_res.wait_for(timeout) == std::future_status::timeout) {
                 std::scoped_lock lock(map_mutex);
                 response_map.erase(req_id);
-                return { { rpc_error_code::timeout, "Request timed out" }, json::object() };
+                return { { rpc_error_code::timeout, "Request timed out" }, mino::core::json::value(mino::core::json::object_t{}) };
             }
 
             auto response_json = future_res.get();
-            bool is_success = response_json["success"].get<bool>();
+            bool is_success = response_json["success"].get_bool();
 
             if (is_success) {
                 return { { rpc_error_code::success, "OK" }, response_json["result"] };
             }
             else {
-                std::string err_type = response_json["error_code"].get<std::string>();
+                std::string err_type = response_json["error_code"].get_string();
                 rpc_error_code code = rpc_error_code::unknown_error;
 
                 if (err_type == "service_not_found") code = rpc_error_code::service_not_found;
                 else if (err_type == "invalid_argument") code = rpc_error_code::invalid_argument;
                 else if (err_type == "internal_server_error") code = rpc_error_code::internal_server_error;
 
-                return { { code, response_json["result"].get<std::string>() }, json::object() };
+                return { { code, response_json["result"].get_string() }, mino::core::json::value(mino::core::json::object_t{}) };
             }
         }
         catch (const std::runtime_error& ex) {
@@ -187,7 +192,7 @@ namespace mino::network::rpc {
                 { rpc_error_code::connection_broken,
                   std::string("Channel disconnected: ") + ex.what()
                 },
-                json::object()
+                mino::core::json::value(mino::core::json::object_t{})
             };
         }
     }
