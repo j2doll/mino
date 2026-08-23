@@ -1,4 +1,7 @@
+
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "mino/external/log/adapter/logger_adapter.hpp"
 
