@@ -16,15 +16,6 @@
 #include "mino/external/log/spd/zip_file.hpp"
 
 // detect spdlog version at compile time and provide a fallback for older spdlog
-/// #ifndef SPDLOG_VER_MAJOR
-/// #  define MINO_SPDLOG_OLD 1
-/// #elif (SPDLOG_VER_MAJOR * 10000 + SPDLOG_VER_MINOR * 100 + SPDLOG_VER_PATCH) < 10800
-/// #  define MINO_SPDLOG_OLD 1
-/// #else
-/// #  define MINO_SPDLOG_NEW 1
-/// #endif
-
-// detect spdlog version at compile time and provide a fallback for older spdlog
 #ifndef SPDLOG_VER_MAJOR
 #  define MINO_SPDLOG_OLD 1
 #elif (SPDLOG_VER_MAJOR * 10000 + SPDLOG_VER_MINOR * 100 + SPDLOG_VER_PATCH) < 11100
