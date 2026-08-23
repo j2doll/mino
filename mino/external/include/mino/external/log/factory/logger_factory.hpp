@@ -6,8 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-// #include <spdlog/spdlog.h>
-#include <spdlog/fwd.h>
+#include <spdlog/spdlog.h>
 
 namespace mino::external::log::factory {
 
