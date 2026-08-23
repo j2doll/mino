@@ -59,8 +59,8 @@ else()
 endif()
 
 # 3-4. cpp httplib
-find_package(httplib REQUIRED)
-message(STATUS "httplib version: ${httplib_VERSION}")
+# find_package(httplib REQUIRED)
+# message(STATUS "httplib version: ${httplib_VERSION}")
 
 # 3-5. spdlog
 # find_package(spdlog REQUIRED)
@@ -125,11 +125,15 @@ endif()
 
 if(MINO_OPENSSL_LINKS)
     target_link_libraries(mino_network PUBLIC ${MINO_OPENSSL_LINKS})
+    # Define USE_OPENSSL so source files can use #if USE_OPENSSL
+    target_compile_definitions(mino_network PUBLIC USE_OPENSSL=1)
 else()
     message(
         WARNING
         "OpenSSL not found; mino_network will be built without OpenSSL support."
     )
+    # Define explicitly as 0 so code using #if USE_OPENSSL compiles consistently
+    target_compile_definitions(mino_network PUBLIC USE_OPENSSL=0)
 endif()
 
 # 6-2. CURL link settings
@@ -148,19 +152,19 @@ else()
 endif()
 
 # 6-3. httplib link settings
-set(MINO_HTTP_LIBS "")
-# Common CMake package targets for httplib are typically 'httplib::httplib' or 'cpp-httplib::cpp-httplib'.
-if(TARGET httplib::httplib)
-    set(MINO_HTTP_LIBS httplib::httplib)
-elseif(TARGET cpp-httplib::cpp-httplib)
-    set(MINO_HTTP_LIBS cpp-httplib::cpp-httplib)
-endif()
-
-if(MINO_HTTP_LIBS)
-    target_link_libraries(mino_network PUBLIC ${MINO_HTTP_LIBS})
-else()
-    message(FATAL_ERROR "httplib not found.")
-endif()
+# set(MINO_HTTP_LIBS "")
+# # Common CMake package targets for httplib are typically 'httplib::httplib' or 'cpp- #httplib::cpp-httplib'.
+# if(TARGET httplib::httplib)
+#     set(MINO_HTTP_LIBS httplib::httplib)
+# elseif(TARGET cpp-httplib::cpp-httplib)
+#     set(MINO_HTTP_LIBS cpp-httplib::cpp-httplib)
+# endif()
+# 
+# if(MINO_HTTP_LIBS)
+#     target_link_libraries(mino_network PUBLIC ${MINO_HTTP_LIBS})
+# else()
+#     message(FATAL_ERROR "httplib not found.")
+# endif()
 
 # 6-4. spdlog link settings
 # set(MINO_SPDLOG_LIBS "")

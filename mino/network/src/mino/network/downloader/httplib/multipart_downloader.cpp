@@ -14,7 +14,7 @@
     #endif
 #endif
 
-#include <httplib.h>
+#include "mino/network/httplib/httplib.h"
 
 namespace mino::network::downloader::httplib
 {

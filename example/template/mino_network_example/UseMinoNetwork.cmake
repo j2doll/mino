@@ -120,8 +120,8 @@ function(use_mino_network EXE_NAME MINO_DIR)
         endif()
 
         # 4-5-5. httplib
-        find_package(httplib REQUIRED)
-        arget_link_libraries(${EXE_NAME} PRIVATE httplib::httplib)
+        # find_package(httplib REQUIRED)
+        # target_link_libraries(${EXE_NAME} PRIVATE httplib::httplib)
 
         # 4-5-6. spdlog
         # find_package(spdlog REQUIRED)

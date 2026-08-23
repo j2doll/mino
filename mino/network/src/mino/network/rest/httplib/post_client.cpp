@@ -5,12 +5,12 @@
 #include <cctype>
 
 #ifdef USE_OPENSSL
-#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
-#define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
-#endif
+    #ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+        #define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
+    #endif
 #endif
 
-#include <httplib.h>
+#include "mino/network/httplib/httplib.h"
 
 #include "mino/network/rest/httplib/post_client.hpp"
 
