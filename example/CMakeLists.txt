@@ -2,15 +2,9 @@ cmake_minimum_required(VERSION 3.24)
 
 project(mino_example_project)
 
-# example template for mino core/external/network library
-add_subdirectory(template)
+add_subdirectory(template) # example template for mino core/external/network library
+add_subdirectory(core) # mino core example
+add_subdirectory(network) # mino network example
+add_subdirectory(external) # mino external example
 
-# mino core example
-add_subdirectory(core)
-
-# mino external example
-add_subdirectory(external)
-
-# mino network example
-add_subdirectory(network)
 

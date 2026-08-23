@@ -17,9 +17,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # 4. Add subdirectories
-add_subdirectory(core)
-add_subdirectory(external)
-add_subdirectory(network)
+add_subdirectory(core) # 1st 
+add_subdirectory(network) # 2nd
+add_subdirectory(external) # 3rd
 
 # 5. Export package and generate CMake configuration files
 include(CMakePackageConfigHelpers)
