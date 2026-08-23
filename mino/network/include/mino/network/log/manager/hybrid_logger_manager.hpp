@@ -16,72 +16,16 @@
 #include <cctype>
 #include <cmath>
 
-#include "mino/core/ini/ini.hpp"
+#include "mino/core/ini/ini_parser.hpp"
 #include "mino/core/string/string.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/udp/udp_sender.hpp"
+#include "mino/network/log/manager/filter_sink.hpp"
 
+// INI 기반 tinylog 인코딩/개행/리로드/디스크 감시/UDP 알림을 제공하는 하이브리드 로거 매니저
 namespace mino::network::log::manager {
-
-    // tinylog 싱크별 레벨 필터링 및 동적 교체/On-Off를 지원하는 래퍼 싱크
-    class filter_sink : public mino::core::log::tinylog::sink {
-    public:
-        filter_sink(const std::string& name,
-            std::shared_ptr<mino::core::log::tinylog::sink> target,
-            mino::core::log::tinylog::log_level min_level,
-            bool enabled = true)
-            : mino::core::log::tinylog::sink(name),
-            target_(std::move(target)),
-            min_level_(min_level),
-            enabled_(enabled) {
-        }
-
-        void set_target(std::shared_ptr<mino::core::log::tinylog::sink> target) {
-            std::lock_guard<std::mutex> lock(mu_);
-            target_ = std::move(target);
-        }
-
-        std::shared_ptr<mino::core::log::tinylog::sink> get_target() const {
-            std::lock_guard<std::mutex> lock(mu_);
-            return target_;
-        }
-
-        void set_level(mino::core::log::tinylog::log_level level) {
-            std::lock_guard<std::mutex> lock(mu_);
-            min_level_ = level;
-        }
-
-        mino::core::log::tinylog::log_level level() const {
-            std::lock_guard<std::mutex> lock(mu_);
-            return min_level_;
-        }
-
-        void set_enabled(bool enabled) {
-            std::lock_guard<std::mutex> lock(mu_);
-            enabled_ = enabled;
-        }
-
-        bool is_enabled() const {
-            std::lock_guard<std::mutex> lock(mu_);
-            return enabled_;
-        }
-
-        void log(mino::core::log::tinylog::log_level level, std::string_view msg) override {
-            std::lock_guard<std::mutex> lock(mu_);
-            if (!enabled_ || level < min_level_) return;
-            if (target_) {
-                target_->log(level, msg);
-            }
-        }
-
-    private:
-        mutable std::mutex mu_;
-        std::shared_ptr<mino::core::log::tinylog::sink> target_;
-        mino::core::log::tinylog::log_level min_level_{ mino::core::log::tinylog::log_level::trace };
-        bool enabled_{ true };
-    };
 
     class hybrid_logger_manager {
     public:
@@ -94,7 +38,6 @@ namespace mino::network::log::manager {
             const std::string& loggerName,
             const std::string& envName = "");
 
-        // tinylog 로거 인스턴스 반환
         std::shared_ptr<mino::core::log::tinylog::logger> getLogger() const;
 
         bool reloadIfChanged();
@@ -138,7 +81,6 @@ namespace mino::network::log::manager {
         static void replaceAll(std::string& s, const std::string& from, const std::string& to);
 
     protected:
-        // INI 및 상태
         std::string iniPath_;
         std::string logSection_ = "Log";
         std::string loggerName_;
@@ -163,12 +105,12 @@ namespace mino::network::log::manager {
         std::size_t alertMaxSize_ = 100 * 1024 * 1024;
         std::size_t alertMaxFiles_ = 10;
 
-        // Disk Guard
+        // 디스크 감시
         bool        diskGuardEnable_ = true;
         std::string diskRoot_;
         double      diskMinFreeRatio_ = 5.0;
 
-        // UDP Alert
+        // UDP 알림
         std::string udpIp_;
         std::uint16_t udpPort_ = 0;
         unsigned    udpIntervalSec_ = 60;
@@ -177,14 +119,14 @@ namespace mino::network::log::manager {
 
         bool fileSinksDetachedForDisk_ = false;
 
-        // 인코딩 및 개행 설정
+        // 인코딩 및 개행 설정 (하이브리드 특화)
         mino::core::log::tinylog::encoding_type consoleEncoding_ = mino::core::log::tinylog::encoding_type::utf8;
         mino::core::log::tinylog::encoding_type allEncoding_ = mino::core::log::tinylog::encoding_type::utf8;
         mino::core::log::tinylog::encoding_type alertsEncoding_ = mino::core::log::tinylog::encoding_type::utf8;
         mino::core::log::tinylog::eol_type      allLineEnding_ = mino::core::log::tinylog::eol_type::lf;
         mino::core::log::tinylog::eol_type      alertsLineEnding_ = mino::core::log::tinylog::eol_type::lf;
 
-        // tinylog 로거 및 래퍼 싱크
+        // 로거 및 래퍼 싱크
         std::shared_ptr<mino::core::log::tinylog::logger> logger_;
         std::shared_ptr<filter_sink> consoleSinkWrapper_;
         std::shared_ptr<filter_sink> allSinkWrapper_;
