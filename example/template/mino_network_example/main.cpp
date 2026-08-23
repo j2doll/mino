@@ -7,6 +7,7 @@
 #include "mino/core/daemon/daemon.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 
+#include "mino/network/ethernet.hpp"
 #include "mino/network/tcp/tcp.hpp"
  
 void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
