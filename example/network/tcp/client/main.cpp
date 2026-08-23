@@ -4,11 +4,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
 #include "mino/core/string/string.hpp"
 #include "mino/core/daemon/termination_handler.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
@@ -18,10 +16,13 @@ class my_tcp_client_handler {
 public:
     my_tcp_client_handler(std::string name) {
         std::string logger_name = name + "_logger";
-        logger_ = spdlog::stdout_color_mt(logger_name);
+        auto console_sink = std::make_shared<mino::core::log::tinylog::console_sink>(name + "_console");
+        logger_ = std::make_shared<mino::core::log::tinylog::logger>(logger_name);
+        logger_->add_sink(console_sink);
+        mino::core::log::tinylog::logger::register_logger(logger_);
     }
 
-    void set_logger(std::shared_ptr<spdlog::logger> logger) {
+    void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
         logger_ = logger;
     }
 
@@ -42,7 +43,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<mino::core::log::tinylog::logger> logger_;
 };
 
 void clean_up_resources(
@@ -75,11 +76,17 @@ int main() {
         WSACleanup();
 #endif
         std::exit(0);
-    });
+        });
+
+    namespace mclt = mino::core::log::tinylog;
 
     // ----------- IPv4 Example -----------
     {
-        auto tcp4_logger = spdlog::stdout_color_mt("tcp4_logger");
+        auto console_sink4 = std::make_shared<mclt::console_sink>("tcp4_console");
+        auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
+        tcp4_logger->add_sink(console_sink4);
+        mclt::logger::register_logger(tcp4_logger);
+
         client4.set_logger(tcp4_logger);
 
         tcp4_logger->info("[IPv4 Example]");
@@ -98,28 +105,6 @@ int main() {
             tcp4_logger->error("Failed to start IPv4 client");
             return 1;
         }
-
-        // ========================================
-        //  TCP kernel parameter status check
-        // ========================================
-        // 
-        // tcp_fin_timeout                : net.ipv4.tcp_fin_timeout = 60
-        //   Description: Time (seconds) to keep TIME_WAIT after FIN-based close. Default 60s. Prevents socket resource delay.
-        // 
-        // tcp_tw_reuse                   : net.ipv4.tcp_tw_reuse = 2
-        //   Description: Whether to reuse TIME_WAIT sockets. Value 2 in recent kernels means safe reuse for outbound connections.
-        // 
-        // tcp_max_tw_buckets             : net.ipv4.tcp_max_tw_buckets = 131072
-        //   Description: Max number of TIME_WAIT sockets. If exceeded, kernel forcibly cleans up old TIME_WAITs to prevent resource exhaustion.
-        // 
-        // tcp_max_syn_backlog            : net.ipv4.tcp_max_syn_backlog = 2048
-        //   Description: Size of the queue for initial SYN requests. Larger value increases concurrent connection handling.
-        // 
-        // somaxconn                      : net.core.somaxconn = 4096
-        //   Description: Maximum backlog for listen(). Directly affects server concurrent connection capacity.
-        // 
-        // ip_local_port_range            : net.ipv4.ip_local_port_range = 9000    65535
-        //   Description: Ephemeral port range for client outbound connections. Directly related to port exhaustion.
 
         // [Test 1] Simulate the main thread handling its own loop
         for (int i = 0; i < 3; ++i) { // Run 3 times for demonstration
@@ -145,11 +130,6 @@ int main() {
             }
         }
 
-        // [Test 2] Send binary data
-        // std::vector<uint8_t> bin = { 0x01, 0x02, 0x00, 0xFF };
-        // std::string bin_str(reinterpret_cast<const char*>(bin.data()), bin.size());
-        // if (client4.is_connected()) { client.send_data(bin_str); }
-
         tcp4_logger->info("Before stopping IPv4 client, waiting for a moment...");
         client4.stop();
         tcp4_logger->info("IPv4 client stopped.");
@@ -157,7 +137,11 @@ int main() {
 
     // ----------- IPv6 Example -----------
     {
-        auto tcp6_logger = spdlog::stdout_color_mt("tcp6_logger");
+        auto console_sink6 = std::make_shared<mclt::console_sink>("tcp6_console");
+        auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
+        tcp6_logger->add_sink(console_sink6);
+        mclt::logger::register_logger(tcp6_logger);
+
         client6.set_logger(tcp6_logger);
 
         tcp6_logger->info("[IPv6 Example]");

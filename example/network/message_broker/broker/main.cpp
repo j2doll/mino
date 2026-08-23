@@ -6,7 +6,7 @@
 #include "mino/core/daemon/termination_handler.hpp"
 #include "mino/core/system/command_line.hpp"
 
-#include "mino/external/log/spd/spd.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/message_broker/broker.hpp"
@@ -30,61 +30,48 @@ int main(int argc, char* argv[]) {
     mino::core::system::crash_handler::initialize([](const std::string& log_message) {
         std::cout << "\n[User Callback] Crash Detected! Reporting to console...\n";
         std::cout << log_message << std::endl;
-    });
+        });
 
     // 종료 핸들러 초기화 및 브로커 종료 로직 등록
     auto& handler = mino::core::daemon::termination_handler::get_instance();
     handler.initialize();
 
-    // 콘솔 싱크
-    namespace spd = mino::external::log::spd;
-    auto console_sink = std::make_shared<spd::auto_color_sink<std::mutex>>();
+    // tinylog 설정
+    namespace mclt = mino::core::log::tinylog;
 
-    // 파일 싱크
-    using encoding_file_sink_mt = spd::encoding_file_sink_mt;
-    using encoding_rotating_zipping_sink_mt = spd::encoding_rotating_zipping_sink_mt;
-    using encoding_daily_zipping_sink_mt = spd::encoding_daily_zipping_sink_mt;
-    using log_encoding = spd::log_encoding;
-    using line_ending = spd::line_ending;
-    using time_zone_type = spd::time_zone_type;
-#ifdef _WIN32 // Windows
-    auto encoding_type = log_encoding::cp949; // 윈도우에서 log_encoding::utf8을 사용해도 됨.
-    auto line_type = line_ending::crlf; // CRLF 줄바꿈
-    auto bom_flag = false;
-#else  // Linux/macOS
-    auto encoding_type = log_encoding::utf8; // UTF-8
-    auto line_type = line_ending::lf; // LF 줄바꿈
-    auto bom_flag = false;
+    // 1. 콘솔 싱크
+    mclt::console_sink_config console_cfg;
+#ifdef _WIN32
+    console_cfg.encoding = mclt::encoding_type::cp949;
+#else
+    console_cfg.encoding = mclt::encoding_type::utf8;
 #endif
-    auto time_zone = time_zone_type::local_time; // 시간을 적용하는 기준 타임 존
-    auto step2_filename = "logs/rotating.log"; // 로깅 파일명
-    auto step2_max_size = 100 * 1024 * 1024; // 로깅 파일이 최대 크기를 넘으면 파일 회전
-    auto step2_max_files = 3; // 최대 3개의 회전된 파일을 유지
-    auto step2_delete_on_failure = true; // 회전 실패 시 기존 파일 삭제 여부
-    auto step2_compression_level = 6; // 가장 오래된 로깅 파일을 zip 으로 압축 시 압축 레벨 (1-9, 1이 가장 빠르고 9가 가장 높은 압축률)
-    auto step2_max_zip_count = 4; // 최대 zip 파일 개수 (회전된 파일이 zip 으로 압축될 때, 최대 몇 개의 zip 파일을 유지할지 설정)
-    auto rotating_zip_sink = std::make_shared<encoding_rotating_zipping_sink_mt>(
-        step2_filename, // 로그 파일명
-        step2_max_size, // 최대 파일 크기
-        step2_max_files, // 최대 파일 개수
-        encoding_type, // 인코딩 타입
-        line_type, // 줄바꿈 타입
-        bom_flag, // BOM 작성 여부
-        step2_delete_on_failure, // 회전 실패 시 기존 파일 삭제 여부
-        step2_compression_level, // 압축 레벨
-        step2_max_zip_count, // 최대 zip 파일 개수
-        time_zone //= time_zone_type::local_time
-    );
-    rotating_zip_sink->set_formatter(std::make_unique<spd::strip_tags_formatter>()); // auto_color_sink 와 함께 사용 시, 설정 필수
+    auto console_sink = std::make_shared<mclt::console_sink>("broker_console", console_cfg);
 
-    // 로거 생성
-    std::vector<spdlog::sink_ptr> sinks{ console_sink, rotating_zip_sink }; // 콘솔 싱크 + 파일 싱크
-    auto broker_logger = std::make_shared<spdlog::logger>("broker_logger", sinks.begin(), sinks.end());
-    broker_logger->set_level(spdlog::level::debug); // 레벨 설정
+    // 2. 롤링 파일 싱크
+    mclt::rolling_file_sink_config file_cfg;
+    file_cfg.filename = "logs/rotating.log"; // 로깅 파일명
+    file_cfg.max_size = 100 * 1024 * 1024;   // 최대 파일 크기 (100 MB)
+    file_cfg.max_files = 3;                  // 최대 보관 백업 개수
+#ifdef _WIN32
+    file_cfg.encoding = mclt::encoding_type::cp949;
+    file_cfg.eol = mclt::eol_type::crlf;     // CRLF 줄바꿈
+#else
+    file_cfg.encoding = mclt::encoding_type::utf8;
+    file_cfg.eol = mclt::eol_type::lf;       // LF 줄바꿈
+#endif
+
+    auto rotating_file_sink = mclt::rolling_file_sink::create("broker_file", file_cfg);
+
+    // 3. 로거 생성 및 싱크 등록
+    auto broker_logger = std::make_shared<mclt::logger>("broker_logger");
+    broker_logger->add_sink(console_sink);
+    broker_logger->add_sink(rotating_file_sink);
+    broker_logger->set_level(mclt::log_level::debug); // 레벨 설정
+    mclt::logger::register_logger(broker_logger);
 
     using broker = mino::network::message_broker::broker;
     broker server_broker(broker_logger); // 브로커 생성
-    // server_broker.set_logger(broker_logger); // 나중에 로거 설정해도 됨.
 
     handler.set_callback([&server_broker]() { // 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록
         clean_up_resources(&server_broker);
@@ -92,7 +79,7 @@ int main(int argc, char* argv[]) {
         WSACleanup();
 #endif
         std::exit(0);
-    });
+        });
 
     // 명령행 인자 파서 설정
     mino::core::system::command_line cmd;
@@ -134,10 +121,10 @@ int main(int argc, char* argv[]) {
     }
 
     server_broker.start_broker(ip, port); // 브로커 시작
-    broker_logger->info("보로커 시작: {}:{}", ip, port);
+    broker_logger->info("<bright_green>브로커 시작:</bright_green> {}:{}", ip, port);
 
-    broker_logger->info("브로커 인스턴스 작동 중. 엔터 키를 누르면 종료됨...");
-    std::cin.get(); // 사용자가 키를 누를 때까지 브로커가 계속 실행됩니다. Block 상태로 대기합니다.
+    broker_logger->info("브로커 인스턴스 작동 중. <bright_yellow>엔터 키</bright_yellow>를 누르면 종료됨...");
+    std::cin.get(); // 사용자가 키를 누를 때까지 브로커가 계속 실행됩니다.
 
     server_broker.quit(); // 브로커 정상 종료
 

@@ -4,13 +4,12 @@
 #include <mutex>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network::udp {
 
-    class  udp_sender {
+    class udp_sender {
     protected:
         std::string server_ip_;
         unsigned short server_port_;
@@ -24,8 +23,8 @@ namespace mino::network::udp {
 
         static bool fill_sockaddr(const std::string& ip, unsigned short port, sockaddr_storage& addr, socklen_t& addr_len, int& family);
 
-        // spdlog 로거 (등록되지 않을 수 있음)
-        std::shared_ptr<spdlog::logger> logger;
+        // tinylog 로거 (등록되지 않을 수 있음)
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
     public:
         udp_sender();
@@ -45,9 +44,9 @@ namespace mino::network::udp {
         void stop();
         void shutdown_by_force();
 
-        // spdlog 로거 등록
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        // tinylog 로거 등록
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
 
     };
 
-}  
+}

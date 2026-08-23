@@ -1,13 +1,11 @@
 #include <iostream>
 #include <algorithm>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_server.hpp"
 
 namespace mino::network::tcp {
 
-    // Helper: 소켓을 TIME_WAIT 없이 즉시 종료(RST)하도록 SO_LINGER 설정 후 닫습니다.
     static void close_socket_without_timewait(socket_t fd) {
         if (fd
 #ifdef _WIN32
@@ -15,13 +13,13 @@ namespace mino::network::tcp {
 #else
             < 0
 #endif
-        ) {
+            ) {
             return;
         }
 
         struct linger so_linger;
-        so_linger.l_onoff = 1;    // linger 옵션 활성화
-        so_linger.l_linger = 0;   // 0초 -> 즉시 RST 전송
+        so_linger.l_onoff = 1;
+        so_linger.l_linger = 0;
 
 #ifdef _WIN32
         setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<const char*>(&so_linger), static_cast<int>(sizeof(so_linger)));
@@ -34,7 +32,7 @@ namespace mino::network::tcp {
 
     tcp_server::tcp_server()
         : is_running(false),
-          logger(nullptr),
+        logger(nullptr),
 #ifdef _WIN32
         server_socket(INVALID_SOCKET)
 #else
@@ -111,7 +109,7 @@ namespace mino::network::tcp {
     void tcp_server::set_on_receive_callback(callback cb) { on_receive = std::move(cb); }
     void tcp_server::set_on_close_callback(callback cb) { on_close = std::move(cb); }
 
-    void tcp_server::set_logger(std::shared_ptr<spdlog::logger> logger_ptr) {
+    void tcp_server::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr) {
         logger = std::move(logger_ptr);
     }
 
@@ -147,7 +145,6 @@ namespace mino::network::tcp {
         if (it != client_sockets.end()) {
             client_sockets.erase(it);
 #ifdef _WIN32
-            // 안전하게 recv/recvfrom/accept 블로킹을 깨우기 위해 shutdown 먼저 호출
             ::shutdown(client_socket, SD_BOTH);
             closesocket(client_socket);
 #else
@@ -174,7 +171,6 @@ namespace mino::network::tcp {
         if (is_running) {
             is_running = false;
 
-            // 1. 메인 리슨 소켓을 shutdown 후 close 하여 accept 블로킹 해제 유도
 #ifdef _WIN32
             if (server_socket != INVALID_SOCKET) {
                 ::shutdown(server_socket, SD_BOTH);
@@ -191,7 +187,6 @@ namespace mino::network::tcp {
                 server_thread.join();
             }
 
-            // 2. 자원 정리 락 적용 및 중복 코드 제거 정비
             std::lock_guard<std::mutex> lock(send_mutex);
             for (socket_t client : client_sockets) {
 #ifdef _WIN32
@@ -208,13 +203,10 @@ namespace mino::network::tcp {
 
     void tcp_server::shutdown_by_force() {
         try {
-
-            // 강제 종료: 모든 소켓에 SO_LINGER{on,0} 적용 후 즉시 닫음
             if (is_running) {
                 is_running = false;
             }
 
-            // 먼저 서버 소켓을 강제 종료하여 accept 블로킹 해제 유도
 #ifdef _WIN32
             if (server_socket != INVALID_SOCKET) {
                 close_socket_without_timewait(server_socket);
@@ -227,16 +219,13 @@ namespace mino::network::tcp {
             }
 #endif
 
-            // accept 루프가 깨어나도록 서버 스레드 조인
             if (server_thread.joinable()) {
                 server_thread.join();
             }
 
-            // 모든 클라이언트 소켓 강제 종료
             {
                 std::lock_guard<std::mutex> lock(send_mutex);
                 for (socket_t client : client_sockets) {
-                    // 콜백 호출은 강제 종료 상황에서는 간단히 알림을 남김
                     if (on_close) {
                         try {
                             on_close(client, "Forcefully closed");
@@ -255,7 +244,8 @@ namespace mino::network::tcp {
                 client_sockets.clear();
             }
 
-        } catch (const std::exception& ex) {
+        }
+        catch (const std::exception& ex) {
             if (logger) logger->error("Exception in shutdown_by_force: {}", ex.what());
             else std::cerr << "Exception in shutdown_by_force: " << ex.what() << std::endl;
         }
@@ -307,7 +297,6 @@ namespace mino::network::tcp {
                 std::thread(&tcp_server::client_handler, this, client_socket).detach();
             }
             catch (const std::system_error& e) {
-                // 스레드 생성 실패: 클라이언트 연결을 닫고 로그를 남김
                 if (logger) logger->error("[tcp_server] Failed to create client handler thread: {}", e.what());
                 else std::cerr << "[tcp_server] Failed to create client handler thread: " << e.what() << std::endl;
                 close_client(client_socket);
@@ -326,14 +315,12 @@ namespace mino::network::tcp {
                 }
 
                 if (on_receive) {
-                    // on_receive 은 사용자 콜백이므로 예외를 내부에서 잡음
                     try {
                         on_receive(client_socket, std::string(buffer, bytes_received));
                     }
                     catch (const std::exception& e) {
                         if (logger) logger->error("[tcp_server] on_receive callback threw exception: {}", e.what());
                         else std::cerr << "[tcp_server] on_receive callback threw exception: " << e.what() << std::endl;
-                        // 예외 발생시 안전하게 연결 종료
                         close_client(client_socket);
                         break;
                     }
@@ -358,4 +345,4 @@ namespace mino::network::tcp {
         }
     }
 
-} 
+    }

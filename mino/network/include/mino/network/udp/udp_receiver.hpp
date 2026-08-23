@@ -6,13 +6,12 @@
 #include <atomic>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network::udp {
 
-    class  udp_receiver {
+    class udp_receiver {
     public:
         using callback = std::function<void(const std::string&, const std::string&, uint16_t)>;
         enum class ip_version_t { ipv4, ipv6 };
@@ -35,8 +34,8 @@ namespace mino::network::udp {
         bool enable_reuse_port;
         ip_version_t ip_version;
 
-        // spdlog 로거 (등록되지 않을 수 있음)
-        std::shared_ptr<spdlog::logger> logger;
+        // tinylog 로거 (등록되지 않을 수 있음)
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
     public:
         udp_receiver(ip_version_t version = ip_version_t::ipv4);
@@ -47,8 +46,8 @@ namespace mino::network::udp {
         void set_ip_version(ip_version_t version);
         void set_on_receive_callback(callback cb);
 
-        // spdlog 로거 등록
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        // tinylog 로거 등록
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
 
         bool start_unicast(const std::string& ip, const unsigned short port);
         bool start_multicast(const std::string& multicast_group, const unsigned short port);
@@ -66,4 +65,4 @@ namespace mino::network::udp {
         void receive_loop();
     };
 
-}   
+}

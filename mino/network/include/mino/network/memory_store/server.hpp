@@ -9,8 +9,7 @@
 #include <condition_variable>
 #include <atomic>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_server.hpp"
 
 namespace mino::network::memory_store {
@@ -21,7 +20,7 @@ namespace mino::network::memory_store {
         std::unordered_map<std::string, std::string> storage_;
         mutable std::shared_mutex storage_mutex_;
         std::string bind_ip_;
-        std::shared_ptr<spdlog::logger> logger_;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger_;
         std::thread auto_save_thread_;
         std::condition_variable auto_save_cv_;
         std::mutex auto_save_mutex_;
@@ -43,7 +42,7 @@ namespace mino::network::memory_store {
 
         void set_network(const std::string& ip, int port);
         void set_storage_file(const std::string& filepath);
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
         void set_auto_save(std::chrono::seconds interval);
         void set_sleep_for_transmission(std::chrono::milliseconds sleep_duration);
 
@@ -55,4 +54,4 @@ namespace mino::network::memory_store {
 
     };
 
-}  
+}

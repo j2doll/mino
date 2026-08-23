@@ -2,10 +2,9 @@
 #include <thread>
 #include <sstream>
 
-#include <spdlog/spdlog.h>
-
 #include <nlohmann/json.hpp>
 
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/rpc/rpc_client_base.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
 
@@ -20,7 +19,7 @@ namespace mino::network::rpc {
     }
 
     void rpc_client_base::on_message_received(
-        std::string_view , // topic,
+        std::string_view, // topic,
         std::string_view msg_kind,
         std::string_view body,
         uint64_t // timestamp
@@ -36,7 +35,6 @@ namespace mino::network::rpc {
             std::promise<json> target_promise;
             bool found = false;
 
-            // 뮤텍스 락 범위를 최소화하여 데드락 발생 소지를 완전히 제거합니다.
             {
                 std::scoped_lock lock(map_mutex);
                 auto it = response_map.find(req_id);
@@ -47,7 +45,6 @@ namespace mino::network::rpc {
                 }
             }
 
-            // set_value는 뮤텍스 락 밖에서 실행해야 안전합니다.
             if (found) {
                 target_promise.set_value(j);
             }
@@ -61,18 +58,16 @@ namespace mino::network::rpc {
         {
             std::ostringstream ss;
             ss << std::this_thread::get_id();
-            if (logger) logger->warn("[RPC Client Core] Connection <orange>broken</orange>. Aborting calls. thread_id={}", ss.str());
+            if (logger) logger->warn("[RPC Client Core] Connection <bright_yellow>broken</bright_yellow>. Aborting calls. thread_id={}", ss.str());
         }
 
         std::unordered_map<std::string, std::promise<json>> temp_map;
 
-        // 원본 맵을 통째로 로컬 영역으로 swap하여 락을 쥔 채 오래 머물지 않도록 합니다.
         {
             std::scoped_lock lock(map_mutex);
             temp_map.swap(response_map);
         }
 
-        // 락이 완전히 풀린 안전한 상태에서 대기 풀에 예외를 주입합니다.
         for (auto& [req_id, pr] : temp_map) {
             try {
                 pr.set_exception(std::make_exception_ptr(std::runtime_error("rpc_connection_broken")));
@@ -86,7 +81,7 @@ namespace mino::network::rpc {
         sub.set_topic({ "rpc_res/" + client_id });
     }
 
-    void rpc_client_base::set_logger(std::shared_ptr<spdlog::logger> custom_logger) {
+    void rpc_client_base::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         logger = custom_logger;
         pub.set_logger(logger);
         sub.set_logger(logger);
@@ -102,10 +97,8 @@ namespace mino::network::rpc {
     }
 
     bool rpc_client_base::connect(std::chrono::seconds tcp_sleep_time) {
-        // 시도 로그
         if (logger) logger->info("[RPC Client Core] Attempting to connect publisher and subscriber to broker.");
 
-        // 우선 각각의 구성요소에 대해 연결을 시도합니다.
         if (!pub.connect(tcp_sleep_time)) {
             if (logger) logger->error("[RPC Client Core] Publisher failed to connect.");
             return false;
@@ -117,7 +110,6 @@ namespace mino::network::rpc {
             return false;
         }
 
-        // 실제로 연결이 확립되었는지 타임아웃 내에 확인합니다.
         auto elapsed = std::chrono::milliseconds(0);
         const auto interval = std::chrono::milliseconds(10);
 
@@ -192,18 +184,16 @@ namespace mino::network::rpc {
         }
         catch (const std::runtime_error& ex) {
             return {
-                        { rpc_error_code::connection_broken,
-                          std::string("Channel disconnected: ") + ex.what()
-                        },
-                        json::object()
-                    };
+                { rpc_error_code::connection_broken,
+                  std::string("Channel disconnected: ") + ex.what()
+                },
+                json::object()
+            };
         }
     }
 
     void rpc_client_base::disconnect() {
-        // [리눅스 교정 핵심] 소켓을 해제하기 전에 빈 콜백을 주입하여 백그라운드 스레드의 상위 이벤트 전파를 차단합니다.
         sub.set_on_message_handler(nullptr);
-
         handle_disconnection();
         pub.disconnect();
         sub.disconnect();

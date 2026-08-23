@@ -7,8 +7,7 @@
 #include <functional>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
 
 namespace mino::network::message_broker {
@@ -27,14 +26,14 @@ namespace mino::network::message_broker {
         std::vector<std::string> sub_topics;
         std::chrono::seconds retry_interval{ std::chrono::seconds(2) };
         int max_retries{ 0 };
-        std::shared_ptr<spdlog::logger> logger;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
     public:
-        subscriber(std::shared_ptr<spdlog::logger> custom_logger = nullptr);
+        subscriber(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger = nullptr);
         ~subscriber() = default;
 
         void set_broker(const std::string& ip, unsigned short port); // 브로커 IP와 포트 설정
-        void set_logger(std::shared_ptr<spdlog::logger> custom_logger); // 로거 설정
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger); // 로거 설정
         void set_topic(const std::vector<std::string>& topics); // 구독할 주제 설정
         void set_on_message_handler(message_callback cb); // 메시지 수신 시 애플리케이션에서 호출할 콜백 함수 설정
         void set_connection_option(std::chrono::seconds interval = std::chrono::seconds(2), int retries = 0); // 브로커와의 연결 재시도 간격과 최대 재시도 횟수 설정
@@ -47,4 +46,4 @@ namespace mino::network::message_broker {
 
     };
 
-} 
+}

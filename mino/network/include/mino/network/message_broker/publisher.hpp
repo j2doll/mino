@@ -6,26 +6,25 @@
 #include <utility>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
 
 namespace mino::network::message_broker {
 
     class publisher {
-    protected: 
+    protected:
         mino::network::tcp::tcp_client client;
         std::string broker_ip;
         unsigned short broker_port{ 0 };
         std::chrono::seconds retry_interval{ std::chrono::seconds(2) };
         int max_retries{ 0 };
-        std::shared_ptr<spdlog::logger> logger;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
     public:
-        publisher(std::shared_ptr<spdlog::logger> custom_logger = nullptr);
+        publisher(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger = nullptr);
         ~publisher() = default;
 
-        void set_logger(std::shared_ptr<spdlog::logger> custom_logger); // 로거 설정
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger); // 로거 설정
         void set_broker(const std::string& ip, unsigned short port); // 브로커 IP와 포트 설정
         void set_connection_option(std::chrono::seconds interval = std::chrono::seconds(2), int retries = 0); // 브로커와의 연결 재시도 간격과 최대 재시도 횟수 설정
 
@@ -42,4 +41,4 @@ namespace mino::network::message_broker {
 
     };
 
-}  
+}

@@ -211,7 +211,8 @@ if(WIN32)
 endif()
 
 # 7. [Dependency] If network uses xxx, link it here.
-target_link_libraries(mino_network PUBLIC mino_core mino_external)
+# target_link_libraries(mino_network PUBLIC mino_core mino_external)
+target_link_libraries(mino_network PUBLIC mino_core)
 
 # 8. Define install rules (use the same EXPORT bundle name 'minoTargets')
 install(

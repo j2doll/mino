@@ -8,13 +8,12 @@
 #include <vector>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network::tcp {
 
-    class  tcp_server {
+    class tcp_server {
     public:
         using callback = std::function<void(socket_t, const std::string&)>;
 
@@ -25,13 +24,13 @@ namespace mino::network::tcp {
         int address_family = AF_UNSPEC;
         std::atomic<bool> is_running;
         std::thread server_thread;
-        std::mutex send_mutex;  
+        std::mutex send_mutex;
 
         callback on_connect;
         callback on_receive;
         callback on_close;
 
-        std::shared_ptr<spdlog::logger> logger;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
         static constexpr int BUFFER_SIZE = 1024;
 
@@ -52,8 +51,8 @@ namespace mino::network::tcp {
         void set_on_receive_callback(callback cb);
         void set_on_close_callback(callback cb);
 
-        // spdlog 로거 등록
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        // tinylog 로거 등록
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
 
         std::vector<socket_t> get_client_sockets();
 
@@ -69,4 +68,4 @@ namespace mino::network::tcp {
         void client_handler(socket_t client_socket);
     };
 
-}  
+}

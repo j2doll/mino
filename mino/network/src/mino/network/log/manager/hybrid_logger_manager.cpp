@@ -1,82 +1,19 @@
-#include <spdlog/spdlog.h>
-#include <spdlog/fmt/fmt.h>
-#include <spdlog/logger.h>
-#include <spdlog/sinks/dist_sink.h>
-
-#if __has_include(<spdlog/pattern_formatter.h>)
-#   include <spdlog/pattern_formatter.h>
-#elif __has_include(<spdlog/details/pattern_formatter.h>)
-#   include <spdlog/details/pattern_formatter.h>
-#else
-#   error "spdlog pattern_formatter header not found. Check your spdlog installation."
-#endif
-
 #include "mino/network/udp/udp_sender.hpp"
-
 #include "mino/network/log/manager/hybrid_logger_manager.hpp"
 
 namespace mino::network::log::manager {
 
-// spdlog 버전 검사 매크로는 그대로 사용
-#ifndef SPDLOG_VER_MAJOR
-#  define MINO_SPDLOG_NO_CUSTOM_FLAG 1
-#elif (SPDLOG_VER_MAJOR * 10000 + SPDLOG_VER_MINOR * 100 + SPDLOG_VER_PATCH) < 10800
-#  define MINO_SPDLOG_NO_CUSTOM_FLAG 1
-#else
-#  define MINO_SPDLOG_HAS_CUSTOM_FLAG 1
-#  define MINO_SPDLOG_HAS_CUSTOM_FLAG 1
-#endif
-
-    inline std::string replace_Z_placeholder(const std::string& pattern, bool utc)
-    {
-        std::string result = pattern;
-        const std::string tz = utc ? "utc" : "local";
-        std::string::size_type pos = 0;
-        while ((pos = result.find("%Z", pos)) != std::string::npos) {
-            result.replace(pos, 2, tz);
-            pos += tz.size();
-        }
-        return result;
-    }
-
-    namespace {
-#if defined(MINO_SPDLOG_HAS_CUSTOM_FLAG)
-        class TzFlag : public ::spdlog::custom_flag_formatter {
-        public:
-            explicit TzFlag(bool utc, std::size_t width = 5) : utc_(utc), width_(width) {}
-
-            void format(const ::spdlog::details::log_msg&,
-                const std::tm&,
-                ::spdlog::memory_buf_t& dest) override
-            {
-                const char* s = utc_ ? "utc" : "local";
-                fmt::format_to(fmt::appender(dest), "{:<{}}", s, width_);
-            }
-
-            std::unique_ptr<::spdlog::custom_flag_formatter> clone() const override {
-                return ::spdlog::details::make_unique<TzFlag>(utc_, width_);
-            }
-
-        private:
-            bool utc_{ false };
-            std::size_t width_{ 5 };
-        };
-#endif
-    } // anonymous namespace
-
     hybrid_logger_manager::hybrid_logger_manager() {
-        consoleMin_ = ::spdlog::level::trace;
-        allFileMin_ = ::spdlog::level::trace;
-        alertsMin_  = ::spdlog::level::warn;
-        loggerMin_  = ::spdlog::level::trace;
-        flushOn_    = ::spdlog::level::warn;
+        consoleMin_ = mino::core::log::tinylog::log_level::trace;
+        allFileMin_ = mino::core::log::tinylog::log_level::trace;
+        alertsMin_ = mino::core::log::tinylog::log_level::warn;
+        loggerMin_ = mino::core::log::tinylog::log_level::trace;
     }
 
     hybrid_logger_manager::~hybrid_logger_manager() {
         stopAutoReload();
     }
 
-    // init에서 락을 해제한 뒤 start/stopAutoReload를 호출하여 교착 방지
     bool hybrid_logger_manager::init(const std::string& defaultConfigPath,
         const std::string& sectionName,
         const std::string& loggerName,
@@ -118,100 +55,51 @@ namespace mino::network::log::manager {
                 lastWriteTime_ = std::filesystem::file_time_type{};
             }
 
-            auto time_type = utcMode_ ? ::spdlog::pattern_time_type::utc
-                : ::spdlog::pattern_time_type::local;
+            // 1. 콘솔 싱크 생성
+            mino::core::log::tinylog::console_sink_config c_cfg;
+            c_cfg.encoding = consoleEncoding_;
+            auto c_target = std::make_shared<mino::core::log::tinylog::console_sink>("console", c_cfg);
+            consoleSinkWrapper_ = std::make_shared<filter_sink>("console_filter", c_target, consoleMin_, enableConsole_);
 
-#if defined(MINO_SPDLOG_HAS_CUSTOM_FLAG)
-            auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(patternConsole_, time_type);
-            auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(patternFile_, time_type);
+            // 2. 전체 로그 파일 싱크 생성
+            ensureParentDir(allPath_);
+            mino::core::log::tinylog::rolling_file_sink_config af_cfg;
+            af_cfg.filename = allPath_;
+            af_cfg.max_size = allMaxSize_;
+            af_cfg.max_files = allMaxFiles_;
+            af_cfg.encoding = allEncoding_;
+            af_cfg.eol = allLineEnding_;
+            auto af_target = mino::core::log::tinylog::rolling_file_sink::create("all_file", af_cfg);
+            allSinkWrapper_ = std::make_shared<filter_sink>("all_filter", af_target, allFileMin_, enableFileAll_);
 
-            // %Z 플래그 등록(utc/local 고정폭 출력)
-            console_fmt->add_flag<TzFlag>('Z', utcMode_);
-            file_fmt->add_flag<TzFlag>('Z', utcMode_);
-#else
-            // 구버전 spdlog(예: Rocky 8 기본 패키지)에서는 custom_flag_formatter를
-            // 지원하지 않으므로, 패턴 문자열 내 "%Z"를 "utc"/"local" 텍스트로 치환하여 사용
-            auto console_pattern = replace_Z_placeholder(patternConsole_, utcMode_);
-            auto file_pattern = replace_Z_placeholder(patternFile_, utcMode_);
-            auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(console_pattern, time_type);
-            auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(file_pattern, time_type);
-#endif
+            // 3. 경고 로그 파일 싱크 생성
+            ensureParentDir(alertsPath_);
+            mino::core::log::tinylog::rolling_file_sink_config al_cfg;
+            al_cfg.filename = alertsPath_;
+            al_cfg.max_size = alertMaxSize_;
+            al_cfg.max_files = alertMaxFiles_;
+            al_cfg.encoding = alertsEncoding_;
+            al_cfg.eol = alertsLineEnding_;
+            auto al_target = mino::core::log::tinylog::rolling_file_sink::create("alerts_file", al_cfg);
+            alertsSinkWrapper_ = std::make_shared<filter_sink>("alerts_filter", al_target, alertsMin_, enableFileAlerts_);
 
-            distSink_ = std::make_shared<::spdlog::sinks::dist_sink_mt>();
+            // 4. tinylog 로거 생성 및 싱크 등록
+            logger_ = std::make_shared<mino::core::log::tinylog::logger>(loggerName_);
+            logger_->set_level(loggerMin_);
+            logger_->add_sink(consoleSinkWrapper_);
+            logger_->add_sink(allSinkWrapper_);
+            logger_->add_sink(alertsSinkWrapper_);
 
-            if (enableConsole_) {
-                auto cs = std::make_shared< mino::external::log::spd::auto_color_sink<std::mutex> >();
-                cs->set_level(consoleMin_);
-                cs->set_formatter(console_fmt->clone());
-                if (!autoColorKeywordsJson_.empty()) {
-                    try {
-                        auto j = nlohmann::json::parse(autoColorKeywordsJson_);
-                        cs->load_keywords_from_json(j);
-                    }
-                    catch (...) {
-                    }
-                }
-                consoleSink_ = cs;
-                distSink_->add_sink(consoleSink_);
-            }
-
-            if (enableFileAll_) {
-                ensureParentDir(allPath_);
-                auto af = std::make_shared< mino::external::log::spd::encoding_rotating_zipping_sink_mt>(
-                    std::filesystem::path(allPath_), allMaxSize_, allMaxFiles_,
-                    allEncoding_, allLineEnding_, allWriteBom_,
-                    allDeleteOnFailure_, allCompressionLevel_, allMaxZipCount_, allTimezone_);
-                af->set_level(allFileMin_);
-                // strip_tags_formatter 적용
-                af->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
-                allSink_ = af;
-                distSink_->add_sink(allSink_);
-            }
-
-            if (enableFileAlerts_) {
-                ensureParentDir(alertsPath_);
-                auto al = std::make_shared< mino::external::log::spd::encoding_rotating_zipping_sink_mt>(
-                    std::filesystem::path(alertsPath_), alertMaxSize_, alertMaxFiles_,
-                    alertsEncoding_, alertsLineEnding_, alertsWriteBom_,
-                    alertsDeleteOnFailure_, alertsCompressionLevel_, alertsMaxZipCount_, alertsTimezone_);
-                al->set_level(alertsMin_);
-                // strip_tags_formatter 적용
-                al->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
-                alertsSink_ = al;
-                distSink_->add_sink(alertsSink_);
-            }
-
-            if (distSink_->sinks().empty()) {
-                auto fallback = std::make_shared< mino::external::log::spd::auto_color_sink<std::mutex>>();
-                fallback->set_level(::spdlog::level::trace);
-#if defined(MINO_SPDLOG_HAS_CUSTOM_FLAG)
-                auto fallback_fmt = std::make_unique<::spdlog::pattern_formatter>(patternConsole_, time_type);
-                fallback_fmt->add_flag<TzFlag>('Z', utcMode_);
-#else
-                auto fallback_pattern = replace_Z_placeholder(patternConsole_, utcMode_);
-                auto fallback_fmt = std::make_unique<::spdlog::pattern_formatter>(fallback_pattern, time_type);
-#endif
-                fallback->set_formatter(std::move(fallback_fmt));
-                distSink_->add_sink(fallback);
-                consoleSink_ = fallback;
-                std::cerr << "[hybrid_logger_manager] No sinks enabled, fallback to console.\n";
-            }
-
-            logger_ = std::make_shared<::spdlog::logger>(loggerName_, distSink_);
-            ::spdlog::register_logger(logger_);
+            mino::core::log::tinylog::logger::register_logger(logger_);
 
             applySoftSettings();
 
-            if (flushEverySec_ > 0) {
-                ::spdlog::flush_every(std::chrono::seconds(flushEverySec_));
-            }
-
-            // 초기 1회 디스크 확인
+            // 초기 1회 디스크 감시
             checkDiskAndAct();
 
             need_start = (autoReloadIntervalSec_ > 0);
             interval_to_start = autoReloadIntervalSec_;
-        } // 락 해제
+        }
 
         if (need_start) {
             startAutoReload(interval_to_start);
@@ -223,175 +111,89 @@ namespace mino::network::log::manager {
         return true;
     }
 
-    std::shared_ptr<::spdlog::logger> hybrid_logger_manager::getLogger() const {
+    std::shared_ptr<mino::core::log::tinylog::logger> hybrid_logger_manager::getLogger() const {
         std::lock_guard<std::mutex> lk(mu_);
         return logger_;
     }
 
     void hybrid_logger_manager::applySoftSettings() {
-        auto time_type = utcMode_ ? ::spdlog::pattern_time_type::utc
-            : ::spdlog::pattern_time_type::local;
-#if defined(MINO_SPDLOG_HAS_CUSTOM_FLAG)
-        auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(patternConsole_, time_type);
-        auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(patternFile_, time_type);
-
-        // soft-reload 시에도 %Z 재등록(utc/local 변경 반영)
-        console_fmt->add_flag<TzFlag>('Z', utcMode_);
-        file_fmt->add_flag<TzFlag>('Z', utcMode_);
-#else
-        auto console_pattern = replace_Z_placeholder(patternConsole_, utcMode_);
-        auto file_pattern = replace_Z_placeholder(patternFile_, utcMode_);
-        auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(console_pattern, time_type);
-        auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(file_pattern, time_type);
-#endif
-
-        if (consoleSink_) {
-            consoleSink_->set_level(consoleMin_);
-            consoleSink_->set_formatter(console_fmt->clone());
+        if (consoleSinkWrapper_) {
+            consoleSinkWrapper_->set_level(consoleMin_);
+            consoleSinkWrapper_->set_enabled(enableConsole_);
         }
-        if (allSink_) {
-            allSink_->set_level(allFileMin_);
-            // strip_tags_formatter 적용
-            allSink_->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
+        if (allSinkWrapper_) {
+            allSinkWrapper_->set_level(allFileMin_);
+            allSinkWrapper_->set_enabled(enableFileAll_ && !fileSinksDetachedForDisk_);
         }
-        if (alertsSink_) {
-            alertsSink_->set_level(alertsMin_);
-            // strip_tags_formatter 적용
-            alertsSink_->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
+        if (alertsSinkWrapper_) {
+            alertsSinkWrapper_->set_level(alertsMin_);
+            alertsSinkWrapper_->set_enabled(enableFileAlerts_ && !fileSinksDetachedForDisk_);
         }
-
         if (logger_) {
             logger_->set_level(loggerMin_);
-            logger_->flush_on(flushOn_);
         }
     }
 
     void hybrid_logger_manager::applyHardSettingsIfNeeded(
-        bool , // old_enableConsole,
-        bool old_enableFileAll,
-        bool old_enableFileAlerts,
+        bool /*old_enableConsole*/,
+        bool /*old_enableFileAll*/,
+        bool /*old_enableFileAlerts*/,
         const std::string& old_allPath,
         const std::string& old_alertsPath,
         std::size_t old_allMaxSize,
         std::size_t old_allMaxFiles,
         std::size_t old_alertMaxSize,
-        std::size_t old_alertMaxFiles
-    )
+        std::size_t old_alertMaxFiles,
+        mino::core::log::tinylog::encoding_type old_consoleEncoding,
+        mino::core::log::tinylog::encoding_type old_allEncoding,
+        mino::core::log::tinylog::encoding_type old_alertsEncoding,
+        mino::core::log::tinylog::eol_type old_allLineEnding,
+        mino::core::log::tinylog::eol_type old_alertsLineEnding)
     {
-
-        auto time_type = utcMode_ ? ::spdlog::pattern_time_type::utc
-            : ::spdlog::pattern_time_type::local;
-#if defined( MINO_SPDLOG_HAS_CUSTOM_FLAG)
-        auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(patternConsole_, time_type);
-        auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(patternFile_, time_type);
-
-        // hard-reload 시에도 %Z 재등록
-        console_fmt->add_flag<TzFlag>('Z', utcMode_);
-        file_fmt->add_flag<TzFlag>('Z', utcMode_);
-#else
-        auto console_pattern = replace_Z_placeholder(patternConsole_, utcMode_);
-        auto file_pattern = replace_Z_placeholder(patternFile_, utcMode_);
-        auto console_fmt = std::make_unique<::spdlog::pattern_formatter>(console_pattern, time_type);
-        auto file_fmt = std::make_unique<::spdlog::pattern_formatter>(file_pattern, time_type);
-#endif
-
-        bool console_add = enableConsole_ && !consoleSink_;
-        bool console_remove = !enableConsole_ && consoleSink_;
-        if (console_add) {
-            auto s = std::make_shared< mino::external::log::spd::auto_color_sink<std::mutex>>();
-            s->set_level(consoleMin_);
-            s->set_formatter(console_fmt->clone());
-            distSink_->add_sink(s);
-            consoleSink_ = s;
-        }
-        else if (console_remove) {
-            consoleSink_->flush();
-            distSink_->remove_sink(consoleSink_);
-            consoleSink_.reset();
+        // 콘솔 싱크 인코딩 변경 체크
+        if (consoleEncoding_ != old_consoleEncoding && consoleSinkWrapper_) {
+            mino::core::log::tinylog::console_sink_config c_cfg;
+            c_cfg.encoding = consoleEncoding_;
+            auto c_target = std::make_shared<mino::core::log::tinylog::console_sink>("console", c_cfg);
+            consoleSinkWrapper_->set_target(c_target);
         }
 
-        bool need_new_all =
-            (enableFileAll_ && !allSink_) ||
-            (!old_enableFileAll && enableFileAll_) ||
-            (allSink_ && (allPath_ != old_allPath)) ||
+        // 전체 파일 싱크 속성 변경 체크
+        bool need_new_all = (allPath_ != old_allPath) ||
             (allMaxSize_ != old_allMaxSize) ||
-            (allMaxFiles_ != old_allMaxFiles);
+            (allMaxFiles_ != old_allMaxFiles) ||
+            (allEncoding_ != old_allEncoding) ||
+            (allLineEnding_ != old_allLineEnding);
 
-        if (enableFileAll_) {
-            if (need_new_all) {
-                ensureParentDir(allPath_);
-                auto new_all = std::make_shared< mino::external::log::spd::encoding_rotating_zipping_sink_mt>(
-                    std::filesystem::path(allPath_), allMaxSize_, allMaxFiles_,
-                    allEncoding_, allLineEnding_, allWriteBom_,
-                    allDeleteOnFailure_, allCompressionLevel_, allMaxZipCount_, allTimezone_);
-                new_all->set_level(allFileMin_);
-                // strip_tags_formatter 적용
-                new_all->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
-                distSink_->add_sink(new_all);
-                if (allSink_) {
-                    allSink_->flush();
-                    distSink_->remove_sink(allSink_);
-                }
-                allSink_.swap(new_all);
-            }
-        }
-        else {
-            if (allSink_) {
-                allSink_->flush();
-                distSink_->remove_sink(allSink_);
-                allSink_.reset();
-            }
+        if (need_new_all && allSinkWrapper_) {
+            ensureParentDir(allPath_);
+            mino::core::log::tinylog::rolling_file_sink_config af_cfg;
+            af_cfg.filename = allPath_;
+            af_cfg.max_size = allMaxSize_;
+            af_cfg.max_files = allMaxFiles_;
+            af_cfg.encoding = allEncoding_;
+            af_cfg.eol = allLineEnding_;
+            auto af_target = mino::core::log::tinylog::rolling_file_sink::create("all_file", af_cfg);
+            allSinkWrapper_->set_target(af_target);
         }
 
-        bool need_new_alerts =
-            (enableFileAlerts_ && !alertsSink_) ||
-            (!old_enableFileAlerts && enableFileAlerts_) ||
-            (alertsSink_ && (alertsPath_ != old_alertsPath)) ||
+        // 경고 파일 싱크 속성 변경 체크
+        bool need_new_alerts = (alertsPath_ != old_alertsPath) ||
             (alertMaxSize_ != old_alertMaxSize) ||
-            (alertMaxFiles_ != old_alertMaxFiles);
+            (alertMaxFiles_ != old_alertMaxFiles) ||
+            (alertsEncoding_ != old_alertsEncoding) ||
+            (alertsLineEnding_ != old_alertsLineEnding);
 
-        if (enableFileAlerts_) {
-            if (need_new_alerts) {
-                ensureParentDir(alertsPath_);
-                auto new_alerts = std::make_shared< mino::external::log::spd::encoding_rotating_zipping_sink_mt>(
-                    std::filesystem::path(alertsPath_), alertMaxSize_, alertMaxFiles_,
-                    alertsEncoding_, alertsLineEnding_, alertsWriteBom_,
-                    alertsDeleteOnFailure_, alertsCompressionLevel_, alertsMaxZipCount_, alertsTimezone_);
-                new_alerts->set_level(alertsMin_);
-                // strip_tags_formatter 적용
-                new_alerts->set_formatter(std::make_unique< mino::external::log::spd::strip_tags_formatter>());
-                distSink_->add_sink(new_alerts);
-                if (alertsSink_) {
-                    alertsSink_->flush();
-                    distSink_->remove_sink(alertsSink_);
-                }
-                alertsSink_.swap(new_alerts);
-            }
-        }
-        else {
-            if (alertsSink_) {
-                alertsSink_->flush();
-                distSink_->remove_sink(alertsSink_);
-                alertsSink_.reset();
-            }
-        }
-
-        if (distSink_->sinks().empty()) {
-            auto fallback = std::make_shared< mino::external::log::spd::auto_color_sink<std::mutex>>();
-            fallback->set_level(::spdlog::level::trace);
-#if defined(MINO_SPDLOG_HAS_CUSTOM_FLAG)
-            auto fallback_fmt = std::make_unique<::spdlog::pattern_formatter>(patternConsole_, time_type);
-            fallback_fmt->add_flag<TzFlag>('Z', utcMode_);
-#else
-            auto fallback_pattern = replace_Z_placeholder(patternConsole_, utcMode_);
-            auto fallback_fmt = std::make_unique<::spdlog::pattern_formatter>(fallback_pattern, time_type);
-#endif
-            fallback->set_formatter(std::move(fallback_fmt));
-            distSink_->add_sink(fallback);
-            consoleSink_ = fallback;
-            if (logger_) {
-                logger_->warn("No sinks enabled after hard-reload. Fallback to console sink.");
-            }
+        if (need_new_alerts && alertsSinkWrapper_) {
+            ensureParentDir(alertsPath_);
+            mino::core::log::tinylog::rolling_file_sink_config al_cfg;
+            al_cfg.filename = alertsPath_;
+            al_cfg.max_size = alertMaxSize_;
+            al_cfg.max_files = alertMaxFiles_;
+            al_cfg.encoding = alertsEncoding_;
+            al_cfg.eol = alertsLineEnding_;
+            auto al_target = mino::core::log::tinylog::rolling_file_sink::create("alerts_file", al_cfg);
+            alertsSinkWrapper_->set_target(al_target);
         }
     }
 
@@ -421,6 +223,11 @@ namespace mino::network::log::manager {
         std::size_t old_allMaxFiles = allMaxFiles_;
         std::size_t old_alertMaxSize = alertMaxSize_;
         std::size_t old_alertMaxFiles = alertMaxFiles_;
+        auto old_consoleEncoding = consoleEncoding_;
+        auto old_allEncoding = allEncoding_;
+        auto old_alertsEncoding = alertsEncoding_;
+        auto old_allLineEnding = allLineEnding_;
+        auto old_alertsLineEnding = alertsLineEnding_;
 
         bool ok = loadConfig(false);
         if (!ok) {
@@ -431,19 +238,11 @@ namespace mino::network::log::manager {
         applyHardSettingsIfNeeded(
             old_enableConsole, old_enableFileAll, old_enableFileAlerts,
             old_allPath, old_alertsPath,
-            old_allMaxSize, old_allMaxFiles, old_alertMaxSize, old_alertMaxFiles);
+            old_allMaxSize, old_allMaxFiles, old_alertMaxSize, old_alertMaxFiles,
+            old_consoleEncoding, old_allEncoding, old_alertsEncoding,
+            old_allLineEnding, old_alertsLineEnding);
 
         applySoftSettings();
-
-        if (flushEverySec_ > 0) {
-            ::spdlog::flush_every(std::chrono::seconds(flushEverySec_));
-        }
-        else {
-            if (logger_) {
-                logger_->warn("FLUSH_EVERY_SEC=0 detected. Disabling periodic flush at runtime is limited. Restart recommended.");
-            }
-        }
-
         checkDiskAndAct();
         return true;
     }
@@ -484,7 +283,6 @@ namespace mino::network::log::manager {
             return false;
         }
 
-        // SimpleIni의 GetValue / GetLongValue / GetDoubleValue 를 흉내 내는 람다들
         auto get_str = [&](std::string_view key, const std::string& def) -> std::string {
             if (auto v = ini_.get_string(logSection_, std::string(key))) {
                 return *v;
@@ -512,109 +310,60 @@ namespace mino::network::log::manager {
             return def;
             };
 
-        // TIME_MODE
         std::string time_mode = toLower(get_str("TIME_MODE", "local"));
         utcMode_ = (time_mode == "utc");
 
-        // ENABLE_* 플래그
         enableConsole_ = toBool(get_str("ENABLE_CONSOLE_LOG", "true"), true);
         enableFileAll_ = toBool(get_str("ENABLE_FILE_LOG_ALL", "true"), true);
         enableFileAlerts_ = toBool(get_str("ENABLE_FILE_LOG_ALERTS", "true"), true);
 
-        // 레벨들
-        consoleMin_ = parseLevel(get_str("CONSOLE_LEVEL", "trace"), ::spdlog::level::trace);
-        allFileMin_ = parseLevel(get_str("ALL_FILE_LEVEL", "trace"), ::spdlog::level::trace);
-        alertsMin_ = parseLevel(get_str("ALERTS_FILE_LEVEL", "warn"), ::spdlog::level::warn);
-        loggerMin_ = parseLevel(get_str("LOGGER_LEVEL", "trace"), ::spdlog::level::trace);
-        flushOn_ = parseLevel(get_str("FLUSH_ON_LEVEL", "warn"), ::spdlog::level::warn);
+        consoleMin_ = parseLevel(get_str("CONSOLE_LEVEL", "trace"), mino::core::log::tinylog::log_level::trace);
+        allFileMin_ = parseLevel(get_str("ALL_FILE_LEVEL", "trace"), mino::core::log::tinylog::log_level::trace);
+        alertsMin_ = parseLevel(get_str("ALERTS_FILE_LEVEL", "warn"), mino::core::log::tinylog::log_level::warn);
+        loggerMin_ = parseLevel(get_str("LOGGER_LEVEL", "trace"), mino::core::log::tinylog::log_level::trace);
 
-        // flush 주기
-        flushEverySec_ = static_cast<std::size_t>(
-            get_ll("FLUSH_EVERY_SEC", 1));
-
-        // 패턴
-        patternConsole_ = get_str("PATTERN_CONSOLE",
-            "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [%t] %v");
-        patternFile_ = get_str("PATTERN_FILE",
-            "[%Y-%m-%d %H:%M:%S.%e] [%l] [%t] %v");
-
-        // 파일 경로
         allPath_ = get_str("ALL_PATH", "logs/all.log");
         alertsPath_ = get_str("ALERTS_PATH", "logs/alerts.log");
 
-        // 파일 롤링 파라미터
-        allMaxSize_ = parseSizeBytes(
-            get_str("ALL_MAX_SIZE", "104857600"),
-            100ull * 1024ull * 1024ull);
-        allMaxFiles_ = static_cast<std::size_t>(
-            get_ll("ALL_MAX_FILES", 5));
+        allMaxSize_ = parseSizeBytes(get_str("ALL_MAX_SIZE", "104857600"), 100ull * 1024ull * 1024ull);
+        allMaxFiles_ = static_cast<std::size_t>(get_ll("ALL_MAX_FILES", 5));
 
-        alertMaxSize_ = parseSizeBytes(
-            get_str("ALERT_MAX_SIZE", "104857600"),
-            100ull * 1024ull * 1024ull);
-        alertMaxFiles_ = static_cast<std::size_t>(
-            get_ll("ALERT_MAX_FILES", 10));
+        alertMaxSize_ = parseSizeBytes(get_str("ALERT_MAX_SIZE", "104857600"), 100ull * 1024ull * 1024ull);
+        alertMaxFiles_ = static_cast<std::size_t>(get_ll("ALERT_MAX_FILES", 10));
 
-        // rotating-zipping 추가 파라미터 파싱
-        allDeleteOnFailure_ = toBool(get_str("ALL_DELETE_ON_FAILURE", "false"), false);
-        allCompressionLevel_ = static_cast<int>(get_ll("ALL_COMPRESSION_LEVEL", 1));
-        allMaxZipCount_ = static_cast<std::size_t>(get_ll("ALL_MAX_ZIP_COUNT", 5));
-        {
-            std::string tz = toLower(get_str("ALL_TIMEZONE", "local"));
-            allTimezone_ = (tz == "utc") ? mino::external::log::spd::time_zone_type::utc : mino::external::log::spd::time_zone_type::local_time;
-        }
-
-        alertsDeleteOnFailure_ = toBool(get_str("ALERTS_DELETE_ON_FAILURE", "false"), false);
-        alertsCompressionLevel_ = static_cast<int>(get_ll("ALERTS_COMPRESSION_LEVEL", 1));
-        alertsMaxZipCount_ = static_cast<std::size_t>(get_ll("ALERTS_MAX_ZIP_COUNT", 5));
-        {
-            std::string tz = toLower(get_str("ALERTS_TIMEZONE", "local"));
-            alertsTimezone_ = (tz == "utc") ? mino::external::log::spd::time_zone_type::utc : mino::external::log::spd::time_zone_type::local_time;
-        }
-
-        // 디스크 감시 ON/OFF 및 파라미터
         diskGuardEnable_ = toBool(get_str("DISK_GUARD_ENABLE", "true"), true);
         diskRoot_ = get_str("DISK_ROOT", "");
         diskMinFreeRatio_ = get_d("DISK_MIN_FREE_RATIO", 5.0);
 
-        // UDP 알림
         udpIp_ = get_str("UDP_ALERT_IP", "");
-        udpPort_ = static_cast<std::uint16_t>(
-            get_ll("UDP_ALERT_PORT", 0));
-        udpIntervalSec_ = static_cast<unsigned>(
-            get_ll("UDP_ALERT_INTERVAL_SEC", 60));
-        udpMessageTmpl_ = get_str("UDP_ALERT_MESSAGE",
-            "DISK LOW: path={path} free={avail_bytes}B ({ratio}%)");
+        udpPort_ = static_cast<std::uint16_t>(get_ll("UDP_ALERT_PORT", 0));
+        udpIntervalSec_ = static_cast<unsigned>(get_ll("UDP_ALERT_INTERVAL_SEC", 60));
+        udpMessageTmpl_ = get_str("UDP_ALERT_MESSAGE", "DISK LOW: path={path} free={avail_bytes}B ({ratio}%)");
 
-        // AUTO_RELOAD_SEC
         if (readAutoReload) {
-            autoReloadIntervalSec_ = static_cast<unsigned>(
-                get_ll("AUTO_RELOAD_SEC", 60));
+            autoReloadIntervalSec_ = static_cast<unsigned>(get_ll("AUTO_RELOAD_SEC", 60));
         }
 
-        // --- hybrid_logger_manager specific keys ---
-        auto enc_from_str = [&](const std::string& s) -> mino::external::log::spd::log_encoding {
+        auto enc_from_str = [&](const std::string& s) -> mino::core::log::tinylog::encoding_type {
             std::string v = toLower(s);
             if (v == "cp949" || v == "cp-949" || v == "euckr" || v == "euc-kr") {
-                return mino::external::log::spd::log_encoding::cp949;
+                return mino::core::log::tinylog::encoding_type::cp949;
             }
-            return mino::external::log::spd::log_encoding::utf8;
-        };
-        auto le_from_str = [&](const std::string& s) -> mino::external::log::spd::line_ending {
-            std::string v = toLower(s);
-            if (v == "crlf") return mino::external::log::spd::line_ending::crlf;
-            if (v == "cr") return mino::external::log::spd::line_ending::cr;
-            return mino::external::log::spd::line_ending::lf;
-        };
+            return mino::core::log::tinylog::encoding_type::utf8;
+            };
 
+        auto le_from_str = [&](const std::string& s) -> mino::core::log::tinylog::eol_type {
+            std::string v = toLower(s);
+            if (v == "crlf") return mino::core::log::tinylog::eol_type::crlf;
+            if (v == "cr") return mino::core::log::tinylog::eol_type::cr;
+            return mino::core::log::tinylog::eol_type::lf;
+            };
+
+        consoleEncoding_ = enc_from_str(get_str("CONSOLE_ENCODING", "utf8"));
         allEncoding_ = enc_from_str(get_str("ALL_FILE_ENCODING", "utf8"));
         alertsEncoding_ = enc_from_str(get_str("ALERTS_FILE_ENCODING", "utf8"));
         allLineEnding_ = le_from_str(get_str("ALL_FILE_LINE_ENDING", "lf"));
         alertsLineEnding_ = le_from_str(get_str("ALERTS_FILE_LINE_ENDING", "lf"));
-        allWriteBom_ = toBool(get_str("ALL_FILE_WRITE_BOM", "false"), false);
-        alertsWriteBom_ = toBool(get_str("ALERTS_FILE_WRITE_BOM", "false"), false);
-
-        autoColorKeywordsJson_ = get_str("AUTO_COLOR_KEYWORDS_JSON", "");
 
         return true;
     }
@@ -671,26 +420,24 @@ namespace mino::network::log::manager {
         return static_cast<std::size_t>(bytes);
     }
 
-    ::spdlog::level::level_enum hybrid_logger_manager::parseLevel(
-        const std::string& s, ::spdlog::level::level_enum def) const {
+    mino::core::log::tinylog::log_level hybrid_logger_manager::parseLevel(
+        const std::string& s, mino::core::log::tinylog::log_level def) const {
         std::string v = toLower(s);
-        if (v == "trace")                  return ::spdlog::level::trace;
-        if (v == "debug")                  return ::spdlog::level::debug;
-        if (v == "info")                   return ::spdlog::level::info;
-        if (v == "warn" || v == "warning") return ::spdlog::level::warn;
-        if (v == "error" || v == "err")    return ::spdlog::level::err;
-        if (v == "critical" || v == "crit")return ::spdlog::level::critical;
-        if (v == "off")                    return ::spdlog::level::off;
+        if (v == "trace")                  return mino::core::log::tinylog::log_level::trace;
+        if (v == "debug")                  return mino::core::log::tinylog::log_level::debug;
+        if (v == "info")                   return mino::core::log::tinylog::log_level::info;
+        if (v == "warn" || v == "warning") return mino::core::log::tinylog::log_level::warn;
+        if (v == "error" || v == "err")    return mino::core::log::tinylog::log_level::err;
+        if (v == "critical" || v == "crit")return mino::core::log::tinylog::log_level::critical;
         return def;
     }
 
     void hybrid_logger_manager::checkDiskAndAct() {
         if (!diskGuardEnable_) {
             if (fileSinksDetachedForDisk_) {
-                if (enableFileAll_ && allSink_)    distSink_->add_sink(allSink_);
-                if (enableFileAlerts_ && alertsSink_) distSink_->add_sink(alertsSink_);
-                applySoftSettings();
                 fileSinksDetachedForDisk_ = false;
+                if (allSinkWrapper_) allSinkWrapper_->set_enabled(enableFileAll_);
+                if (alertsSinkWrapper_) alertsSinkWrapper_->set_enabled(enableFileAlerts_);
                 if (logger_) logger_->info("Disk guard disabled by config. File logging resumed.");
             }
             return;
@@ -715,10 +462,10 @@ namespace mino::network::log::manager {
 
         if (low) {
             if (!fileSinksDetachedForDisk_) {
-                if (allSink_) { allSink_->flush();    distSink_->remove_sink(allSink_); }
-                if (alertsSink_) { alertsSink_->flush(); distSink_->remove_sink(alertsSink_); }
                 fileSinksDetachedForDisk_ = true;
-                if (logger_) logger_->warn("Low disk space on '{}': {:.2f}% free. File logging suspended, console only.", diskRoot_, static_cast<double>(ratio));
+                if (allSinkWrapper_) allSinkWrapper_->set_enabled(false);
+                if (alertsSinkWrapper_) alertsSinkWrapper_->set_enabled(false);
+                if (logger_) logger_->warn("Low disk space on '{}': {}% free. File logging suspended, console only.", diskRoot_, static_cast<double>(ratio));
             }
 
             auto now = std::chrono::steady_clock::now();
@@ -733,11 +480,10 @@ namespace mino::network::log::manager {
         }
         else {
             if (fileSinksDetachedForDisk_) {
-                if (enableFileAll_ && allSink_)    distSink_->add_sink(allSink_);
-                if (enableFileAlerts_ && alertsSink_) distSink_->add_sink(alertsSink_);
-                applySoftSettings();
                 fileSinksDetachedForDisk_ = false;
-                if (logger_) logger_->info("Disk space recovered on '{}': {:.2f}% free. File logging resumed.", diskRoot_, static_cast<double>(ratio));
+                if (allSinkWrapper_) allSinkWrapper_->set_enabled(enableFileAll_);
+                if (alertsSinkWrapper_) alertsSinkWrapper_->set_enabled(enableFileAlerts_);
+                if (logger_) logger_->info("Disk space recovered on '{}': {}% free. File logging resumed.", diskRoot_, static_cast<double>(ratio));
             }
         }
     }
@@ -768,8 +514,6 @@ namespace mino::network::log::manager {
     }
 
     bool hybrid_logger_manager::sendUdpAlert(const std::string& msg) {
-
-        // check validity
         if (udpIp_.empty()) return false;
         if (udpPort_ == 0) return false;
         if (msg.empty()) return false;
@@ -779,8 +523,6 @@ namespace mino::network::log::manager {
             return false;
         }
         return true;
-
-
     }
 
-} 
+} // namespace mino::network::log::manager

@@ -1,13 +1,12 @@
 #include <thread>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/pubsub_protocol.hpp"
 #include "mino/network/message_broker/subscriber.hpp"
 
 namespace mino::network::message_broker {
 
-    subscriber::subscriber(std::shared_ptr<spdlog::logger> custom_logger) {
+    subscriber::subscriber(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         set_logger(custom_logger);
 
         if (logger) logger->info("[Subscriber] Initializing subscriber.");
@@ -18,14 +17,14 @@ namespace mino::network::message_broker {
             for (const auto& topic : sub_topics) {
                 std::string sub_packet = make_packet(msg_type::subscribe, topic, "");
                 client.send_data(sub_packet);
-                if (logger) logger->info("[Subscriber] Sent subscription packet for topic: <yellow>{0}</yellow>", topic);
+                if (logger) logger->info("[Subscriber] Sent subscription packet for topic: <yellow>{}</yellow>", topic);
             }
-        });
+            });
 
         client.set_on_close([this]() {
             if (logger) logger->warn("[Subscriber] Connection <green>closed</green>. Clearing stream buffer.");
             stream_buffer.clear();
-        });
+            });
 
         client.set_on_receive([this](const std::string& data) {
             stream_buffer.append(data);
@@ -42,10 +41,10 @@ namespace mino::network::message_broker {
                 }
                 stream_buffer.erase(0, total_packet_size);
             }
-        });
+            });
     }
 
-    void subscriber::set_logger(std::shared_ptr<spdlog::logger> custom_logger) {
+    void subscriber::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         if (custom_logger) {
             logger = custom_logger;
             client.set_logger(logger);
@@ -72,8 +71,7 @@ namespace mino::network::message_broker {
     }
 
     bool subscriber::connect(std::chrono::seconds tcp_sleep_time) {
-        if (broker_ip.empty() ||
-            broker_port == 0) {
+        if (broker_ip.empty() || broker_port == 0) {
             if (logger) logger->error("[Subscriber] Broker IP or port is not set.");
             return false;
         }
@@ -104,11 +102,13 @@ namespace mino::network::message_broker {
         if (logger) logger->warn("[Subscriber] Forcefully shutting down connection.");
         try {
             client.shutdown_by_force();
-        } catch (const std::exception& ex) {
+        }
+        catch (const std::exception& ex) {
             if (logger) logger->error("[Subscriber] Exception during forced shutdown: {}", ex.what());
-        } catch (...) {
+        }
+        catch (...) {
             if (logger) logger->error("[Subscriber] Unknown exception during forced shutdown.");
         }
     }
 
-}  
+}

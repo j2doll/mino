@@ -2,12 +2,11 @@
 #include <thread>
 #include <string>
 #include <vector>
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <memory>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/daemon/termination_handler.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/tcp/tcp_server.hpp"
@@ -50,11 +49,17 @@ int main() {
     auto& handler = mino::core::daemon::termination_handler::get_instance();
     handler.initialize();
 
-    auto main_logger = ::spdlog::stdout_color_mt("main_logger");
+    namespace mclt = mino::core::log::tinylog;
+
+    // 메인 로거 생성
+    auto main_console_sink = std::make_shared<mclt::console_sink>("main_console");
+    auto main_logger = std::make_shared<mclt::logger>("main_logger");
+    main_logger->add_sink(main_console_sink);
+    mclt::logger::register_logger(main_logger);
 
     using tcp_server = mino::network::tcp::tcp_server;
-    tcp_server server_ipv4; // ip v4 server
-    tcp_server server_ipv6; // ip v6 server
+    tcp_server server_ipv4; // IPv4 server
+    tcp_server server_ipv6; // IPv6 server
 
     handler.set_callback([&server_ipv4, &server_ipv6]() {
         clean_up_resources(&server_ipv4, &server_ipv6);
@@ -62,14 +67,18 @@ int main() {
         WSACleanup();
 #endif
         std::exit(0);
-    });
+        });
 
-    auto tcp4_logger = ::spdlog::stdout_color_mt("tcp4_logger");
+    // IPv4 로거 생성
+    auto tcp4_console_sink = std::make_shared<mclt::console_sink>("tcp4_console");
+    auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
+    tcp4_logger->add_sink(tcp4_console_sink);
+    mclt::logger::register_logger(tcp4_logger);
     server_ipv4.set_logger(tcp4_logger);
 
-    my_tcp_server_handler my_handler; // Custom tcp handler for events
+    my_tcp_server_handler my_handler;
 
-    // set callbacks 
+    // IPv4 콜백 설정
     server_ipv4.set_on_connect_callback(
         [&my_handler](socket_t client_socket, const std::string& message) {
             my_handler.on_connect(client_socket, "[IPv4] " + message);
@@ -99,15 +108,19 @@ int main() {
         return -1;
     }
 
-    // set callbacks
+    // IPv6 로거 생성
+    auto tcp6_console_sink = std::make_shared<mclt::console_sink>("tcp6_console");
+    auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
+    tcp6_logger->add_sink(tcp6_console_sink);
+    mclt::logger::register_logger(tcp6_logger);
+    server_ipv6.set_logger(tcp6_logger);
+
+    // IPv6 콜백 설정
     server_ipv6.set_on_connect_callback(
         [&my_handler](socket_t client_socket, const std::string& message) {
             my_handler.on_connect(client_socket, "[IPv6] " + message);
         }
     );
-
-    auto tcp6_logger = ::spdlog::stdout_color_mt("tcp6_logger");
-    server_ipv6.set_logger(tcp6_logger);
 
     server_ipv6.set_on_receive_callback(
         [&my_handler](socket_t client_socket, const std::string& message) {
@@ -121,7 +134,7 @@ int main() {
         }
     );
 
-    std::string ipv6_addr = "::1"; // Loopback address for IPv6
+    std::string ipv6_addr = "::1";
     unsigned short port_ipv6 = 12346;
 
     if (server_ipv6.start(ipv6_addr, port_ipv6) != tcp_server::start_result::success) {
@@ -170,4 +183,3 @@ int main() {
 
     return 0;
 }
-

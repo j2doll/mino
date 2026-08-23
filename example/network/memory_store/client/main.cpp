@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "mino/core/string/string.hpp"
-#include "mino/external/log/spd/auto_color_sink.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 // network memory_store client
 #include "mino/network/ethernet.hpp"
@@ -25,13 +25,13 @@ int main(int argc, char* argv[]) {
     // 메모리 저장소 클라이언트 
     memory_store_client client;
 
-    // 로거 생성 및 설정
-    namespace mels = mino::external::log::spd;
-    auto console_sink = std::make_shared<mels::auto_color_sink<std::mutex>>();
-    std::vector<::spdlog::sink_ptr> sinks{ console_sink };
-    auto client_logger
-        = std::make_shared<::spdlog::logger>("ms_client_logger", sinks.begin(), sinks.end());
-    // client_logger->set_level(::spdlog::level::info);
+    // 로거 생성 및 설정 (mino::core::log::tinylog 기반)
+    namespace mclt = mino::core::log::tinylog;
+    auto console_sink = std::make_shared<mclt::console_sink>("ms_client_console");
+    auto client_logger = std::make_shared<mclt::logger>("ms_client_logger");
+    client_logger->add_sink(console_sink);
+    mclt::logger::register_logger(client_logger);
+
     client.set_logger(client_logger);
 
     // 메모리 저장소 서버 환경 설정
@@ -44,26 +44,26 @@ int main(int argc, char* argv[]) {
     client.set_timeout(timeout_sec);
 
     client_logger->info("==================================================");
-    client_logger->info("  <light_green>Memory Store Client Full Command Test Pipeline</light_green>");
+    client_logger->info("  <bright_green>Memory Store Client Full Command Test Pipeline</bright_green>");
     client_logger->info("==================================================");
 
     client_logger->info("Connecting to server (127.0.0.1:9999)...");
-    std::chrono::seconds tcp_timeout = std::chrono::seconds(5); // TCP 연결 시도 시, 서버가 응답할 때까지 기다리는 최대 시간
-    if (!client.connect(tcp_timeout)) { // 서버로의 연결 시도 
-        client_logger->error("Connection <orange>Failed.</orange> Make sure server instance is online.");
+    std::chrono::seconds tcp_timeout = std::chrono::seconds(5); // TCP 연결 시도 시 응답 대기 시간
+    if (!client.connect(tcp_timeout)) {
+        client_logger->error("Connection <bright_yellow>Failed.</bright_yellow> Make sure server instance is online.");
 #ifdef _WIN32
         WSACleanup();
 #endif
         return (-1);
     }
-    client_logger->info("Network Connection established <gold>successfully.</gold>");
+    client_logger->info("Network Connection established <yellow>successfully.</yellow>");
 
     try {
-        //--------------------
+        //--------------------------------------------------
         // 0. Get Server Latency Test
-        //-----------------------
-        client_logger->info("--- <light_green>[0] Testing Server Latency</light_green> ---");
-        auto latency_ms = client.request_server_sleep_ms(); // 서버의 sleep_for_transmission_ 값을 밀리초 단위로 요청하여 반환. 서버가 메시지를 송신 시 약간 대기하는 시간.
+        //--------------------------------------------------
+        client_logger->info("--- <bright_green>[0] Testing Server Latency</bright_green> ---");
+        auto latency_ms = client.request_server_sleep_ms();
         if (latency_ms < 0) {
             client_logger->error("Failed to retrieve server latency.");
         }
@@ -74,91 +74,85 @@ int main(int argc, char* argv[]) {
         // --------------------------------------------------
         // 1. SET Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[1] Testing SET Commands</light_green> ---");
+        client_logger->info("--- <bright_green>[1] Testing SET Commands</bright_green> ---");
 
         auto app_module_key = "app_mode";
-        // auto app_module_key = "app mode"; // with Space character
-        // auto app_module_key = "한 글"; // non-Eglish key 
         auto app_module_value = "production";
-        bool set_res1 = client.set(app_module_key, app_module_value); // 서버에 key/value 쌍을 저장
+        bool set_res1 = client.set(app_module_key, app_module_value);
         client_logger->info("<magenta>SET</magenta> [{} -> <green>{}</green>]: <pink>{}</pink>", app_module_key, app_module_value, set_res1 ? "SUCCESS" : "FAILED");
 
         auto build_version_key = "build_version";
         auto build_version_value = "v1.4.2_C++17";
-        bool set_res2 = client.set(build_version_key, build_version_value); // 서버에 key/value 쌍을 저장
+        bool set_res2 = client.set(build_version_key, build_version_value);
         client_logger->info("<magenta>SET</magenta> [{} -> <green>{}</green>]: <pink>{}</pink>", build_version_key, build_version_value, set_res2 ? "SUCCESS" : "FAILED");
 
         auto welcome_msg_key = "welcome_msg";
-        // auto welcome_msg_key = "welcome msg";
-        // auto welcome_msg_key = "한 글";
         auto welcome_msg_value = "Hello World Memory Store 한글";
-        bool set_res3 = client.set(welcome_msg_key, welcome_msg_value); // 서버에 key/value 쌍을 저장
+        bool set_res3 = client.set(welcome_msg_key, welcome_msg_value);
         client_logger->info("<magenta>SET</magenta> [{} -> <green>{}</green>]: <pink>{}</pink>", welcome_msg_key, welcome_msg_value, set_res3 ? "SUCCESS" : "FAILED");
 
         auto temp_data_key = "temp_data";
         auto temp_data_value = "volatile_value";
-        bool set_res4 = client.set(temp_data_key, temp_data_value); // 서버에 key/value 쌍을 저장
+        bool set_res4 = client.set(temp_data_key, temp_data_value);
         client_logger->info("<magenta>SET</magenta> [{} -> <green>{}</green>]: <pink>{}</pink>", temp_data_key, temp_data_value, set_res4 ? "SUCCESS" : "FAILED");
 
         // --------------------------------------------------
         // 2. GET Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[2] Testing GET Commands</light_green> ---");
+        client_logger->info("--- <bright_green>[2] Testing GET Commands</bright_green> ---");
 
         auto server_name_key = "server_name";
-        auto server_name_value = client.get(server_name_key); // 서버에서 key에 해당하는 value를 가져옴.  
+        auto server_name_value = client.get(server_name_key);
         client_logger->info("<cyan>GET</cyan> [{}]: <green>{}</green>", server_name_key, server_name_value.value_or("VALUE_NOT_FOUND"));
 
-        // auto welcome_msg_key = "welcome_msg";
-        auto welcome_msg_get_value = client.get(welcome_msg_key); // 서버에서 key에 해당하는 value를 가져옴. 
+        auto welcome_msg_get_value = client.get(welcome_msg_key);
         client_logger->info("<cyan>GET</cyan> [{}]: <green>{}</green>", welcome_msg_key, welcome_msg_get_value.value_or("VALUE_NOT_FOUND"));
 
         auto non_existent_key = "non_existent_key";
-        auto non_existent_value = client.get(non_existent_key); // 서버에서 key에 해당하는 value를 가져옴.
+        auto non_existent_value = client.get(non_existent_key);
         if (!non_existent_value.has_value()) {
-            client_logger->info("<cyan>GET</cyan> [{}]: Key does <orange>not exist</orange>. (Expected Behavior)", non_existent_key);
+            client_logger->info("<cyan>GET</cyan> [{}]: Key does <bright_yellow>not exist</bright_yellow>. (Expected Behavior)", non_existent_key);
         }
         else {
-            client_logger->error("<cyan>GET</cyan> [{}]: <orange>Error</orange> - Unexpected data returned: {}", non_existent_key, *non_existent_value);
+            client_logger->error("<cyan>GET</cyan> [{}]: <bright_yellow>Error</bright_yellow> - Unexpected data returned: {}", non_existent_key, *non_existent_value);
         }
 
         // --------------------------------------------------
         // 3. DEL Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[3] Testing DEL Commands</light_green> ---");
+        client_logger->info("--- <bright_green>[3] Testing DEL Commands</bright_green> ---");
 
         auto del1_key = "temp_data";
-        int del_cnt1 = client.del(del1_key); // 서버에서 key에 해당하는 value를 삭제. 삭제된 항목 수를 반환
-        client_logger->info("<dark_red>DEL</dark_red> [{}] (Exists) -> Erased count: <pink>{}</pink> item(s)", del1_key, del_cnt1);
+        int del_cnt1 = client.del(del1_key);
+        client_logger->info("<red>DEL</red> [{}] (Exists) -> Erased count: <pink>{}</pink> item(s)", del1_key, del_cnt1);
 
-        auto get_after_del = client.get(del1_key); // 삭제 후, 서버에서 key에 해당하는 value를 가져옴.
-        client_logger->info("<grey>Verification</grey> - <cyan>GET</cyan> [{}] after DEL: <pink>{}</pink>", del1_key, get_after_del.has_value() ? "FAILED (Still Exists)" : "SUCCESS (Null)");
+        auto get_after_del = client.get(del1_key);
+        client_logger->info("<gray>Verification</gray> - <cyan>GET</cyan> [{}] after DEL: <pink>{}</pink>", del1_key, get_after_del.has_value() ? "FAILED (Still Exists)" : "SUCCESS (Null)");
 
-        int del_cnt2 = client.del(del1_key); // 이미 삭제된 key를 다시 삭제 시도. 삭제된 항목 수를 반환
-        client_logger->info("<dark_red>DEL</dark_red> [{}] (Already Deleted) -> Erased count: <pink>{}</pink> item(s)", del1_key, del_cnt2);
+        int del_cnt2 = client.del(del1_key);
+        client_logger->info("<red>DEL</red> [{}] (Already Deleted) -> Erased count: <pink>{}</pink> item(s)", del1_key, del_cnt2);
 
         // --------------------------------------------------
         // 4. SAVE Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[4] Testing SAVE Command</light_green> ---");
+        client_logger->info("--- <bright_green>[4] Testing SAVE Command</bright_green> ---");
         client_logger->info("Requesting server to dump current memory states to local file...");
 
-        if (client.request_server_save()) { // 서버의 현재 메모리 내용을 서버의 로컬 파일로 저장하도록 요청
-            client_logger->info("SAVE <gold>Completed</gold>: Server file synchronized.");
+        if (client.request_server_save()) {
+            client_logger->info("SAVE <yellow>Completed</yellow>: Server file synchronized.");
         }
         else {
-            client_logger->error("SAVE Request <orange>Rejected</orange>.");
+            client_logger->error("SAVE Request <bright_yellow>Rejected</bright_yellow>.");
         }
 
         // --------------------------------------------------
         // 4.5 DUMP Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[4.5] Testing DUMP Command</light_green> ---");
+        client_logger->info("--- <bright_green>[4.5] Testing DUMP Command</bright_green> ---");
         client_logger->info("Requesting server to DUMP all key/value pairs to client...");
 
         try {
-            // DUMP 요청 전에, 서버의 현재 대기 시간을 밀리초 단위로 요청하여 가져옵니다.
-            auto latency_ms = client.request_server_latency_ms(); // 서버가 현재 키 수와 sleep_for_transmission_을 곱한 값을 밀리초 단위 정수로 반환. 성공 시 0 이상의 밀리초 값을 반환, 실패 시 -1 반환.
+            auto latency_ms = client.request_server_latency_ms();
             if (latency_ms < 0) {
                 client_logger->error("Failed to retrieve server latency.");
             }
@@ -166,22 +160,18 @@ int main(int argc, char* argv[]) {
                 client_logger->info("Server latency: {} ms", latency_ms);
             }
 
-            // DUMP 요청 후, 대기 시간은 서버의 set_sleep_for_transmission() 설정 시간을 고려하여 답아야 한다.
-            // 예를 들어 서버에서 송신 시간마다 50ms 정도 대디하면,
-            // 키의 갯수 * 송신 대기 시간 이상의 시간을 dump_timeout 으로 잡아야 한다.
-            // auto dump_timeout = std::chrono::seconds(10);
             auto dump_timeout_ms = std::chrono::milliseconds(latency_ms);
             auto dump_timeout = std::chrono::duration_cast<std::chrono::seconds>(dump_timeout_ms * 100);
             client_logger->info("Latency-based DUMP timeout set to {} seconds ({} ms)", dump_timeout.count(), dump_timeout_ms.count());
 
-            auto dump = client.request_server_dump(dump_timeout); // 서버에 저장된 모든 key/value 쌍을 요청하여 가져옴. 서버의 응답 대기 시간은 dump_timeout 으로 설정
+            auto dump = client.request_server_dump(dump_timeout);
             if (dump.empty()) {
                 client_logger->info("DUMP: No entries returned (empty storage or failure).");
             }
             else {
                 client_logger->info("DUMP: Received {} entries.", static_cast<int>(dump.size()));
                 for (const auto& kv : dump) {
-                    client_logger->info("DUMP => <light_blue>{}</light_blue> : <green>{}</green>", kv.first, kv.second);
+                    client_logger->info("DUMP => <bright_cyan>{}</bright_cyan> : <green>{}</green>", kv.first, kv.second);
                 }
             }
         }
@@ -192,74 +182,71 @@ int main(int argc, char* argv[]) {
         // --------------------------------------------------
         // 5. LOAD Command Test
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[5] Testing LOAD Command</light_green> ---");
+        client_logger->info("--- <bright_green>[5] Testing LOAD Command</bright_green> ---");
         client_logger->info("Clearing <green>'{}'</green> from active session to verify restoration...", server_name_key);
-        client.del(server_name_key); // 서버에서 key에 해당하는 value를 삭제. 삭제된 항목 수를 반환
+        client.del(server_name_key);
 
-        client_logger->info("Current status - <cyan>GET</cyan> [{}]: {}", server_name_key, client.get(server_name_key).value_or("<orange>NULL</orange> (Ready for Load)"));
+        client_logger->info("Current status - <cyan>GET</cyan> [{}]: {}", server_name_key, client.get(server_name_key).value_or("<bright_yellow>NULL</bright_yellow> (Ready for Load)"));
 
-        client_logger->info("Triggering server-side file LOAD. <grey>(Conflicting client queues will freeze until done)</grey>");
-        if (client.request_server_load()) { // 서버의 로컬 파일에서 메모리 내용을 복원하도록 요청
-            client_logger->info("LOAD <gold>Completed</gold>: Active map restored and unfrozen.");
+        client_logger->info("Triggering server-side file LOAD. <gray>(Conflicting client queues will freeze until done)</gray>");
+        if (client.request_server_load()) {
+            client_logger->info("LOAD <yellow>Completed</yellow>: Active map restored and unfrozen.");
         }
         else {
-            client_logger->error("LOAD Request <orange>Failed</orange>.");
+            client_logger->error("LOAD Request <bright_yellow>Failed</bright_yellow>.");
         }
 
-        auto get_after_load = client.get(server_name_key); // 서버에서 key에 해당하는 value를 가져옴. 복원 후, 해당 key가 존재하는지 확인
-        client_logger->info("Restored status - <cyan>GET</cyan> [{}]: {}", server_name_key, get_after_load.value_or("<orange>RESTORATION_FAILED</orange>"));
-        client_logger->info("Restored status - <cyan>GET</cyan> [build_version]: {}", client.get("build_version").value_or("<orange>RESTORATION_FAILED</orange>"));
+        auto get_after_load = client.get(server_name_key);
+        client_logger->info("Restored status - <cyan>GET</cyan> [{}]: {}", server_name_key, get_after_load.value_or("<bright_yellow>RESTORATION_FAILED</bright_yellow>"));
+        client_logger->info("Restored status - <cyan>GET</cyan> [build_version]: {}", client.get("build_version").value_or("<bright_yellow>RESTORATION_FAILED</bright_yellow>"));
 
         // --------------------------------------------------
         // 6. Stop and Reconnect Sequence
         // --------------------------------------------------
-        client_logger->info("--- <light_green>[6] Testing Client Stop & Reconnect Life-cycle</light_green> ---");
-        client_logger->info("<grey>Terminating current active connection socket...</grey>");
-        client.stop(); // 서버와의 연결 종료
+        client_logger->info("--- <bright_green>[6] Testing Client Stop & Reconnect Life-cycle</bright_green> ---");
+        client_logger->info("<gray>Terminating current active connection socket...</gray>");
+        client.stop();
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        client_logger->info("<grey>Reinitializing</grey> connection via connect()...");
-        if (client.connect(tcp_timeout)) { // 서버로의 연결 시도
-            client_logger->info("Re-established session <gold>successfully</gold>.");
+        client_logger->info("<gray>Reinitializing</gray> connection via connect()...");
+        if (client.connect(tcp_timeout)) {
+            client_logger->info("Re-established session <yellow>successfully</yellow>.");
 
             bool set_reconnect = client.set("reconnect_status", "active_ok");
             client_logger->info("Post-reconnect <magenta>SET</magenta> check: <pink>{}</pink>", set_reconnect ? "SUCCESS" : "FAILED");
             client_logger->info("Post-reconnect <cyan>GET</cyan> check: <pink>{}</pink>", client.get("reconnect_status").value_or("FAILED"));
         }
         else {
-            client_logger->error("Reconnection <orange>failed</orange>.");
+            client_logger->error("Reconnection <bright_yellow>failed</bright_yellow>.");
         }
 
     }
     catch (const std::exception& ex) {
-        client_logger->critical("[<red>Pipeline Exception Caught</red>] Network infrastructure <orange>failure</orange>: <pink>{}</pink>", ex.what());
+        client_logger->critical("[<red>Pipeline Exception Caught</red>] Network infrastructure <bright_yellow>failure</bright_yellow>: <pink>{}</pink>", ex.what());
     }
 
     // --------------------------------------------------
     // 7. Delete All Command Test
     // --------------------------------------------------
-    client_logger->info("--- <light_green>[Test] Testing delete_all</light_green> ---");
+    client_logger->info("--- <bright_green>[Test] Testing delete_all</bright_green> ---");
     int total_deleted = client.delete_all();
     if (total_deleted >= 0) {
-        client_logger->info("delete_all <gold>Completed</gold>: Total <pink>{}</pink> item(s) erased.", total_deleted);
+        client_logger->info("delete_all <yellow>Completed</yellow>: Total <pink>{}</pink> item(s) erased.", total_deleted);
     }
     else {
-        client_logger->error("delete_all <orange>Failed</orange>.");
+        client_logger->error("delete_all <bright_yellow>Failed</bright_yellow>.");
     }
 
-    // 삭제 확인 (GET으로 조회 시 미존재 확인)
     auto check_after_delete = client.get("build_version");
-    client_logger->info("<grey>Verification</grey> - <cyan>GET</cyan> [build_version]: <pink>{}</pink>",
+    client_logger->info("<gray>Verification</gray> - <cyan>GET</cyan> [build_version]: <pink>{}</pink>",
         check_after_delete.has_value() ? "FAILED (Still Exists)" : "SUCCESS (Empty)");
 
-    //--------------------------------------------------
-
     client_logger->info("==================================================");
-    client_logger->info("  <light_green>Memory Store Test Complete. Exiting Program.</light_green>");
+    client_logger->info("  <bright_green>Memory Store Test Complete. Exiting Program.</bright_green>");
     client_logger->info("==================================================");
 
-    client.stop(); // 서버와의 연결 종료
+    client.stop();
 
 #ifdef _WIN32 
     WSACleanup();

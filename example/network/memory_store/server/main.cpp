@@ -2,9 +2,10 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 #include "mino/core/string/string.hpp"
-#include "mino/external/log/spd/auto_color_sink.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 // network memory store server
 #include "mino/network/ethernet.hpp"
@@ -24,14 +25,17 @@ int main(int argc, char* argv[]) {
     // 메모리 저장소 서버 인스턴스
     memory_store_server server;
 
-    // 로거 설정
-    auto console_sink = std::make_shared<mino::external::log::spd::auto_color_sink<std::mutex>>();
+    // 로거 생성 및 설정 (mino::core::log::tinylog 기반)
+    namespace mclt = mino::core::log::tinylog;
+    auto console_sink = std::make_shared<mclt::console_sink>("ms_server_console");
     assert(console_sink != nullptr);
-    std::vector<::spdlog::sink_ptr> sinks{ console_sink };
-    auto server_logger
-        = std::make_shared<::spdlog::logger>("ms_server_logger", sinks.begin(), sinks.end());
+
+    auto server_logger = std::make_shared<mclt::logger>("ms_server_logger");
     assert(server_logger != nullptr);
-    server_logger->set_level(::spdlog::level::debug);
+    server_logger->add_sink(console_sink);
+    server_logger->set_level(mclt::log_level::debug);
+    mclt::logger::register_logger(server_logger);
+
     server.set_logger(server_logger);
 
     // 서버 네트워크 환경
@@ -69,12 +73,12 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     server_logger->info("[Server] Server Status: <yellow>ACTIVE</yellow> (Listening on <pink>{}:{}</pink>)", server_ip, server_port);
-    server_logger->info("[Server] Press <gold>Enter Key</gold> to safely terminate the process...");
+    server_logger->info("[Server] Press <bright_yellow>Enter Key</bright_yellow> to safely terminate the process...");
 
     // 키 입력 대기 (서버가 켜진 상태에서 Enter 키를 누르면 종료)
     std::cin.get();
-    // 대몬 형태로 사용 시는 무한 루프로 대체하여 활용할 것.
-    /// while(true) {
+    // 데몬 형태로 사용 시는 무한 루프로 대체하여 활용할 것.
+    // while(true) {
     //      std::this_thread::sleep_for(std::chrono::seconds(1));
     //      ...
     // }

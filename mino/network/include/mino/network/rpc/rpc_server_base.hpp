@@ -10,10 +10,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
-
 #include "mino/network/rpc/rpc_protocol_util.hpp"
 
 namespace mino::network::rpc {
@@ -30,7 +28,7 @@ namespace mino::network::rpc {
         std::unordered_map<std::string, raw_handler> service_registry; // 서비스 이름과 핸들러 함수를 매핑하는 레지스트리
         std::vector<std::string> service_topics; // 서비스 이름에 대응하는 구독 주제 목록
         std::mutex registry_mutex; // 서비스 레지스트리에 대한 동시 접근을 제어하는 뮤텍스
-        std::shared_ptr<spdlog::logger> logger; // 로거 멤버 변수
+        std::shared_ptr<mino::core::log::tinylog::logger> logger; // 로거 멤버 변수
         std::chrono::milliseconds startup_timeout; // 서버 시작 시 브로커 연결 대기 시간
 
     protected:
@@ -48,7 +46,7 @@ namespace mino::network::rpc {
             const std::string& name, // 서비스 이름
             raw_handler handler); // 서비스 이름과 핸들러 함수를 매핑하여 레지스트리에 등록
 
-        void setup_logger(std::shared_ptr<spdlog::logger> custom_logger);  
+        void setup_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger);
 
         void set_broker( // 브로커 설정 
             const std::string& ip, // 브로커 IP 주소
@@ -61,4 +59,4 @@ namespace mino::network::rpc {
         void stop(); // RPC 서버 중지
     };
 
-} 
+}

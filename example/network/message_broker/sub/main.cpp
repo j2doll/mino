@@ -6,7 +6,7 @@
 #include "mino/core/daemon/termination_handler.hpp"
 #include "mino/core/system/crash_handler.hpp"
 
-#include "mino/external/log/spd/auto_color_sink.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/message_broker/subscriber.hpp"
 
@@ -34,21 +34,22 @@ int main(int argc, char* argv[]) {
             << "[User Callback] Crash Detected! Reporting to console..."
             << std::endl;
         std::cout << log_message << std::endl;
-    });
+        });
 
     namespace mcd = mino::core::daemon;
     auto& handler = mcd::termination_handler::get_instance();
     handler.initialize();
 
-    namespace mels = mino::external::log::spd;
-    auto sub_console_sink = std::make_shared<mels::auto_color_sink<std::mutex>>();
-    std::vector<spdlog::sink_ptr> sinks{ sub_console_sink };
-    auto sub_logger = std::make_shared<spdlog::logger>("sub_logger", sinks.begin(), sinks.end());
+    // tinylog 기반 콘솔 싱크 및 로거 설정
+    namespace mclt = mino::core::log::tinylog;
+    auto sub_console_sink = std::make_shared<mclt::console_sink>("sub_console");
+    auto sub_logger = std::make_shared<mclt::logger>("sub_logger");
+    sub_logger->add_sink(sub_console_sink);
+    mclt::logger::register_logger(sub_logger);
 
     namespace mnmb = mino::network::message_broker;
     using subscriber = mnmb::subscriber;
     subscriber sub(sub_logger);
-    // sub.set_logger(sub_logger);
 
     handler.set_callback([&sub]() {
         clean_up_resources(&sub);
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
         WSACleanup();
 #endif
         std::exit(0);
-    });
+        });
 
     sub.set_on_message_handler(
         [sub_logger](
@@ -70,10 +71,9 @@ int main(int argc, char* argv[]) {
             std::string arg2 = std::string(msg_kind);
             std::string arg3 = std::string(body);
 
-            // 포맷 리터럴을 그대로 사용하고, 변환된 값들을 포맷 인자로 전달
             sub_logger->info(
-                "[KST] {0} | Topic: <pink>{1}</pink> "
-                "| Kind: <grey>{2}</grey> -> Body: <purple>{3}</purple>",
+                "[KST] {} | Topic: <pink>{}</pink> "
+                "| Kind: <gray>{}</gray> -> Body: <magenta>{}</magenta>",
                 arg0, arg1, arg2, arg3);
 
             {
@@ -87,21 +87,21 @@ int main(int argc, char* argv[]) {
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!sub.connect(tcp_sleep_time)) {
-        sub_logger->error("{0}", "브러커 연결 실패.");
+        sub_logger->error("{}", "브러커 연결 실패.");
 #ifdef _WIN32
         WSACleanup();
 #endif
         return -1;
     }
 
-    sub_logger->info("{0}", "[Main Thread] 리스닝이 동적 작동 중. 엔터 키 입력시 종료.");
+    sub_logger->info("{}", "[Main Thread] 리스닝이 동적 작동 중. 엔터 키 입력시 종료.");
     std::cin.get();
 
     {
         std::scoped_lock lock(g_resource_mutex);
         std::string msg = std::string("[Main Thread] 종료 중. 처리된 메시지 수: ")
             + std::to_string(g_total_messages_received);
-        sub_logger->info("{0}", msg);
+        sub_logger->info("{}", msg);
     }
 
     sub.disconnect();

@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "mino/core/string/string.hpp"
-#include "mino/external/log/spd/auto_color_sink.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 // network rpc server
 #include "mino/network/ethernet.hpp"
@@ -85,23 +85,26 @@ int main(int argc, char* argv[]) {
 
     my_business_server server; // RPC 서버 객체 생성
 
-    namespace mels = mino::external::log::spd;
-    auto rpc_server_console_sink = std::make_shared<mels::auto_color_sink<std::mutex>>();
-    std::vector<::spdlog::sink_ptr> sinks{ rpc_server_console_sink };
-    auto rpc_server_logger = std::make_shared<::spdlog::logger>("broker_logger", sinks.begin(), sinks.end());
-    rpc_server_logger->set_level(::spdlog::level::debug);
+    // tinylog 기반 콘솔 싱크 및 로거 설정
+    namespace mclt = mino::core::log::tinylog;
+    auto rpc_server_console_sink = std::make_shared<mclt::console_sink>("rpc_server_console");
+    auto rpc_server_logger = std::make_shared<mclt::logger>("broker_logger");
+    rpc_server_logger->add_sink(rpc_server_console_sink);
+    rpc_server_logger->set_level(mclt::log_level::debug);
+    mclt::logger::register_logger(rpc_server_logger);
+
     server.setup_logger(rpc_server_logger); // 로거 설정
 
     std::string broker_ip = "127.0.0.1";
     unsigned short broker_port = 54321;
-    server.set_broker(broker_ip, broker_port); // 브러커 설정
+    server.set_broker(broker_ip, broker_port); // 브로커 설정
     server.set_startup_timeout(std::chrono::milliseconds(3000)); // 시작 타임아웃 설정
     server.initialize_services(); // 서비스 초기화
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!server.start(tcp_sleep_time)) { // RPC 서버 시작
         // NOTE: broker 와 연결 실패 시, 연결 재시도를 해도 됨.
-        rpc_server_logger->error("<orange>Failed</orange> to start RPC Server. "
+        rpc_server_logger->error("<bright_yellow>Failed</bright_yellow> to start RPC Server. "
             "Check broker connection and configurations.");
 #ifdef _WIN32
         WSACleanup();
@@ -109,7 +112,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    rpc_server_logger->info("RPC Server started. <gold>Press Enter to stop...</gold>");
+    rpc_server_logger->info("RPC Server started. <bright_yellow>Press Enter to stop...</bright_yellow>");
     std::cin.get(); // Wait for user input to stop the server
 
     server.stop(); // RPC 서버 중지

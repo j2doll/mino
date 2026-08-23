@@ -2,13 +2,11 @@
 #include <cstring>
 #include <cerrno>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/udp/udp_receiver.hpp"
 
 namespace mino::network::udp {
 
-    // Helper: 소켓을 TIME_WAIT 없이 즉시 종료(RST)하도록 SO_LINGER 설정 후 닫습니다.
     static void close_socket_without_timewait(socket_t fd) {
         if (fd
 #ifdef _WIN32
@@ -16,13 +14,13 @@ namespace mino::network::udp {
 #else
             < 0
 #endif
-        ) {
+            ) {
             return;
         }
 
         struct linger so_linger;
-        so_linger.l_onoff = 1;    // linger 옵션 활성화
-        so_linger.l_linger = 0;   // 0초 -> 즉시 RST 전송
+        so_linger.l_onoff = 1;
+        so_linger.l_linger = 0;
 
 #ifdef _WIN32
         setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<const char*>(&so_linger), static_cast<int>(sizeof(so_linger)));
@@ -36,9 +34,9 @@ namespace mino::network::udp {
     udp_receiver::udp_receiver(ip_version_t version)
         : is_running(false),
 #ifdef _WIN32
-        server_socket(INVALID_SOCKET), // [변경]
+        server_socket(INVALID_SOCKET),
 #else
-        server_socket(-1),             // [변경]
+        server_socket(-1),
 #endif
         receiver_ip(""), receiver_port(0), udp_type(udp_type_t::none),
         any_address(version == ip_version_t::ipv4 ? "0.0.0.0" : "::"),
@@ -62,7 +60,7 @@ namespace mino::network::udp {
         any_address = any_addr;
     }
 
-    void udp_receiver::set_logger(std::shared_ptr<spdlog::logger> logger_ptr) {
+    void udp_receiver::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr) {
         logger = std::move(logger_ptr);
     }
 
@@ -98,7 +96,6 @@ namespace mino::network::udp {
         int family = (ip_version == ip_version_t::ipv4) ? AF_INET : AF_INET6;
         server_socket = socket(family, SOCK_DGRAM, 0);
 
-        // [변경] socket_t 기반 에러 체크
 #ifdef _WIN32
         if (server_socket == INVALID_SOCKET) {
 #else
@@ -207,7 +204,6 @@ namespace mino::network::udp {
         if (is_running) {
             is_running = false;
 
-            // [변경] 소켓 폐쇄 처리를 join보다 먼저 수행하여 recvfrom 블로킹 상태를 깨웁니다.
 #ifdef _WIN32
             if (server_socket != INVALID_SOCKET) {
                 closesocket(server_socket); server_socket = INVALID_SOCKET;
@@ -226,8 +222,6 @@ namespace mino::network::udp {
 
     void udp_receiver::shutdown_by_force() {
         try {
-
-            // 강제 종료: SO_LINGER{l_onoff=1, l_linger=0} 적용 후 즉시 닫음
             if (is_running) {
                 is_running = false;
             }
@@ -248,10 +242,12 @@ namespace mino::network::udp {
                 receiver_thread.join();
             }
 
-        } catch (const std::exception& ex) {
+        }
+        catch (const std::exception& ex) {
             if (logger) logger->error("Exception in shutdown_by_force: {}", ex.what());
             else std::cerr << "Exception in shutdown_by_force: " << ex.what() << std::endl;
-        } catch (...) {
+        }
+        catch (...) {
             if (logger) logger->error("Unknown exception in shutdown_by_force");
             else std::cerr << "Unknown exception in shutdown_by_force" << std::endl;
         }
@@ -279,7 +275,7 @@ namespace mino::network::udp {
                 if (on_receive) on_receive(std::string(buffer, bytes_received), std::string(client_ip), client_port);
             }
         }
-        else { // IPv6
+        else {
             sockaddr_in6 client_addr6{};
             socklen_t client_len6 = sizeof(client_addr6);
             while (is_running) {
@@ -300,4 +296,4 @@ namespace mino::network::udp {
         }
     }
 
-} 
+    }

@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "mino/core/string/string.hpp"
-#include "mino/external/log/spd/auto_color_sink.hpp"
+#include "mino/core/log/tinylog/logger.hpp"
 
 // network rpc client
 #include "mino/network/ethernet.hpp"
@@ -96,17 +96,18 @@ int main(int argc, char* argv[]) {
 #endif
 
     using req_t = my_app::domain::task_request;
-
     using rpc_error_code = mino::network::rpc::rpc_error_code;
 
     my_business_client client;
 
-    // 로거 설정
-    namespace mels = mino::external::log::spd;
-    auto rpc_client_console_sink = std::make_shared<mels::auto_color_sink<std::mutex>>();
-    std::vector<::spdlog::sink_ptr> sinks{ rpc_client_console_sink };
-    auto rpc_client_logger = std::make_shared<::spdlog::logger>("rpc_client_logger", sinks.begin(), sinks.end());
-    rpc_client_logger->set_level(::spdlog::level::debug);
+    // tinylog 기반 콘솔 싱크 및 로거 설정
+    namespace mclt = mino::core::log::tinylog;
+    auto rpc_client_console_sink = std::make_shared<mclt::console_sink>("rpc_client_console");
+    auto rpc_client_logger = std::make_shared<mclt::logger>("rpc_client_logger");
+    rpc_client_logger->add_sink(rpc_client_console_sink);
+    rpc_client_logger->set_level(mclt::log_level::debug);
+    mclt::logger::register_logger(rpc_client_logger);
+
     client.set_logger(rpc_client_logger);
 
     // RPC 아이디 설정
@@ -121,14 +122,13 @@ int main(int argc, char* argv[]) {
     auto connection_timeout = std::chrono::milliseconds(3000);
     client.set_connection_timeout(connection_timeout);
 
-    // std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(10);
     //   pub, sub 2개의 tcp 연결이 내부적으로 존재하므로,
     //   종료(disconnect) 시, tcp_sleep_time * 2배의 시간이 걸린다.
     if (!client.connect(tcp_sleep_time)) { // Broker 와 연결 시도
         // NOTE: broker 와 연결 실패 시, 연결 재시도를 해도 됨.
         rpc_client_logger->error(
-            "<orange>Failed</orange> to connect RPC Client to broker. "
+            "<bright_yellow>Failed</bright_yellow> to connect RPC Client to broker. "
             "Check network connectivity and broker status.");
 #ifdef _WIN32
         WSACleanup();
@@ -143,13 +143,13 @@ int main(int argc, char* argv[]) {
     if (status.ok()) {
         // RPC 호출 성공 시, 응답 결과를 로그에 출력
         rpc_client_logger->info(
-            "RPC Call <gold>Success</gold>: "
-            "<light_green>{0}</light_green>, <pink>{1}</pink>, <purple>{2}</purple>",
+            "RPC Call <yellow>Success</yellow>: "
+            "<bright_green>{}</bright_green>, <pink>{}</pink>, <magenta>{}</magenta>",
             response.is_success, response.message, response.details.dump());
     }
     else {
         // RPC 호출 실패 시, 오류 코드에 따른 상세 분석과 조치 방안을 로그에 출력
-        rpc_client_logger->error("--- RPC <orange>Failure</orange> Analysis Report ---");
+        rpc_client_logger->error("--- RPC <bright_yellow>Failure</bright_yellow> Analysis Report ---");
         switch (status.code) {
         case rpc_error_code::connection_broken:
             rpc_client_logger->critical(" <yellow>Network channel disconnected.</yellow>"
@@ -174,10 +174,10 @@ int main(int argc, char* argv[]) {
             rpc_client_logger->error(" <yellow>An unrecognized system error occurred.</yellow>");
             break;
         }
-        rpc_client_logger->error(" Detailed Error Message: <gold>{0}</gold>", status.message);
+        rpc_client_logger->error(" Detailed Error Message: <yellow>{}</yellow>", status.message);
     }
 
-    rpc_client_logger->info("<grey>Client is disconnecting from broker.</grey> Wait a moment...");
+    rpc_client_logger->info("<gray>Client is disconnecting from broker.</gray> Wait a moment...");
     client.disconnect(); // RPC Client 종료
     rpc_client_logger->info("Client disconnected <green>successfully</green>.");
 

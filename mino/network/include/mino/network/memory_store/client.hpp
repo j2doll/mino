@@ -7,15 +7,14 @@
 #include <optional>
 #include <vector>
 #include <utility>
-#include <optional>
+#include <chrono>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
 
 namespace mino::network::memory_store {
 
-    class  memory_store_client {
+    class memory_store_client {
     protected:
         mino::network::tcp::tcp_client client_;
         std::mutex response_mutex_;
@@ -24,7 +23,7 @@ namespace mino::network::memory_store {
         bool has_response_;
         std::string remote_ip_;
         unsigned short remote_port_;
-        std::shared_ptr<spdlog::logger> logger_;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger_;
         std::chrono::seconds timeout_;
 
     protected:
@@ -35,7 +34,7 @@ namespace mino::network::memory_store {
         ~memory_store_client();
 
         void set_server_env(const std::string& ip, unsigned short port);
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
         void set_timeout(std::chrono::seconds timeout);
 
         bool connect(std::chrono::seconds tcp_timeout);
@@ -60,4 +59,4 @@ namespace mino::network::memory_store {
         long request_server_latency_ms();
     };
 
-}  
+}

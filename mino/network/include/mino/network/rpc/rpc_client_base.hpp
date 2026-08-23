@@ -11,10 +11,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
-
 #include "mino/network/rpc/rpc_protocol_util.hpp"
 #include "mino/network/rpc/rpc_status.hpp"
 
@@ -31,7 +29,7 @@ namespace mino::network::rpc {
         std::atomic<uint64_t> sequence_id{ 0 }; // 요청 ID 생성을 위한 시퀀스 번호 (원자적으로 증가)
         std::unordered_map<std::string, std::promise<json>> response_map; // 요청 ID와 응답을 매핑하는 맵 (요청 ID -> 응답 JSON)
         std::mutex map_mutex; // response_map에 대한 동시 접근을 제어하는 뮤텍스
-        std::shared_ptr<spdlog::logger> logger; // 로거 멤버 변수
+        std::shared_ptr<mino::core::log::tinylog::logger> logger; // 로거 멤버 변수
         std::chrono::milliseconds connection_timeout{ 3000 }; // 브로커 연결 타임아웃 (밀리초 단위)
 
     protected:
@@ -48,14 +46,14 @@ namespace mino::network::rpc {
         virtual ~rpc_client_base();
 
         // id 설정 
-        void set_id( 
+        void set_id(
             std::string unique_id); // 클라이언트 고유 ID 설정 (응답 토픽 생성에 사용)
 
-        // spdlog 로거 설정
-        void set_logger(std::shared_ptr<spdlog::logger> custom_logger); 
+        // tinylog 로거 설정
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger);
 
         // 브로커 설정
-        void set_broker( 
+        void set_broker(
             const std::string& ip, // 브로커 IP 주소
             unsigned short port); // 브로커 포트 번호
 

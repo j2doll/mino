@@ -1,9 +1,8 @@
 #include <thread>
 
 #include <nlohmann/json.hpp>
- 
-#include <spdlog/spdlog.h>
 
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/rpc/rpc_server_base.hpp"
 #include "mino/network/rpc/rpc_protocol_util.hpp"
 
@@ -14,7 +13,7 @@ namespace mino::network::rpc {
         startup_timeout(std::chrono::milliseconds(3000))
     {
         sub.set_on_message_handler([this](auto t, auto k, auto b, auto ts) {
-                on_request_received(t, k, b, ts);
+            on_request_received(t, k, b, ts);
             });
     }
 
@@ -22,7 +21,7 @@ namespace mino::network::rpc {
         std::string_view topic,
         std::string_view msg_kind,
         std::string_view body,
-        uint64_t ) // timestamp)
+        uint64_t) // timestamp
     {
         if (msg_kind != "rpc_req") return;
         std::string req_id, res_topic;
@@ -66,7 +65,7 @@ namespace mino::network::rpc {
         pub.publish(res_topic, "rpc_res", res_body);
     }
 
-    void rpc_server_base::setup_logger(std::shared_ptr<spdlog::logger> custom_logger) {
+    void rpc_server_base::setup_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         logger = custom_logger;
         pub.set_logger(logger);
         sub.set_logger(logger);
@@ -90,7 +89,7 @@ namespace mino::network::rpc {
 
     bool rpc_server_base::start(std::chrono::seconds tcp_sleep_time) {
         if (!pub.connect(tcp_sleep_time) ||
-            !sub.connect(tcp_sleep_time) )
+            !sub.connect(tcp_sleep_time))
         {
             pub.disconnect();
             return false;
@@ -119,10 +118,9 @@ namespace mino::network::rpc {
     }
 
     void rpc_server_base::stop() {
-        // [리눅스 교정 핵심] 이벤트를 먼저 무효화한 후 소켓 파괴
         sub.set_on_message_handler(nullptr);
         pub.disconnect();
         sub.disconnect();
     }
 
-} 
+}

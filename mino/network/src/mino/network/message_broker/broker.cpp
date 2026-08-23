@@ -1,21 +1,20 @@
 #include <algorithm>
 #include <string_view>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
 
 namespace mino::network::message_broker {
 
-    broker::broker(std::shared_ptr<spdlog::logger> custom_logger) {
+    broker::broker(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         set_logger(custom_logger);
 
         if (logger) logger->info("[Broker] Broker instance created.");
 
         // 복사 캡처([=]) 또는 주입 상태 변화 대응을 위해 인스턴스 포인터 참조 가동
         server.set_on_connect_callback([this](socket_t client_socket, const std::string& client_ip) {
-             if (logger)logger->info("[Broker] Client connected: {} (Socket: {})", client_ip, client_socket);
-        });
+            if (logger) logger->info("[Broker] Client connected: {} (Socket: {})", client_ip, client_socket);
+            });
 
         server.set_on_close_callback([this](socket_t client_socket, const std::string& reason) {
             std::scoped_lock lock(registry_mutex);
@@ -24,7 +23,7 @@ namespace mino::network::message_broker {
             }
             stream_buffers.erase(client_socket);
             if (logger) logger->warn("[Broker] Client disconnected (Socket: {}). Registry cleaned. Reason: {}", client_socket, reason);
-        });
+            });
 
         server.set_on_receive_callback([this](socket_t client_socket, const std::string& data) {
             std::scoped_lock lock(registry_mutex);
@@ -75,13 +74,13 @@ namespace mino::network::message_broker {
 
                 buffer.erase(0, total_packet_size);
             }
-        });
+            });
     }
 
-    void broker::set_logger(std::shared_ptr<spdlog::logger> custom_logger) {
+    void broker::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         if (custom_logger) {
             logger = custom_logger;
-            server.set_logger(custom_logger); // set tcp_server spdlog logger 
+            server.set_logger(custom_logger);
         }
     }
 
@@ -107,11 +106,13 @@ namespace mino::network::message_broker {
 
         try {
             server.shutdown_by_force();
-        } catch (const std::exception& ex) {
+        }
+        catch (const std::exception& ex) {
             if (logger) logger->error("[Broker] Exception during forced shutdown: {}", ex.what());
-        } catch (...) {
+        }
+        catch (...) {
             if (logger) logger->error("[Broker] Unknown exception during forced shutdown.");
         }
     }
 
-} 
+}

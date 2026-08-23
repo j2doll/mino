@@ -1,19 +1,18 @@
 #include <thread>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/message_broker/pubsub_protocol.hpp"
 #include "mino/network/message_broker/publisher.hpp"
 
 namespace mino::network::message_broker {
 
-    publisher::publisher(std::shared_ptr<spdlog::logger> custom_logger) {
+    publisher::publisher(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         set_logger(custom_logger);
     }
 
-    void publisher::set_logger(std::shared_ptr<spdlog::logger> custom_logger) {
+    void publisher::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         logger = custom_logger;
-        client.set_logger(logger); 
+        client.set_logger(logger);
     }
 
     void publisher::set_broker(const std::string& ip, unsigned short port) {
@@ -28,16 +27,14 @@ namespace mino::network::message_broker {
     }
 
     bool publisher::connect(std::chrono::seconds tcp_sleep_time) {
-        if (broker_ip.empty() ||
-            broker_port == 0)
+        if (broker_ip.empty() || broker_port == 0)
             return false;
 
         int attempts = 0;
         while (!client.start(tcp_sleep_time)) {
             attempts++;
 
-            if (max_retries > 0 &&
-                attempts >= max_retries)
+            if (max_retries > 0 && attempts >= max_retries)
                 return false;
 
             if (logger) logger->warn("[Publisher] Connect failed. Attempt: {}. Retrying...", attempts);
@@ -51,7 +48,6 @@ namespace mino::network::message_broker {
     }
 
     std::pair<bool, std::string> publisher::publish(std::string_view topic, std::string_view msg_kind, std::string_view message) {
-
         if (!client.is_connected()) {
             return { false, "disconnection_error" };
         }
@@ -67,7 +63,7 @@ namespace mino::network::message_broker {
             return { false, "socket_error" };
         }
 
-        if (logger) logger->info("[Publisher] Packet sent for topic: <yellow>{0}</yellow>, kind: <orange>{1}</orange>, message length: <grey>{2}</grey>", topic, msg_kind, message.size());
+        if (logger) logger->info("[Publisher] Packet sent for topic: <yellow>{}</yellow>, kind: <bright_yellow>{}</bright_yellow>, message length: <gray>{}</gray>", topic, msg_kind, message.size());
 
         return { true, "success" };
     }
@@ -82,9 +78,11 @@ namespace mino::network::message_broker {
 
         try {
             client.shutdown_by_force();
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception& e) {
             if (logger) logger->error("[Publisher] Exception during force shutdown: {}", e.what());
-        } catch (...) {
+        }
+        catch (...) {
             if (logger) logger->error("[Publisher] Unknown exception during force shutdown.");
         }
     }
@@ -93,4 +91,4 @@ namespace mino::network::message_broker {
         return client.is_connected();
     }
 
-}  
+}

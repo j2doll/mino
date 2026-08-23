@@ -47,7 +47,7 @@ namespace mino::network::memory_store {
             }
             has_response_ = true;
             response_cv_.notify_one();
-        });
+            });
     }
 
     memory_store_client::~memory_store_client() {
@@ -59,7 +59,7 @@ namespace mino::network::memory_store {
         remote_port_ = port;
     }
 
-    void memory_store_client::set_logger(std::shared_ptr<spdlog::logger> logger_ptr) {
+    void memory_store_client::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr) {
         logger_ = logger_ptr;
         client_.set_logger(logger_);
     }
@@ -72,7 +72,7 @@ namespace mino::network::memory_store {
         client_.set_server(remote_ip_, remote_port_, AF_INET);
         if (logger_) logger_->info("[memory_store_client] Connecting to server {}:{}", remote_ip_, remote_port_);
 
-        if ( !client_.start(tcp_timeout) )
+        if (!client_.start(tcp_timeout))
             return false;
 
         int retry = 30;
@@ -102,7 +102,6 @@ namespace mino::network::memory_store {
             return std::nullopt;
         }
 
-        // std::chrono::seconds timeout = std::chrono::seconds(5);
         bool success = response_cv_.wait_for(lock, timeout, [this] { return has_response_; });
         if (!success || !client_.is_connected()) {
             if (logger_) logger_->error("[memory_store_client] Request timeout or network failure during wait.");
@@ -120,7 +119,6 @@ namespace mino::network::memory_store {
         }
 
         auto res_opt = send_and_wait("SET " + qkey + " \"" + value + "\"", timeout_);
-        std::string res_string;
         if (res_opt) {
             if (*res_opt == "+OK") {
                 return true;
@@ -193,7 +191,7 @@ namespace mino::network::memory_store {
         // 2. 서버에 있는 모든 키/값 덤프
         auto entries = request_server_dump(dump_timeout);
         if (entries.empty()) {
-            return 0; // 이미 비어있거나 데이터 없음
+            return 0;
         }
 
         // 3. 각 키를 순회하며 삭제
@@ -225,10 +223,9 @@ namespace mino::network::memory_store {
 
         std::vector<std::pair<std::string, std::string>> results;
         auto start = std::chrono::steady_clock::now();
-        
+
         {
             std::unique_lock<std::mutex> lock(response_mutex_);
-            // 초기화
             has_response_ = false;
             current_response_.clear();
 
@@ -238,7 +235,6 @@ namespace mino::network::memory_store {
             }
 
             while (true) {
-                // remaining time 계산
                 auto now = std::chrono::steady_clock::now();
                 if (now - start > timeout) {
                     if (logger_) logger_->error("[memory_store_client] DUMP request timed out");
@@ -254,35 +250,29 @@ namespace mino::network::memory_store {
                     break;
                 }
 
-                // 수신된 한 줄 처리
                 std::string resp = current_response_;
                 has_response_ = false;
                 current_response_.clear();
 
                 if (resp == "+EMPTY") {
-                    // 빈 저장소
                     break;
                 }
 
                 if (resp == "+END") {
-                    // 전송 완료
                     break;
                 }
 
                 if (!resp.empty() && resp[0] == '+') {
                     std::string payload = resp.substr(1);
-                    // split first space
                     auto pos = payload.find(' ');
                     if (pos == std::string::npos) {
                         results.emplace_back(payload, std::string());
-                    } else {
+                    }
+                    else {
                         results.emplace_back(payload.substr(0, pos), payload.substr(pos + 1));
                     }
                 }
-                // else 무시(에러 라인 등)
-
-            } // while (true) ...
-
+            }
         }
 
         return results;
@@ -326,4 +316,4 @@ namespace mino::network::memory_store {
         return -1;
     }
 
-} 
+}

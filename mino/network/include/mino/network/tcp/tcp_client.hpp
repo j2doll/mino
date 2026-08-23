@@ -9,13 +9,12 @@
 #include <chrono>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-
+#include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network::tcp {
 
-    class  tcp_client {
+    class tcp_client {
     public:
         using callback = std::function<void()>;
         using receive_callback = std::function<void(const std::string&)>;
@@ -36,7 +35,7 @@ namespace mino::network::tcp {
         callback on_close;
         receive_callback on_receive;
 
-        std::shared_ptr<spdlog::logger> logger;
+        std::shared_ptr<mino::core::log::tinylog::logger> logger;
 
         static constexpr int BUFFER_SIZE = 1024;
 
@@ -45,7 +44,7 @@ namespace mino::network::tcp {
         ~tcp_client();
 
         void set_server(const std::string& ip, unsigned short port, int family = AF_INET);
-        void set_logger(std::shared_ptr<spdlog::logger> logger_ptr);
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr);
         void set_on_connect(callback cb);
         void set_on_close(callback cb);
         void set_on_receive(receive_callback cb);
@@ -57,11 +56,11 @@ namespace mino::network::tcp {
 
         void close_connection(); // close connection gracefully (TIME_WAIT 발생, 재연결 시 잠시 대기 필요)
         void stop(); // stop tcp client thread and close connection gracefully
-        void shutdown_by_force(); // force shutdown (SO_LINGER 설정으로 TIME_WAIT 없이 즉시 종료, 재연결 시 대기 불필요) (문제 발생할 수도 있음)
+        void shutdown_by_force(); // force shutdown (SO_LINGER 설정으로 TIME_WAIT 없이 즉시 종료, 재연결 시 대기 불필요)
 
     protected:
         void connect_to_server(std::chrono::seconds sleep_time = std::chrono::seconds(1));
         void receive_loop();
     };
 
-}  
+}
