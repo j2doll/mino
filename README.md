@@ -50,6 +50,8 @@ sudo dnf config-manager --set-enabled powertools
 
 sudo dnf swap -y libcurl-minimal libcurl
 
+sudo dnf install -y openssl3 openssl3-devel
+
 sudo dnf install -y \
     gcc-c++ \
     cmake \
@@ -65,14 +67,24 @@ sudo dnf install -y \
     yaml-cpp-devel \
     cpp-httplib-devel \
     ca-certificates
+
+# Build
+rm -rf build
+cmake -S . -B build -G "Ninja" \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j
+
 ```
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
+# Ubuntu 22.04 LTS (Jammy Jellyfish)
 sudo add-apt-repository universe
 sudo apt update
 
-# Ubuntu 22.04 LTS (Jammy Jellyfish)
+sudo apt install -y openssl libssl-dev
+
 sudo apt install -y \
     build-essential \
     cmake \
@@ -84,23 +96,6 @@ sudo apt install -y \
     libspdlog-dev \
     nlohmann-json3-dev \
     libyaml-cpp-dev \
-    ca-certificates
-
-sudo wget https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h -O /usr/local/include/httplib.h
-
-# Ubuntu 24.04 LTS (Noble Numbat)
-sudo apt install -y \
-    build-essential \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    libssh2-1-dev \
-    libssh-dev \
-    libcurl4-openssl-dev \
-    libspdlog-dev \
-    nlohmann-json3-dev \
-    libyaml-cpp-dev \
-    libhttplib-dev \
     ca-certificates
 
 ```
