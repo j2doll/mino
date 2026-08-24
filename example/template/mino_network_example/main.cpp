@@ -19,15 +19,7 @@ void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
 }
 
 int main() {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        std::cerr << "WSAStartup failed, Error Code: " << result << std::endl;
-        WSACleanup();
-        return 1;
-    }
-#endif
+    mino::network::sock mnsock; // 소켓 초기화 및 종료를 위한 객체 생성
 
     using tcp_server = mino::network::tcp::tcp_server;
     using termination_handler = mino::core::daemon::termination_handler;
@@ -48,7 +40,7 @@ int main() {
     handler.set_callback([&server]() {
         clean_up_resources(&server);
         std::exit(0);
-        });
+    });
 
     server.set_logger(logger);
 
@@ -62,20 +54,17 @@ int main() {
         // 간단 에코 응답
         std::string reply = "Echo: " + data;
         server.send_to_client(s, reply);
-        });
+    });
 
     server.set_on_close_callback([&logger](socket_t s, const std::string& reason) {
         logger->info("Client closed (socket={}): {}", static_cast<uint64_t>(s), reason);
-        });
+    });
 
     // 서버 시작 (모든 인터페이스 바인드, 포트 18080)
     auto port_number = 18080;
     auto res = server.start("", port_number);
     if (res != tcp_server::start_result::success) {
         logger->error("Failed to start tcp_server (code={})", static_cast<int>(res));
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return 1;
     }
 
@@ -92,8 +81,5 @@ int main() {
     server.quit();
     logger->info("Server <bright_white>stopped</bright_white>.");
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
     return 0;
 }

@@ -21,16 +21,9 @@ int test_mino_core();
 int test_mino_network();
 int test_mino_external();
 
-// Socket initialization and cleanup functions
-int initSock();
-void closeSock();
-
 int main(int argc, char** argv)
 {
-    if (initSock() != 0) {
-        std::cerr << "Socket initialization failed." << std::endl;
-        return 1;
-    }
+    mino::network::sock mnsock; // 소켓 초기화 및 종료를 위한 객체 생성
 
     namespace mcsp = mino::core::string::print;
 
@@ -49,26 +42,7 @@ int main(int argc, char** argv)
         mcsp::print("Mino Network test failed.\n");
     }
 
-    closeSock();
     return 0;
-}
-
-//------------------------------------------------
-
-int initSock() {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    return result;
-#else
-    return 0; 
-#endif
-}
-
-void closeSock() {
-#ifdef _WIN32
-    WSACleanup();
-#endif
 }
 
 //------------------------------------------------

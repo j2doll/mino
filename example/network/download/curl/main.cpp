@@ -48,14 +48,11 @@ public:
 // NOTE: 예제를 테스트하기 전에 python server.py 를 사전에 실행할 것.
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        eprint(tce("WSAStartup 실패, 에러 코드: "), result);
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
         return 1;
     }
-#endif
 
     std::string test_url = (argc > 1) ? argv[1] : "http://127.0.0.1:8080/download";
     std::string output_dir = (argc > 2) ? argv[2] : "./downloads";
@@ -68,9 +65,9 @@ int main(int argc, char* argv[])
       
     std::error_code ec;
     std::filesystem::create_directories(output_dir, ec);
-    if (ec)
-    {
+    if (ec) {
         eprint(tce("저장 디렉터리 생성 실패: " + ec.message()));
+        mino::network::close_socket();
         return 1;
     }
 
@@ -94,8 +91,7 @@ int main(int argc, char* argv[])
 
     print(""); // 진행률 표시 이후 줄바꿈
 
-    if (success)
-    {
+    if (success){
         // 다운로드 성공 시 저장된 파일 목록 출력
         auto file_count = std::to_string(saved_files.size());
         print(tce("[성공] 파일 다운로드 완료! (" + file_count + "개 파일)"));
@@ -105,12 +101,12 @@ int main(int argc, char* argv[])
             auto& file = saved_files[i];
             print(tce("  - [" + std::to_string(i + 1) + "] " + file));
         }
-    }
-    else
-    {
+    } else {
         eprint(tce("[실패] 다운로드 중 오류 발생: " + error_message));
+        mino::network::close_socket();
         return 1;
     }
 
+    mino::network::close_socket();
     return 0;
 }

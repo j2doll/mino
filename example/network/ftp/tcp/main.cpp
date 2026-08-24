@@ -35,14 +35,11 @@ void run_client_test(
 //   python ftp_server.py
 //   python sftp_server.py
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        eprint(tce("WSAStartup 실패, 에러 코드: "), result);
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
         return 1;
     }
-#endif
 
     namespace mnftcp = mino::network::ftp::tcp;
     using ftp_client = mnftcp::ftp_client;
@@ -56,9 +53,7 @@ int main(int argc, char* argv[]) {
     sftp_client sftp;
     run_client_test("SFTP", sftp, "127.0.0.1", 50022, "sftp_user", "sftp_pass");
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
+    mino::network::close_socket();
     return 0;
 }
 

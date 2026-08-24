@@ -6,7 +6,7 @@
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/daemon/daemon.hpp"
-#include "mino/core/log/tinylog/logger.hpp"
+#include "mino/core/log/log.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/network.hpp"

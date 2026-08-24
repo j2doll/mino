@@ -12,12 +12,11 @@
 #include "mino/network/memory_store/server.hpp"
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        std::cerr << "Failed: " << ret_sock.value() << std::endl;
+        return 1;
     }
-#endif
 
     namespace mnm = mino::network::memory_store;
     using memory_store_server = mnm::memory_store_server;
@@ -67,9 +66,8 @@ int main(int argc, char* argv[]) {
     server_logger->info("[Server] Booting Up Memory Store Server...");
     if (!server.start()) {
         server_logger->critical("[Server] Initialization Failed!");
-#ifdef _WIN32
-        WSACleanup();
-#endif
+
+        mino::network::close_socket();
         return -1;
     }
     server_logger->info("[Server] Server Status: <yellow>ACTIVE</yellow> (Listening on <pink>{}:{}</pink>)", server_ip, server_port);
@@ -91,8 +89,6 @@ int main(int argc, char* argv[]) {
     server_logger->info("[Server] Shutting down systems...");
     server.stop();
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
+    mino::network::close_socket();
     return 0;
 }

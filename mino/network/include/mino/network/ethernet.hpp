@@ -14,6 +14,9 @@
 #include <thread>
 #include <unordered_map>
 #include <algorithm>
+#include <optional>
+#include <variant>
+#include <any>
 
 #include <cstring>
 #include <ctime>
@@ -114,5 +117,16 @@
     using socket_t = SOCKET;
 #endif
 
+namespace mino::network {
+    std::optional<std::string> init_socket();
+    std::optional<std::string> close_socket();
+
+    class sock {
+    public:
+        sock();
+        ~sock();
+    };
+
+} // namespace mino::network
 
 

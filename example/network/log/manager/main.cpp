@@ -28,6 +28,11 @@
 //
 
 int main(int argc, char* argv[]) {
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        std::cerr << "Failed: " << ret_sock.value() << std::endl;
+        return 1;
+    }
 
     // 1. INI 설정 파일 경로 구성
     namespace fs = std::filesystem;
@@ -103,5 +108,7 @@ int main(int argc, char* argv[]) {
     hybrid_mgr.stopAutoReload();
 
     std::cout << "=== Logger Manager Shutdown Complete ===" << std::endl;
+
+    mino::network::close_socket();
     return 0;
 }

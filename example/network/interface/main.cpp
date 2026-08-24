@@ -16,14 +16,11 @@ std::ostream& (*endl)(std::ostream&) = std::endl;
 auto tce = mino::core::string::to_console_encoding;
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        eprint(tce("WSAStartup 실패, 에러 코드: "), result);
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
         return 1;
     }
-#endif
 
     namespace mni = mino::network::iface;
     using interface_info = mni::interface_info;
@@ -98,8 +95,6 @@ int main(int argc, char* argv[]) {
 
     print(tce("======================================================"));
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
+    mino::network::close_socket();
     return 0;
 }

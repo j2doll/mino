@@ -12,12 +12,11 @@
 #include "mino/network/memory_store/client.hpp"
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        std::cerr << "Failed: " << ret_sock.value() << std::endl;
+        return 1;
     }
-#endif
 
     namespace mnm = mino::network::memory_store;
     using memory_store_client = mnm::memory_store_client;
@@ -51,9 +50,8 @@ int main(int argc, char* argv[]) {
     std::chrono::seconds tcp_timeout = std::chrono::seconds(5); // TCP 연결 시도 시 응답 대기 시간
     if (!client.connect(tcp_timeout)) {
         client_logger->error("Connection <bright_yellow>Failed.</bright_yellow> Make sure server instance is online.");
-#ifdef _WIN32
-        WSACleanup();
-#endif
+
+        mino::network::close_socket();
         return (-1);
     }
     client_logger->info("Network Connection established <yellow>successfully.</yellow>");
@@ -248,8 +246,6 @@ int main(int argc, char* argv[]) {
 
     client.stop();
 
-#ifdef _WIN32 
-    WSACleanup();
-#endif
+    mino::network::close_socket();
     return 0;
 }

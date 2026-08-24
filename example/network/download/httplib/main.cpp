@@ -47,14 +47,11 @@ public:
 // NOTE: 예제를 테스트하기 전에 python server.py 를 사전에 실행할 것.
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        eprint(tce("WSAStartup 실패, 에러 코드: "), result);
+    auto ret_sock = mino::network::init_socket();
+    if (ret_sock.has_value()) {
+        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
         return 1;
     }
-#endif
 
     using multipart_downloader = mino::network::downloader::httplib::multipart_downloader;
 
@@ -68,6 +65,7 @@ int main(int argc, char* argv[])
     if (ec)
     {
         eprint(tce("저장 디렉토리 생성 실패: " + ec.message()));
+        mino::network::close_socket();
         return 1;
     }
 
@@ -108,8 +106,10 @@ int main(int argc, char* argv[])
     else
     {
         eprint(tce("다운로드 실패: " + error_message));
+        mino::network::close_socket();
         return 1;
     }
 
+    mino::network::close_socket();
     return 0;
 }
