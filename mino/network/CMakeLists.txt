@@ -58,18 +58,6 @@ else()
     endif()
 endif()
 
-# 3-4. cpp httplib
-# find_package(httplib REQUIRED)
-# message(STATUS "httplib version: ${httplib_VERSION}")
-
-# 3-5. spdlog
-# find_package(spdlog REQUIRED)
-# message(STATUS "spdlog version: ${spdlog_VERSION}")
-
-# 3-6. nlohmann json
-# find_package(nlohmann_json REQUIRED)
-# message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
-
 # 3-7. libssh2
 find_package(Libssh2 CONFIG QUIET)
 if(TARGET Libssh2::libssh2)
@@ -151,48 +139,6 @@ if(MINO_CURL_LINKS)
 else()
     message(FATAL_ERROR "CURL not found.")
 endif()
-
-# 6-3. httplib link settings
-# set(MINO_HTTP_LIBS "")
-# # Common CMake package targets for httplib are typically 'httplib::httplib' or 'cpp- #httplib::cpp-httplib'.
-# if(TARGET httplib::httplib)
-#     set(MINO_HTTP_LIBS httplib::httplib)
-# elseif(TARGET cpp-httplib::cpp-httplib)
-#     set(MINO_HTTP_LIBS cpp-httplib::cpp-httplib)
-# endif()
-# 
-# if(MINO_HTTP_LIBS)
-#     target_link_libraries(mino_network PUBLIC ${MINO_HTTP_LIBS})
-# else()
-#     message(FATAL_ERROR "httplib not found.")
-# endif()
-
-# 6-4. spdlog link settings
-# set(MINO_SPDLOG_LIBS "")
-# # Prefer compiled spdlog target first, fallback to header-only when available.
-# if(TARGET spdlog::spdlog)
-#     set(MINO_SPDLOG_LIBS spdlog::spdlog)
-# elseif(TARGET spdlog::spdlog_header_only)
-#     set(MINO_SPDLOG_LIBS spdlog::spdlog_header_only)
-# endif()
-# 
-# if(MINO_SPDLOG_LIBS)
-#     target_link_libraries(mino_network PUBLIC ${MINO_SPDLOG_LIBS})
-# else()
-#     message(FATAL_ERROR "spdlog not found.")
-# endif()
-
-# 6-5. nlohmann_json link settings
-# set(MINO_JSON_LIBS "")
-# if(TARGET nlohmann_json::nlohmann_json)
-#     set(MINO_JSON_LIBS nlohmann_json::nlohmann_json)
-# endif()
-# 
-# if(MINO_JSON_LIBS)
-#     target_link_libraries(mino_network PUBLIC ${MINO_JSON_LIBS})
-# else()
-#     message(FATAL_ERROR "nlohmann_json not found.")
-# endif()
 
 # 6-6. libssh2 link settings
 if(TARGET Libssh2::libssh2)

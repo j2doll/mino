@@ -15,9 +15,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
         # 3-1. If an in-tree target named `mino_network` exists, link to it directly
         message(STATUS "Linking to in-tree target: mino_network")
         target_link_libraries(${EXE_NAME} PRIVATE mino_network)
-    # elseif(TARGET mino_external)
-    #    message(STATUS "Linking to in-tree target: mino_external")
-    #    target_link_libraries(${EXE_NAME} PRIVATE mino_external)
     elseif(TARGET mino_core)
         # 3-2. If an in-tree target named `mino_core` exists, link to it directly
         message(STATUS "Linking to in-tree target: mino_core")
@@ -118,18 +115,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
                 target_link_libraries(${EXE_NAME} PRIVATE Brotli::Brotli)
             endif()
         endif()
-
-        # 4-5-5. httplib
-        # find_package(httplib REQUIRED)
-        # target_link_libraries(${EXE_NAME} PRIVATE httplib::httplib)
-
-        # 4-5-6. spdlog
-        # find_package(spdlog REQUIRED)
-        # target_link_libraries(${EXE_NAME} PRIVATE spdlog::spdlog)
-
-        # 4-5-7. nlohmann json
-        # find_package(nlohmann_json REQUIRED)
-        # target_link_libraries(${EXE_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
         # 4-5-8. libssh2
         find_package(Libssh2 CONFIG QUIET)

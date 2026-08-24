@@ -30,7 +30,7 @@ set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to ins
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 
-# Include helper and invoke it with EXE name and MINO_DIR
+# Use mino external
 include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoExternal.cmake")
 use_mino_external(${EXE_NAME} "${MINO_DIR}")
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(mino_core_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "mino_core_example")
+project(mino_all_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "mino_all_example")
 
 # Set C++ standard to C++17 if not already defined
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -29,5 +29,14 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 
 # Use mino core
-include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoCore.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../mino_core_example/UseMinoCore.cmake")
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
+
+# Use mino network
+include("${CMAKE_CURRENT_SOURCE_DIR}/../mino_network_example/UseMinoNetwork.cmake")
+use_mino_network(${EXE_NAME} "${MINO_DIR}")
+
+# Use mino external
+include("${CMAKE_CURRENT_SOURCE_DIR}/../mino_external_example/UseMinoExternal.cmake")
+use_mino_external(${EXE_NAME} "${MINO_DIR}")
+

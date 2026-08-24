@@ -31,6 +31,6 @@ if(MSVC)
     target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
 endif()
 
-# Include helper and invoke it with EXE name and MINO_DIR
+# Use mino network
 include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoNetwork.cmake")
 use_mino_network(${EXE_NAME} "${MINO_DIR}")

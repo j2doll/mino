@@ -24,9 +24,7 @@ int main() {
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (result != 0) {
         std::cerr << "WSAStartup failed, Error Code: " << result << std::endl;
-#ifdef _WIN32
         WSACleanup();
-#endif
         return 1;
     }
 #endif
