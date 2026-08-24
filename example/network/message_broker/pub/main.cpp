@@ -41,14 +41,15 @@ int main(int argc, char* argv[]) {
 
     namespace mnmb = mino::network::message_broker;
     using publisher = mnmb::publisher;
-    publisher pub(pub_logger);
+    publisher pub(pub_logger); // publisher 객체
 
-    handler.set_callback([&pub]() {
+    // 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록 
+    handler.set_callback([&pub]() { 
         clean_up_resources(&pub);
         std::exit(0);
     });
 
-    pub.set_broker("127.0.0.1", 54321);
+    pub.set_broker("127.0.0.1", 54321); // broker IP와 포트 설정
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!pub.connect(tcp_sleep_time)) { // broker 와 연결 시도
@@ -67,13 +68,16 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        std::string topic1 = "sports";
-        std::string kind1 = "alert";
+        std::string topic1 = "sports"; // 발행 대상인 토픽
+        std::string kind1 = "alert"; // 메시지 종류. 종류는 필수적인 자료는 아님.
         std::string message1
             = std::string("[UTF-8 한글] Goal Scored! Count: ") + std::to_string(loop_count);
+        // NOTE: 메시지 본문은 UTF-8 인코딩으로 전송되며, 한글도 포함될 수 있음.
+        // NOTE: 메시지 본문에 json, xml, csv 등 다양한 형식의 데이터를 포함할 수 있음.
         auto ret_sports = pub.publish(topic1, kind1, message1); // 발행(publish) 시도
 
         if (!ret_sports.first) {
+            // 발행 실패
             std::string error_msg = ret_sports.second.empty() ? "Unknown error" : ret_sports.second;
             pub_logger->error(
                 "발행(pub) <bright_yellow>실패</bright_yellow>:"
@@ -83,6 +87,7 @@ int main(int argc, char* argv[]) {
                 topic1, kind1, error_msg);
         }
         else {
+            // 발행 성공
             pub_logger->info(
                 "발행(pub) <green>성공</green>:"
                 " topic: <pink>{}</pink>,"

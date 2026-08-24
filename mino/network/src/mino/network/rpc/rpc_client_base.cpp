@@ -136,6 +136,11 @@ namespace mino::network::rpc {
         return true;
     }
 
+    // 새로 추가한 상태 확인 함수
+    bool rpc_client_base::is_connected() const {
+        return pub.is_connected() && sub.is_connected();
+    }
+
     std::pair<rpc_status, rpc_client_base::json> rpc_client_base::call_raw(
         std::string_view service_name,
         const json& raw_argument,

@@ -58,6 +58,9 @@ namespace mino::network::rpc {
         bool connect(std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60)); // 브로커에 연결 시도
         void disconnect(); // 브로커와의 연결을 정상적으로 종료
 
+        // 상태 확인: 퍼블리셔와 서브스크라이버가 모두 연결되어 있는지 확인
+        bool is_connected() const;
+
         std::pair<rpc_status, json> call_raw( // RPC 호출 함수
             std::string_view service_name, // 호출할 서비스 이름
             const json& raw_argument, // 서비스에 전달할 인자 JSON

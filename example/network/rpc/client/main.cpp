@@ -26,19 +26,20 @@ public:
     using res_t = my_app::domain::task_response;
     using rpc_status = mino::network::rpc::rpc_status;
 
+    // RPC 호출
     std::pair<rpc_status, res_t> request_analysis(
         const req_t& request,
-        std::chrono::seconds timeout = std::chrono::seconds(10))
+        std::chrono::seconds timeout)
     {
         using rpc_error_code = mino::network::rpc::rpc_error_code;
 
-        res_t final_result;
-        json req_json;
-        rpc_status status;
+        res_t final_result; // 최종 결과 구조체
+        json req_json; // json 형식의 RPC 인자
+        rpc_status status; // RPC 호출 결과
 
-        // 요청 직렬화
+        // 인자 요청 직렬화
         try {
-            req_json = to_json(request);
+            req_json = to_json(request); // task_request -> json 변환
         }
         catch (const std::invalid_argument& ex) {
             final_result.is_success = false;
@@ -57,13 +58,14 @@ public:
         }
 
         // 서버 RPC 서비스 호출
-        auto rpc_result = call_raw(std::string(my_app::domain::service_name), req_json, timeout);
+        auto service_name = std::string(my_app::domain::service_name); // "task_service"
+        auto rpc_result = call_raw(service_name, req_json, timeout); // RPC 호출
         status = rpc_result.first;
 
         if (status.ok()) {
             try {
                 const json& response_json = rpc_result.second;
-                final_result = parse_response(response_json);
+                final_result = parse_response(response_json); // json -> task_response 역직렬화
             }
             catch (const std::invalid_argument& ex) {
                 final_result.is_success = false;
@@ -87,7 +89,7 @@ public:
     }
 
 private:
-    // task_request DTO -> mino::core::json::value 변환
+    // task_request (RPC 요청 인자) -> mino::core::json::value 변환
     json to_json(const req_t& req) {
         json j;
         j["command"] = req.command;
@@ -101,7 +103,7 @@ private:
         return j;
     }
 
-    // mino::core::json::value -> task_response DTO 역직렬화
+    // mino::core::json::value -> task_response (RPC 응답 구조체) 역직렬화
     res_t parse_response(const json& val) {
         if (!val.is_object()) {
             throw std::invalid_argument("Response payload is not a JSON object");
@@ -121,12 +123,14 @@ private:
     }
 };
 
+// main 을 구동하기 전에 message_broker/broker 와 rpc/server 를 먼저 구동해야 합니다.
 int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
-    using req_t = my_app::domain::task_request;
+    using req_t = my_app::domain::task_request; // RPC 요청 구조체
     using rpc_error_code = mino::network::rpc::rpc_error_code;
 
+    // RPC 클라이언트 인스턴스
     my_business_client client;
 
     // tinylog 기반 콘솔 싱크 및 로거 설정
@@ -144,28 +148,33 @@ int main(int argc, char* argv[]) {
     // RPC 아이디 설정
     client.set_id("rpc_client_1");
 
-    // 브로커 설정
     std::string broker_ip = "127.0.0.1";
     unsigned short broker_port = 54321;
-    client.set_broker(broker_ip, broker_port);
+    client.set_broker(broker_ip, broker_port); // broker IP와 포트 설정
 
     // 연결 타임아웃 설정
     auto connection_timeout = std::chrono::milliseconds(3000);
     client.set_connection_timeout(connection_timeout);
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(10);
-    if (!client.connect(tcp_sleep_time)) {
+    if (!client.connect(tcp_sleep_time)) { // broker 와의 연결 시도
         rpc_client_logger->error(
             "<bright_yellow>Failed</bright_yellow> to connect RPC Client to broker. "
             "Check network connectivity and broker status.");
         return (-1);
     }
 
-    req_t task{ "analyze", 100, { 3.14 } };
-    auto request_timeout = std::chrono::seconds(5);
-    auto [status, response] = client.request_analysis(task, request_timeout);
+    req_t task{ "analyze", 100, { 3.14 } }; // RPC 호출 인자
+    auto request_timeout = std::chrono::seconds(10); // RPC 호출 시, 응답을 대기하는 타임아웃 시간
+
+    if (!client.is_connected()) { // 연결 상태 확인
+        rpc_client_logger->error("Not connected to broker.");
+        return (-1);
+    }
+    auto [status, response] = client.request_analysis(task, request_timeout); // RPC 호출
 
     if (status.ok()) {
+        // RPC 호출 성공 
         std::string details_str = mino::core::json::serializer::serialize(response.details);
         rpc_client_logger->info(
             "RPC Call <yellow>Success</yellow>: "
@@ -173,6 +182,7 @@ int main(int argc, char* argv[]) {
             response.is_success, response.message, details_str);
     }
     else {
+        // RPC 호출 실패
         rpc_client_logger->error("--- RPC <bright_yellow>Failure</bright_yellow> Analysis Report ---");
         switch (status.code) {
         case rpc_error_code::connection_broken:
@@ -202,7 +212,7 @@ int main(int argc, char* argv[]) {
     }
 
     rpc_client_logger->info("<gray>Client is disconnecting from broker.</gray> Wait a moment...");
-    client.disconnect();
+    client.disconnect(); // broker 와의 연결 종료
     rpc_client_logger->info("Client disconnected <green>successfully</green>.");
 
     return 0;

@@ -12,9 +12,10 @@
 #include "mino/network/ethernet.hpp"
 #include "mino/network/message_broker/subscriber.hpp"
 
-int g_total_messages_received = 0;
-std::mutex g_resource_mutex;
+int g_total_messages_received = 0; // 테스트를 위한 수신 메시지 갯수 카운터
+std::mutex g_resource_mutex; // g_total_messages_received 접근 보호를 위한 mutex
 
+// 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록
 void clean_up_resources(mino::network::message_broker::subscriber* sub)
 {
     sub->disconnect();
@@ -25,17 +26,19 @@ int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
     namespace mcs = mino::core::system;
-    mcs::crash_handler::initialize([](const std::string& log_message) {
-        std::cout
-            << std::endl
-            << "[User Callback] Crash Detected! Reporting to console..."
-            << std::endl;
-        std::cout << log_message << std::endl;
-    });
+    mcs::crash_handler::initialize(
+        [](const std::string& log_message) { // 크래시 발생 시 호출되는 사용자 정의 콜백
+            std::cout
+                << std::endl
+                << "[User Callback] Crash Detected! Reporting to console..."
+                << std::endl;
+            std::cout << log_message << std::endl;
+        }
+    );
 
     namespace mcd = mino::core::daemon;
     auto& handler = mcd::termination_handler::get_instance();
-    handler.initialize();
+    handler.initialize(); // 종료 핸들러 초기화 및 브로커 종료 로직 등록
 
     // tinylog 기반 콘솔 싱크 및 로거 설정
     namespace mclt = mino::core::log::tinylog;
@@ -48,9 +51,10 @@ int main(int argc, char* argv[]) {
 
     namespace mnmb = mino::network::message_broker;
     using subscriber = mnmb::subscriber;
-    subscriber sub(sub_logger);
+    subscriber sub(sub_logger); // subscriber 객체 
 
-    handler.set_callback([&sub]() {
+    // 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록 
+    handler.set_callback([&sub]() { 
         clean_up_resources(&sub);
         std::exit(0);
     });
@@ -59,11 +63,12 @@ int main(int argc, char* argv[]) {
     sub.set_on_message_handler(
         [sub_logger](
             std::string_view topic, // 토픽 
-            std::string_view msg_kind, // 종류
+            std::string_view msg_kind, // 종류. 종류는 필수 자료는 아님.
             std::string_view body, // 본문
             uint64_t timestamp) // 1970-01-01 00:00:00 UTC 이후 경과된 밀리초 단위 시간
         {
-            std::string arg0 = mino::core::datetime::util::format_datetime(timestamp); // YYYY-MM-DD HH:MM:SS.mmm 형식 문자열
+            // arg0: YYYY-MM-DD HH:MM:SS.mmm 형식 문자열 (local time zone)
+            std::string arg0 = mino::core::datetime::util::format_datetime(timestamp);
             std::string arg1 = std::string(topic);
             std::string arg2 = std::string(msg_kind);
             std::string arg3 = std::string(body);
@@ -82,7 +87,7 @@ int main(int argc, char* argv[]) {
         });
 
     sub.set_broker("127.0.0.1", 54321); // broker IP와 포트 설정
-    sub.set_topic({ "sports" }); // 구독할 주제 설정
+    sub.set_topic({ "sports" }); // 구독할 토픽 설정. 토픽은 복수 개를 등록도 가능.
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!sub.connect(tcp_sleep_time)) { // broker 와 연결 시도
