@@ -58,10 +58,14 @@ int main() {
     tcp_server server_ipv4; // IPv4 server
     tcp_server server_ipv6; // IPv6 server
 
-    handler.set_callback([&server_ipv4, &server_ipv6]() {
+    // 비정상 종료(Ctrl+C 등) 시 리소스 정리 콜백 등록
+    handler.set_callback([&server_ipv4, &server_ipv6]() { 
         clean_up_resources(&server_ipv4, &server_ipv6);
         std::exit(0);
     });
+
+    //------------------------------------------
+    // IPv4 서버 설정
 
     // IPv4 로거 생성
     auto tcp4_console_sink = std::make_shared<mclt::console_sink>("tcp4_console");
@@ -96,10 +100,14 @@ int main() {
     std::string ipv4_addr = "127.0.0.1";
     unsigned short port_ipv4 = 12345;
 
+    // IPv4 서버 시작
     if (server_ipv4.start(ipv4_addr, port_ipv4) != tcp_server::start_result::success) {
         tcp4_logger->error("Failed to start IPv4 server");
         return -1;
     }
+
+    //------------------------------------------
+    // IPv6 서버 설정
 
     // IPv6 로거 생성
     auto tcp6_console_sink = std::make_shared<mclt::console_sink>("tcp6_console");
@@ -132,6 +140,7 @@ int main() {
     std::string ipv6_addr = "::1";
     unsigned short port_ipv6 = 12346;
 
+    // IPv6 서버 시작
     if (server_ipv6.start(ipv6_addr, port_ipv6) != tcp_server::start_result::success) {
         tcp6_logger->error("Failed to start IPv6 server");
         server_ipv4.quit();
@@ -144,7 +153,7 @@ int main() {
     main_logger->info("Type 'broadcast4' or 'broadcast6' to send a message, 'quit' to stop.");
 
     std::string input;
-    while (std::getline(std::cin, input)) {
+    while (std::getline(std::cin, input)) { // 키 입력 대기
         if (input == "quit") {
             break;
         }
@@ -163,6 +172,7 @@ int main() {
             }
         }
     }
+    // NOTE: 키 입력 대신 loop 처리를 하여 무한 루프 구동도 가능.
 
     main_logger->info("Shutting down servers...");
 

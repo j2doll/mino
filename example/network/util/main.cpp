@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     // IP Validation Test
     std::cout << "\n=== IP Validation Test ===" << std::endl;
-    std::string test_ip = "239.255.255.250";
+    std::string test_ip = "239.255.255.250"; // 239.255.255.250는 멀티 캐스트 주소
     std::cout << test_ip << " is valid IPv4? " << std::boolalpha << mnu::is_valid_ipv4(test_ip) << std::endl;
     std::cout << test_ip << " is Multicast?  " << mnu::is_multicast_ipv4(test_ip) << std::endl;
 
