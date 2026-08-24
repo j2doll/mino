@@ -7,7 +7,6 @@
 
 #include "mino/core/string/string.hpp"
 
-// mino network downloader curl
 #include "mino/network/ethernet.hpp"
 #include "mino/network/downloader/curl/multipart_downloader.hpp"
 
@@ -48,11 +47,7 @@ public:
 // NOTE: 예제를 테스트하기 전에 python server.py 를 사전에 실행할 것.
 int main(int argc, char* argv[])
 {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     std::string test_url = (argc > 1) ? argv[1] : "http://127.0.0.1:8080/download";
     std::string output_dir = (argc > 2) ? argv[2] : "./downloads";
@@ -67,7 +62,6 @@ int main(int argc, char* argv[])
     std::filesystem::create_directories(output_dir, ec);
     if (ec) {
         eprint(tce("저장 디렉터리 생성 실패: " + ec.message()));
-        mino::network::close_socket();
         return 1;
     }
 
@@ -103,10 +97,8 @@ int main(int argc, char* argv[])
         }
     } else {
         eprint(tce("[실패] 다운로드 중 오류 발생: " + error_message));
-        mino::network::close_socket();
         return 1;
     }
 
-    mino::network::close_socket();
     return 0;
 }

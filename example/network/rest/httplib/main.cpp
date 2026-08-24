@@ -4,7 +4,6 @@
 
 #include "mino/core/string/string.hpp"
 
-// network rest httplib
 #include "mino/network/ethernet.hpp"
 #include "mino/network/rest/httplib/get_client.hpp"
 #include "mino/network/rest/httplib/post_client.hpp"
@@ -30,12 +29,7 @@ void print_response_body(
 //    python post_server.py
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
-    }
-#endif
+    mino::network::sock mnsock;
 
     namespace mcsp = ::mino::core::string::print;
     auto print = [](std::string_view fmt, auto&&... args) {
@@ -63,9 +57,6 @@ int main(int argc, char* argv[])
     println("=== POST Request (exception) ===");
     test_post_except(); // REST API POST 요청 (exception 버전)
 
-#ifdef _WIN32 
-    WSACleanup();
-#endif
     return 0;
 }
 

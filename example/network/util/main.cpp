@@ -3,19 +3,11 @@
 
 #include "mino/core/string/string.hpp"
 
-// network util 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/util/util.hpp"
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        std::cerr << "WSAStartup failed with error: " << WSAGetLastError() << std::endl;
-        throw std::runtime_error("WSAStartup failed");
-        return 1;
-    }
-#endif
+    mino::network::sock mnsock;
 
     namespace mnu = mino::network::util;
 
@@ -76,8 +68,5 @@ int main(int argc, char* argv[]) {
     std::cout << test_ip << " is valid IPv4? " << std::boolalpha << mnu::is_valid_ipv4(test_ip) << std::endl;
     std::cout << test_ip << " is Multicast?  " << mnu::is_multicast_ipv4(test_ip) << std::endl;
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
     return 0;
 }

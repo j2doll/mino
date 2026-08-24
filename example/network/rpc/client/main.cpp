@@ -7,12 +7,12 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <cassert>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/core/json/json.hpp"
 
-// network rpc client
 #include "mino/network/ethernet.hpp"
 #include "mino/network/rpc/rpc_client_base.hpp"
 
@@ -122,12 +122,7 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
-    }
-#endif
+    mino::network::sock mnsock;
 
     using req_t = my_app::domain::task_request;
     using rpc_error_code = mino::network::rpc::rpc_error_code;
@@ -137,7 +132,9 @@ int main(int argc, char* argv[]) {
     // tinylog 기반 콘솔 싱크 및 로거 설정
     namespace mclt = mino::core::log::tinylog;
     auto rpc_client_console_sink = std::make_shared<mclt::console_sink>("rpc_client_console");
+    assert(rpc_client_console_sink);
     auto rpc_client_logger = std::make_shared<mclt::logger>("rpc_client_logger");
+    assert(rpc_client_logger); 
     rpc_client_logger->add_sink(rpc_client_console_sink);
     rpc_client_logger->set_level(mclt::log_level::debug);
     mclt::logger::register_logger(rpc_client_logger);
@@ -161,9 +158,6 @@ int main(int argc, char* argv[]) {
         rpc_client_logger->error(
             "<bright_yellow>Failed</bright_yellow> to connect RPC Client to broker. "
             "Check network connectivity and broker status.");
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return (-1);
     }
 
@@ -211,8 +205,5 @@ int main(int argc, char* argv[]) {
     client.disconnect();
     rpc_client_logger->info("Client disconnected <green>successfully</green>.");
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
     return 0;
 }

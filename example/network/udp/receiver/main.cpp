@@ -17,7 +17,9 @@ public:
     my_udp_receiver_handler(const std::string& name) : name_(name) {
         std::string logger_name = name + "_logger";
         auto console_sink = std::make_shared<mino::core::log::tinylog::console_sink>(name + "_console");
+        assert(console_sink);
         logger_ = std::make_shared<mino::core::log::tinylog::logger>(logger_name);
+        assert(logger_);
         logger_->add_sink(console_sink);
         mino::core::log::tinylog::logger::register_logger(logger_);
     }
@@ -60,19 +62,15 @@ void clean_up_resources(
 }
 
 int main() {
-#ifdef _WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "WSAStartup failed\n";
-        return -1;
-    }
-#endif
+    mino::network::sock mnsock;
 
     namespace mclt = mino::core::log::tinylog;
 
     // 메인 로거 생성
     auto main_console_sink = std::make_shared<mclt::console_sink>("main_console");
+    assert(main_console_sink);
     auto main_logger = std::make_shared<mclt::logger>("main_logger");
+    assert(main_logger);
     main_logger->add_sink(main_console_sink);
     mclt::logger::register_logger(main_logger);
 
@@ -100,11 +98,8 @@ int main() {
     // Register termination callback to clean up resources on exit (Ctrl+C)
     handler.set_callback([&unicast4_receiver, &unicast6_receiver, &multicast4_receiver, &multicast6_receiver, &broadcast4_receiver]() {
         clean_up_resources(&unicast4_receiver, &unicast6_receiver, &multicast4_receiver, &multicast6_receiver, &broadcast4_receiver);
-#ifdef _WIN32
-        WSACleanup();
-#endif
         std::exit(0);
-        });
+    });
 
     // IPv4 Unicast
     unicast4_receiver.set_ip_version(mino::network::udp::udp_receiver::ip_version_t::ipv4);
@@ -207,10 +202,6 @@ int main() {
     if (t3.joinable()) t3.join();
     if (t4.joinable()) t4.join();
     if (t5.joinable()) t5.join();
-
-#ifdef _WIN32
-    WSACleanup();
-#endif
 
     return 0;
 }

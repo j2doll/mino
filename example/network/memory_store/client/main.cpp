@@ -12,11 +12,7 @@
 #include "mino/network/memory_store/client.hpp"
 
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        std::cerr << "Failed: " << ret_sock.value() << std::endl;
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     namespace mnm = mino::network::memory_store;
     using memory_store_client = mnm::memory_store_client;
@@ -27,7 +23,9 @@ int main(int argc, char* argv[]) {
     // 로거 생성 및 설정 (mino::core::log::tinylog 기반)
     namespace mclt = mino::core::log::tinylog;
     auto console_sink = std::make_shared<mclt::console_sink>("ms_client_console");
+    assert(console_sink);
     auto client_logger = std::make_shared<mclt::logger>("ms_client_logger");
+    assert(client_logger);
     client_logger->add_sink(console_sink);
     mclt::logger::register_logger(client_logger);
 
@@ -51,7 +49,6 @@ int main(int argc, char* argv[]) {
     if (!client.connect(tcp_timeout)) {
         client_logger->error("Connection <bright_yellow>Failed.</bright_yellow> Make sure server instance is online.");
 
-        mino::network::close_socket();
         return (-1);
     }
     client_logger->info("Network Connection established <yellow>successfully.</yellow>");
@@ -246,6 +243,5 @@ int main(int argc, char* argv[]) {
 
     client.stop();
 
-    mino::network::close_socket();
     return 0;
 }

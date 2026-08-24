@@ -188,3 +188,4 @@ if __name__ == "__main__":
         print("[Main] Program exited cleanly.")
     else:
         print("[Main] Failed to start publisher initial setup.")
+

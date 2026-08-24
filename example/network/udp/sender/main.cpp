@@ -62,18 +62,14 @@ void clean_up_resources(mino::network::udp::udp_sender* udp_sender)
 }
 
 int main() {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        std::cerr << "WSAStartup failed" << std::endl;
-        return -1;
-    }
-#endif
+    mino::network::sock mnsock;
 
     // tinylog 기반 콘솔 싱크 및 로거 설정
     namespace mclt = mino::core::log::tinylog;
     auto console_sink = std::make_shared<mclt::console_sink>("udp_sender_console");
+    assert(console_sink);
     auto logger = std::make_shared<mclt::logger>("udp_sender_logger");
+    assert(logger);
     logger->add_sink(console_sink);
     mclt::logger::register_logger(logger);
 
@@ -90,11 +86,8 @@ int main() {
     // 프로세스 종료 시그널(SIGINT, SIGTERM, Ctrl+C) 발생 시 자원 정리 콜백 등록
     handler.set_callback([&sender]() {
         clean_up_resources(&sender);
-#ifdef _WIN32
-        WSACleanup();
-#endif
         std::exit(0);
-        });
+    });
 
     bool reuse_address = true;
     bool use_multicast = true;
@@ -120,8 +113,5 @@ int main() {
 
     sender.stop();
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
     return 0;
 }

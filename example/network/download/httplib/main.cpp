@@ -7,7 +7,6 @@
 
 #include "mino/core/string/string.hpp"
 
-// mino network download httplib
 #include "mino/network/ethernet.hpp"
 #include "mino/network/downloader/httplib/multipart_downloader.hpp"
 
@@ -47,11 +46,7 @@ public:
 // NOTE: 예제를 테스트하기 전에 python server.py 를 사전에 실행할 것.
 int main(int argc, char* argv[])
 {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     using multipart_downloader = mino::network::downloader::httplib::multipart_downloader;
 
@@ -65,7 +60,6 @@ int main(int argc, char* argv[])
     if (ec)
     {
         eprint(tce("저장 디렉토리 생성 실패: " + ec.message()));
-        mino::network::close_socket();
         return 1;
     }
 
@@ -106,10 +100,8 @@ int main(int argc, char* argv[])
     else
     {
         eprint(tce("다운로드 실패: " + error_message));
-        mino::network::close_socket();
         return 1;
     }
 
-    mino::network::close_socket();
     return 0;
 }

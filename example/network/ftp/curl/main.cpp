@@ -7,7 +7,6 @@
 
 #include "mino/core/string/string.hpp"
 
-// mino network ftp curl
 #include "mino/network/ethernet.hpp"
 #include "mino/network/ftp/curl/ftp_client.hpp"
 
@@ -54,11 +53,7 @@ public:
 //   python ftp_server.py
 //   python sftp_server.py
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     namespace mnfcurl = mino::network::ftp::curl;
     using ftp_client = mnfcurl::ftp_client;
@@ -171,6 +166,5 @@ int main(int argc, char* argv[]) {
     ftp.remove_progress_listener();
     sftp.remove_progress_listener();
 
-    mino::network::close_socket();
     return 0;
 }

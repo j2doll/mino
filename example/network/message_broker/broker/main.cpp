@@ -1,11 +1,11 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <cassert>
 
 #include "mino/core/system/crash_handler.hpp"
 #include "mino/core/daemon/termination_handler.hpp"
 #include "mino/core/system/command_line.hpp"
-
 #include "mino/core/log/tinylog/logger.hpp"
 
 #include "mino/network/ethernet.hpp"
@@ -13,24 +13,18 @@
 
 void clean_up_resources(mino::network::message_broker::broker* broker)
 {
-    // broker->shutdown_by_force();
     broker->quit();
     std::cerr << "Broker resources cleaned up successfully." << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
-    }
-#endif
+    mino::network::sock mnsock;
 
     // 크래시 핸들러 초기화 및 사용자 정의 콜백 등록
     mino::core::system::crash_handler::initialize([](const std::string& log_message) {
         std::cout << "\n[User Callback] Crash Detected! Reporting to console...\n";
         std::cout << log_message << std::endl;
-        });
+    });
 
     // 종료 핸들러 초기화 및 브로커 종료 로직 등록
     auto& handler = mino::core::daemon::termination_handler::get_instance();
@@ -40,16 +34,21 @@ int main(int argc, char* argv[]) {
     namespace mclt = mino::core::log::tinylog;
 
     // 1. 콘솔 싱크
-    mclt::console_sink_config console_cfg;
+    using console_sink_config = mclt::console_sink_config;
+    console_sink_config console_cfg;
 #ifdef _WIN32
     console_cfg.encoding = mclt::encoding_type::cp949;
+    console_cfg.eol = mclt::eol_type::crlf; // CRLF 줄바꿈
 #else
     console_cfg.encoding = mclt::encoding_type::utf8;
+    console_cfg.eol = mclt::eol_type::lf;   // LF 줄바꿈
 #endif
     auto console_sink = std::make_shared<mclt::console_sink>("broker_console", console_cfg);
+    assert(console_sink);
 
     // 2. 롤링 파일 싱크
-    mclt::rolling_file_sink_config file_cfg;
+    using rolling_file_sink_config = mclt::rolling_file_sink_config;
+    rolling_file_sink_config file_cfg;
     file_cfg.filename = "logs/rotating.log"; // 로깅 파일명
     file_cfg.max_size = 100 * 1024 * 1024;   // 최대 파일 크기 (100 MB)
     file_cfg.max_files = 3;                  // 최대 보관 백업 개수
@@ -61,10 +60,12 @@ int main(int argc, char* argv[]) {
     file_cfg.eol = mclt::eol_type::lf;       // LF 줄바꿈
 #endif
 
-    auto rotating_file_sink = mclt::rolling_file_sink::create("broker_file", file_cfg);
+    using rolling_file_sink = mclt::rolling_file_sink;
+    auto rotating_file_sink = rolling_file_sink::create("broker_file", file_cfg);
 
     // 3. 로거 생성 및 싱크 등록
     auto broker_logger = std::make_shared<mclt::logger>("broker_logger");
+    assert(broker_logger);
     broker_logger->add_sink(console_sink);
     broker_logger->add_sink(rotating_file_sink);
     broker_logger->set_level(mclt::log_level::debug); // 레벨 설정
@@ -73,13 +74,11 @@ int main(int argc, char* argv[]) {
     using broker = mino::network::message_broker::broker;
     broker server_broker(broker_logger); // 브로커 생성
 
-    handler.set_callback([&server_broker]() { // 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록
+    // 비정상 종료(Ctrl+C 등) 시 호출되는 함수 등록 
+    handler.set_callback([&server_broker]() { 
         clean_up_resources(&server_broker);
-#ifdef _WIN32
-        WSACleanup();
-#endif
         std::exit(0);
-        });
+    });
 
     // 명령행 인자 파서 설정
     mino::core::system::command_line cmd;
@@ -89,17 +88,11 @@ int main(int argc, char* argv[]) {
 
     if (!cmd.parse(argc, argv)) {
         std::cout << cmd.usage() << std::endl;
-#ifdef _WIN32
-        WSACleanup();
-#endif
-        return 1;
+        return 0;
     }
 
     if (cmd.has("help")) {
         std::cout << cmd.usage() << std::endl; // 도움말 출력
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return 0;
     }
 
@@ -114,22 +107,19 @@ int main(int argc, char* argv[]) {
     }
     catch (const std::exception& ex) {
         std::cerr << "Invalid port: " << port_str << "\n\n" << cmd.usage() << std::endl;
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return 1;
     }
 
-    server_broker.start_broker(ip, port); // 브로커 시작
+    auto ret_broker = server_broker.start_broker(ip, port); // 브로커 시작
+    assert(ret_broker); 
     broker_logger->info("<bright_green>브로커 시작:</bright_green> {}:{}", ip, port);
+    broker_logger->info("브로커 인스턴스 작동 중. "
+        "<bright_yellow>엔터 키</bright_yellow>를 누르면 종료됨...");
 
-    broker_logger->info("브로커 인스턴스 작동 중. <bright_yellow>엔터 키</bright_yellow>를 누르면 종료됨...");
     std::cin.get(); // 사용자가 키를 누를 때까지 브로커가 계속 실행됩니다.
+    // NOTE: 필요 시 loop 를 만들어서 브로커가 계속 동작하도록 구현 가능.
 
     server_broker.quit(); // 브로커 정상 종료
 
-#ifdef _WIN32
-    WSACleanup();
-#endif
     return 0;
 }

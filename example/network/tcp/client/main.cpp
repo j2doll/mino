@@ -56,12 +56,7 @@ void clean_up_resources(
 
 // Example for both IPv4 and IPv6
 int main() {
-#ifdef _WIN32
-    WSADATA wsa_data;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-        throw std::runtime_error("WSAStartup failed");
-    }
-#endif
+    mino::network::sock mnsock;
 
     auto& handler = mino::core::daemon::termination_handler::get_instance();
     handler.initialize();
@@ -72,11 +67,8 @@ int main() {
 
     handler.set_callback([&client4, &client6]() {
         clean_up_resources(&client4, &client6);
-#ifdef _WIN32
-        WSACleanup();
-#endif
         std::exit(0);
-        });
+    });
 
     namespace mclt = mino::core::log::tinylog;
 
@@ -189,10 +181,6 @@ int main() {
         client6.stop();
         tcp6_logger->info("IPv6 client stopped.");
     }
-
-#ifdef _WIN32
-    WSACleanup();
-#endif
 
     return 0;
 }

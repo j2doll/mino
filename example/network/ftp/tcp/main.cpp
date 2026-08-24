@@ -5,14 +5,8 @@
 #include <iomanip>
 #include <sstream>
 
-#ifdef _WIN32
-#   include <winsock2.h>
-#   include <ws2tcpip.h>
-#endif
-
 #include "mino/core/string/string.hpp"
 
-// mino network ftp tcp
 #include "mino/network/ethernet.hpp"
 #include "mino/network/ftp/tcp/ftp_client.hpp"
 
@@ -35,11 +29,7 @@ void run_client_test(
 //   python ftp_server.py
 //   python sftp_server.py
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     namespace mnftcp = mino::network::ftp::tcp;
     using ftp_client = mnftcp::ftp_client;
@@ -53,7 +43,6 @@ int main(int argc, char* argv[]) {
     sftp_client sftp;
     run_client_test("SFTP", sftp, "127.0.0.1", 50022, "sftp_user", "sftp_pass");
 
-    mino::network::close_socket();
     return 0;
 }
 

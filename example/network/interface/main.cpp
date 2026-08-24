@@ -5,7 +5,6 @@
 
 #include "mino/core/string/string.hpp"
 
-// mino network interface
 #include "mino/network/ethernet.hpp"
 #include "mino/network/interface/network_interface.hpp"
 
@@ -16,11 +15,7 @@ std::ostream& (*endl)(std::ostream&) = std::endl;
 auto tce = mino::core::string::to_console_encoding;
 
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        eprint(tce("[오류] 소켓 초기화 실패: " + ret_sock.value()));
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     namespace mni = mino::network::iface;
     using interface_info = mni::interface_info;
@@ -95,6 +90,5 @@ int main(int argc, char* argv[]) {
 
     print(tce("======================================================"));
 
-    mino::network::close_socket();
     return 0;
 }

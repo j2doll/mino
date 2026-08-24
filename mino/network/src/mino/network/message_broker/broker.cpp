@@ -84,15 +84,17 @@ namespace mino::network::message_broker {
         }
     }
 
-    void broker::start_broker(const std::string& ip, int port) {
+    bool broker::start_broker(const std::string& ip, int port) {
         if (logger) logger->info("[Broker] Attempting to start broker on {}:{}", ip, port);
 
-        if (server.start(ip, port) == mino::network::tcp::tcp_server::start_result::success) {
+        auto ret = server.start(ip, port);
+        if (ret == mino::network::tcp::tcp_server::start_result::success) {
             if (logger) logger->info("[Broker] Central Message Broker started on {}:{}", ip, port);
+            return true;
         }
-        else {
-            if (logger) logger->error("[Broker] Failed to start broker on {}:{}", ip, port);
-        }
+
+        if (logger) logger->error("[Broker] Failed to start broker on {}:{}", ip, port);
+        return false;
     }
 
     void broker::quit() {
@@ -101,18 +103,22 @@ namespace mino::network::message_broker {
         server.quit();
     }
 
-    void broker::shutdown_by_force() {
+    bool broker::shutdown_by_force() {
         if (logger) logger->warn("[Broker] Forcefully shutting down broker.");
 
         try {
             server.shutdown_by_force();
+            return true;
         }
         catch (const std::exception& ex) {
             if (logger) logger->error("[Broker] Exception during forced shutdown: {}", ex.what());
+            return false;
         }
         catch (...) {
             if (logger) logger->error("[Broker] Unknown exception during forced shutdown.");
+            return false;
         }
+        return false;
     }
 
 }

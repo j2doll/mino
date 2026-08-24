@@ -5,11 +5,9 @@
 #include <string>
 
 #include "mino/core/string/string.hpp"
-
-// core tinylog
 #include "mino/core/log/tinylog/logger.hpp"
 
-// network hybrid log manager
+#include "mino/network/ethernet.hpp"
 #include "mino/network/log/manager/hybrid_logger_manager.hpp"
 
 // CMake 매크로 미정의 시 기본 경로 fallback
@@ -28,11 +26,7 @@
 //
 
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        std::cerr << "Failed: " << ret_sock.value() << std::endl;
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     // 1. INI 설정 파일 경로 구성
     namespace fs = std::filesystem;
@@ -109,6 +103,5 @@ int main(int argc, char* argv[]) {
 
     std::cout << "=== Logger Manager Shutdown Complete ===" << std::endl;
 
-    mino::network::close_socket();
     return 0;
 }

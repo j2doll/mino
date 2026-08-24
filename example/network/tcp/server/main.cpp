@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cassert>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/daemon/termination_handler.hpp"
@@ -38,13 +39,7 @@ void clean_up_resources(
 }
 
 int main() {
-#ifdef _WIN32
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "WSAStartup failed\n";
-        return -1;
-    }
-#endif
+    mino::network::sock mnsock;
 
     auto& handler = mino::core::daemon::termination_handler::get_instance();
     handler.initialize();
@@ -53,7 +48,9 @@ int main() {
 
     // 메인 로거 생성
     auto main_console_sink = std::make_shared<mclt::console_sink>("main_console");
+    assert(main_console_sink);
     auto main_logger = std::make_shared<mclt::logger>("main_logger");
+    assert(main_logger); 
     main_logger->add_sink(main_console_sink);
     mclt::logger::register_logger(main_logger);
 
@@ -63,15 +60,14 @@ int main() {
 
     handler.set_callback([&server_ipv4, &server_ipv6]() {
         clean_up_resources(&server_ipv4, &server_ipv6);
-#ifdef _WIN32
-        WSACleanup();
-#endif
         std::exit(0);
-        });
+    });
 
     // IPv4 로거 생성
     auto tcp4_console_sink = std::make_shared<mclt::console_sink>("tcp4_console");
+    assert(tcp4_console_sink);
     auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
+    assert(tcp4_logger);
     tcp4_logger->add_sink(tcp4_console_sink);
     mclt::logger::register_logger(tcp4_logger);
     server_ipv4.set_logger(tcp4_logger);
@@ -102,15 +98,14 @@ int main() {
 
     if (server_ipv4.start(ipv4_addr, port_ipv4) != tcp_server::start_result::success) {
         tcp4_logger->error("Failed to start IPv4 server");
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return -1;
     }
 
     // IPv6 로거 생성
     auto tcp6_console_sink = std::make_shared<mclt::console_sink>("tcp6_console");
+    assert(tcp6_console_sink);
     auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
+    assert(tcp6_logger);
     tcp6_logger->add_sink(tcp6_console_sink);
     mclt::logger::register_logger(tcp6_logger);
     server_ipv6.set_logger(tcp6_logger);
@@ -140,9 +135,6 @@ int main() {
     if (server_ipv6.start(ipv6_addr, port_ipv6) != tcp_server::start_result::success) {
         tcp6_logger->error("Failed to start IPv6 server");
         server_ipv4.quit();
-#ifdef _WIN32
-        WSACleanup();
-#endif
         return -1;
     }
 
@@ -176,10 +168,6 @@ int main() {
 
     server_ipv4.quit();
     server_ipv6.quit();
-
-#ifdef _WIN32
-    WSACleanup();
-#endif
 
     return 0;
 }

@@ -25,9 +25,9 @@ namespace mino::network::message_broker {
 
         void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger); // 로거 설정
 
-        void start_broker(const std::string& ip, int port); // 브로커 시작
+        bool start_broker(const std::string& ip, int port); // 브로커 시작
         void quit(); // 브로커 정상 종료
-        void shutdown_by_force(); // 브로커 강제 종료
+        bool shutdown_by_force(); // 브로커 강제 종료
     };
 
 }

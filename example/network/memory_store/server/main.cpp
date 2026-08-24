@@ -12,11 +12,7 @@
 #include "mino/network/memory_store/server.hpp"
 
 int main(int argc, char* argv[]) {
-    auto ret_sock = mino::network::init_socket();
-    if (ret_sock.has_value()) {
-        std::cerr << "Failed: " << ret_sock.value() << std::endl;
-        return 1;
-    }
+    mino::network::sock mnsock;
 
     namespace mnm = mino::network::memory_store;
     using memory_store_server = mnm::memory_store_server;
@@ -66,8 +62,6 @@ int main(int argc, char* argv[]) {
     server_logger->info("[Server] Booting Up Memory Store Server...");
     if (!server.start()) {
         server_logger->critical("[Server] Initialization Failed!");
-
-        mino::network::close_socket();
         return -1;
     }
     server_logger->info("[Server] Server Status: <yellow>ACTIVE</yellow> (Listening on <pink>{}:{}</pink>)", server_ip, server_port);
@@ -89,6 +83,5 @@ int main(int argc, char* argv[]) {
     server_logger->info("[Server] Shutting down systems...");
     server.stop();
 
-    mino::network::close_socket();
     return 0;
 }
