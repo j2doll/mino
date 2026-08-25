@@ -48,34 +48,24 @@
 sudo dnf install -y epel-release dnf-plugins-core
 sudo dnf config-manager --set-enabled powertools
 
+sudo dnf install -y gcc-c++ cmake make 
+sudo dnf install -y pkgconfig ca-certificates
+sudo dnf install -y openssl-devel \
+ libssh2-devel libssh-devel
+
 sudo dnf swap -y libcurl-minimal libcurl
+sudo dnf install -y libcurl-devel
 
-sudo dnf install -y openssl3 openssl3-devel
-
-sudo dnf install -y \
-    gcc-c++ \
-    cmake \
-    make \
-    pkgconfig \
-    openssl-devel \
-    libssh2-devel \
-    libssh-devel \
-    libcurl-devel \
-    spdlog-devel \
-    json-devel \
-    yaml-cpp \
-    yaml-cpp-devel \
-    cpp-httplib-devel \
-    ca-certificates
-
+sudo dnf install -y yaml-cpp yaml-cpp-devel
+    
 # Build
 rm -rf build
 cmake -S . -B build -G "Ninja" \
-    -DCMAKE_CXX_STANDARD=17 \
-    -DCMAKE_BUILD_TYPE=Debug
+ -DCMAKE_CXX_STANDARD=17 \
+ -DCMAKE_BUILD_TYPE=Debug
 cmake --build build -j
 
-```
+``` 
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
@@ -83,20 +73,15 @@ cmake --build build -j
 sudo add-apt-repository universe
 sudo apt update
 
-sudo apt install -y openssl libssl-dev
-
 sudo apt install -y \
-    build-essential \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    libssh2-1-dev \
-    libssh-dev \
-    libcurl4-openssl-dev \
-    libspdlog-dev \
-    nlohmann-json3-dev \
-    libyaml-cpp-dev \
-    ca-certificates
+ build-essential cmake pkg-config \
+ ca-certificates
+	
+sudo apt install -y openssl \
+ libssl-dev libssh2-1-dev \
+ 
+sudo apt install -y libcurl4-openssl-dev
+sudo apt install -y libyaml-cpp-dev
 
 ```
 
@@ -105,37 +90,60 @@ sudo apt install -y \
 - 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
 
+###### (1) `Visual Studio` + `vcpkg` 환경
+
 ```bat
-:: 작업 경로 삭제 (Windows)
+:: 기존 작업 경로 삭제 (Windows)
 rmdir /s /q build
 
-:: 작업 경로 삭제 (Linux)
-rm -rf build
+::::::::::::::::::::::::::::::::::::::::::::::::::
+:: cmake 설정 (vcpkg 사용 시) (Debug)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+:: -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능.
+:: %VCPKG_ROOT% 는 환경설정 정보로 vcpkg.exe가 있는 경로.
 
-:: cmake 설정 (Windows) (vcpkg 미사용)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
-
-:: -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능
-
+::::::::::::::::::::::::::::::::::::::::::::::::::
 :: cmake 설정 (vcpkg 사용 시) (Release)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
-:: cmake 설정 (vcpkg 사용 시) (Debug)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+::::::::::::::::::::::::::::::::::::::::::::::::::
+:: cmake 설정 (Windows) (vcpkg 미사용)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 
-:: cmake 설정 (Linux)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
-
+::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 빌드
 cmake --build build -j
 
-:: 빌드 (코어 갯수 한정. $(nproc) 대신 숫자로 정의)
+::::::::::::::::::::::::::::::::::::::::::::::::::
+:: 설치
+cmake --install build
+```
+
+###### (2) `Linux` 환경
+ 
+```bash
+# 작업 경로 삭제 (Linux)
+rm -rf build
+
+#############################################
+# cmake 설정 (Linux)
+cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
+# -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능
+
+#############################################
+# 빌드
+cmake --build build -j
+
+#############################################
+# 빌드 (코어 갯수 한정. $(nproc) 대신 숫자로 정의)
 cmake --build build -j "$(nproc)"
 
-:: Linux 전용 빌드 (빌드만 빠르게 진행)
+#############################################
+# Linux 전용 빌드 (빌드만 빠르게 진행)
 rm -rf build; cmake -S . -B build -G "Ninja" -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug; cmake --build build -j "$(nproc)"
 
-:: 설치
+#############################################
+# 설치
 cmake --install build
 ```
 

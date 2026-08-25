@@ -56,8 +56,8 @@ function(use_mino_external EXE_NAME MINO_DIR)
 
         # third-party dependencies
         find_package(Threads REQUIRED)
-        find_package(nlohmann_json CONFIG REQUIRED)
-        find_package(spdlog CONFIG REQUIRED)
+        # find_package(nlohmann_json CONFIG REQUIRED)
+        # find_package(spdlog CONFIG REQUIRED)
         find_package(yaml-cpp CONFIG REQUIRED)
 
         if(UNIX AND NOT APPLE)
@@ -66,10 +66,13 @@ function(use_mino_external EXE_NAME MINO_DIR)
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
         endif()
 
-        target_link_libraries(${EXE_NAME} PRIVATE
-            nlohmann_json::nlohmann_json
-            spdlog::spdlog
-        )
+        #target_link_libraries(${EXE_NAME} PRIVATE
+        #    nlohmann_json::nlohmann_json
+        #    spdlog::spdlog
+        #)
+
+        target_include_directories(${EXE_NAME} PRIVATE
+            "${MINO_DIR}/include/mino/external/third-party")
 
         # Detect the yaml-cpp target name provided by the package and use it
         if(TARGET yaml-cpp::yaml-cpp)

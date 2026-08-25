@@ -16,12 +16,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
 
 # 3-1. spdlog
-find_package(spdlog REQUIRED)
-message(STATUS "spdlog version: ${spdlog_VERSION}")
+# find_package(spdlog REQUIRED)
+# message(STATUS "spdlog version: ${spdlog_VERSION}")
 
 # 3-2. nlohmann_json
-find_package(nlohmann_json REQUIRED)
-message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
+# find_package(nlohmann_json REQUIRED)
+# message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
 
 # 3-3. yaml-cpp
 find_package(yaml-cpp REQUIRED)
@@ -66,12 +66,21 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
+# Use generator expressions for the third-party headers so an absolute
+# source-tree path is not exported into the installed target's
+# INTERFACE_INCLUDE_DIRECTORIES (this caused the CMake error).
+target_include_directories(mino_external PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+  $<INSTALL_INTERFACE:include/mino/external/third-party>
+)
+
+
 # 6. Link the external libraries being used
 target_link_libraries(
   mino_external
   PUBLIC
-    $<BUILD_INTERFACE:spdlog::spdlog>
-    $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
+#    $<BUILD_INTERFACE:spdlog::spdlog>
+#    $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
     $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>
   PRIVATE
     Threads::Threads
