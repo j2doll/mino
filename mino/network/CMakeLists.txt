@@ -29,8 +29,7 @@ endif()
 find_package(CURL REQUIRED)
 message(STATUS "CURL version: ${CURL_VERSION}")
 
-# 3-4. brotli (check vcpkg-specific namespace first when vcpkg is used,
-# otherwise try standard package names quietly)
+# 3-4. Brotli  
 set(MINO_BROTLI_AVAILABLE FALSE)
 if(DEFINED VCPKG_ROOT
    OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))

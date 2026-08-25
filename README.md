@@ -48,37 +48,53 @@
 sudo dnf install -y epel-release dnf-plugins-core
 sudo dnf config-manager --set-enabled powertools
 
-sudo dnf install -y gcc-c++ cmake make 
-sudo dnf install -y pkgconfig ca-certificates
-sudo dnf install -y openssl-devel \
- libssh2-devel libssh-devel
+# Tools & Compiler 
+sudo dnf install -y gcc-c++ cmake make pkgconfig
 
+# OpenSSL
+sudo dnf install -y openssl-devel
+
+# CURL
 sudo dnf swap -y libcurl-minimal libcurl
 sudo dnf install -y libcurl-devel
+
+# Brotli
+sudo dnf install -y brotli-devel
+
+# libssh2
+sudo dnf install -y libssh2-devel
     
-# Build
+# Build library
 rm -rf build
+
 cmake -S . -B build -G "Ninja" \
  -DCMAKE_CXX_STANDARD=17 \
  -DCMAKE_BUILD_TYPE=Debug
+
 cmake --build build -j
 
 ``` 
 
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
-# Ubuntu 22.04 LTS (Jammy Jellyfish)
+# Ubuntu 22.04 LTS
 sudo add-apt-repository universe
 sudo apt update
 
-sudo apt install -y \
- build-essential cmake pkg-config \
- ca-certificates
-	
-sudo apt install -y openssl \
- libssl-dev libssh2-1-dev \
- 
+# Tools & Compiler
+sudo apt install -y build-essential cmake pkg-config ca-certificates
+
+# OpenSSL
+sudo apt install -y openssl
+
+# libssh2
+sudo apt install -y libssl-dev libssh2-1-dev
+
+# CURL
 sudo apt install -y libcurl4-openssl-dev
+
+# Brotli
+sudo apt install -y libbrotli-dev
 
 ```
 
