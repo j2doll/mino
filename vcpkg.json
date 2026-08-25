@@ -5,12 +5,6 @@
   "dependencies": [
     "brotli",
     {
-      "name": "cpp-httplib",
-      "features": [
-        "brotli"
-      ]
-    },
-    {
       "name": "curl",
       "features": [
         "non-http",
@@ -28,15 +22,6 @@
         "zlib"
       ]
     },
-    "nlohmann-json",
-    "openssl",
-    {
-      "name": "spdlog",
-      "features": [
-        "fmt",
-        "tz-offset"
-      ]
-    }, 
-    "yaml-cpp"
+    "openssl"
   ]
 }

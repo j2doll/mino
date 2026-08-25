@@ -55,8 +55,6 @@ sudo dnf install -y openssl-devel \
 
 sudo dnf swap -y libcurl-minimal libcurl
 sudo dnf install -y libcurl-devel
-
-sudo dnf install -y yaml-cpp yaml-cpp-devel
     
 # Build
 rm -rf build
@@ -81,7 +79,6 @@ sudo apt install -y openssl \
  libssl-dev libssh2-1-dev \
  
 sudo apt install -y libcurl4-openssl-dev
-sudo apt install -y libyaml-cpp-dev
 
 ```
 

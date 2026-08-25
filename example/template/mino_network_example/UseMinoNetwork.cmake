@@ -134,19 +134,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
             message(FATAL_ERROR "libssh2 target not available.")
         endif()
 
-        # 4-5-9. yaml-cpp
-        find_package(yaml-cpp CONFIG REQUIRED)
-        if(TARGET yaml-cpp::yaml-cpp)
-            set(YAMLCPP_TARGET yaml-cpp::yaml-cpp)
-        elseif(TARGET yaml-cpp)
-            set(YAMLCPP_TARGET yaml-cpp)
-        elseif(TARGET YAML::YAML)
-            set(YAMLCPP_TARGET YAML::YAML)
-        else()
-            message(FATAL_ERROR "yaml-cpp target not found after find_package. Expected one of: yaml-cpp::yaml-cpp, yaml-cpp, YAML::YAML")
-        endif()
-        target_link_libraries(${EXE_NAME} PRIVATE ${YAMLCPP_TARGET})
-
         # 4-5-10. Windows-specific libraries
         if(WIN32)
             # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses

@@ -14,34 +14,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3-0. Threads
 find_package(Threads REQUIRED)
-
-# 3-1. spdlog
-# find_package(spdlog REQUIRED)
-# message(STATUS "spdlog version: ${spdlog_VERSION}")
-
-# 3-2. nlohmann_json
-# find_package(nlohmann_json REQUIRED)
-# message(STATUS "nlohmann_json version: ${nlohmann_json_VERSION}")
-
-# 3-3. yaml-cpp
-find_package(yaml-cpp REQUIRED)
-message(STATUS "yaml-cpp version: ${yaml-cpp_VERSION}") 
-
-# If a system/vcpkg yaml-cpp exists, alias or prefer it
-if(NOT TARGET yaml-cpp::yaml-cpp)
-  if(TARGET yaml-cpp)
-    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
-  else()
-    add_library(yaml-cpp::yaml-cpp INTERFACE IMPORTED)
-    set_target_properties(
-      yaml-cpp::yaml-cpp
-      PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${YAML_CPP_INCLUDE_DIR}"
-        INTERFACE_LINK_LIBRARIES "${YAML_CPP_LIBRARIES}"
-    )
-  endif()
-endif()
-message(STATUS "yaml-cpp target available")
+ 
 
 # 4. Create a library and configure the source code
 file(
@@ -74,17 +47,8 @@ target_include_directories(mino_external PUBLIC
   $<INSTALL_INTERFACE:include/mino/external/third-party>
 )
 
-
 # 6. Link the external libraries being used
-target_link_libraries(
-  mino_external
-  PUBLIC
-#    $<BUILD_INTERFACE:spdlog::spdlog>
-#    $<BUILD_INTERFACE:nlohmann_json::nlohmann_json>
-    $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>
-  PRIVATE
-    Threads::Threads
-)
+target_link_libraries(mino_external PRIVATE Threads::Threads)
 
 # 7. [Dependency] If external uses core, link it here.
 target_link_libraries(mino_external PUBLIC mino_core)

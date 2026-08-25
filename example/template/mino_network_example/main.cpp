@@ -18,7 +18,7 @@ void clean_up_resources(mino::network::tcp::tcp_server* tcp_server)
     std::cout << std::endl << "Resources cleaned up. Exiting." << std::endl;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     mino::network::sock mnsock; // 소켓 초기화 및 종료를 위한 객체 생성
 
     using tcp_server = mino::network::tcp::tcp_server;

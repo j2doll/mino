@@ -4,7 +4,7 @@
 
 #include "mino/external/json/json.hpp"
 
-int main() {
+int main(int argc, char* argv[]) {
     namespace mjson = mino::external::json;
     using json_t = nlohmann::json;
     using json_ptr_t = nlohmann::json::json_pointer; // use project's json_pointer specialization
