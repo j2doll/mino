@@ -4,13 +4,9 @@
 #include <chrono>
 #include <string>
 
-#include "mino/core/schedule/weekly/scheduler.hpp"
-#include "mino/core/schedule/weekly/schedule_dump.hpp"
-#include "mino/core/schedule/weekly/schedule_normalizer.hpp"
-#include "mino/core/schedule/weekly/schedule_xml.hpp"
-#include "mino/core/schedule/weekly/schedule_types.hpp"
-
-#include "mino/core/string/to_console_encoding.hpp"
+#include "mino/core/string/string.hpp"
+#include "mino/core/schedule/weekly/weekly.hpp"
+#include "mino/core/json/json.hpp"
 
 int main() {
     namespace mcsw = mino::core::schedule::weekly;
@@ -150,6 +146,49 @@ int main() {
     }); // 현재 시스템 시각을 반환하는 now_provider 설정
     print(tce("Current Real-time Active status: "), std::boolalpha, sched.is_active_now());
     // Current Real - time Active status : true(현재 시간이 스케쥴 안에 있는 경우) 또는 false
+
+    {
+        std::cout << std::endl << "-------------------------------"  << std::endl;
+
+        namespace mcsw = mino::core::schedule::weekly;
+        using weekly_ranges = mcsw::weekly_ranges;
+        using weekday = mcsw::weekday;
+
+        // 예제 스케줄 생성
+        weekly_ranges ranges;
+
+        weekly_range r1;
+        r1.start_day = weekday::mon; r1.start_time = {  8, 30 };   
+        r1.end_day   = weekday::fri; r1.end_time   = { 17,  0 };    
+        ranges.push_back(r1);
+        // 월요일 08:30 ~ 금요일 17:00
+
+        weekly_range r2;
+        r2.start_day = weekday::sat; r2.start_time = { 10,  0 };  
+        r2.end_day   = weekday::sat; r2.end_time   = { 12, 30 };
+        ranges.push_back(r2);
+        // 토요일 10:00 ~ 토요일 12:30
+
+        auto origin_dump = mcsw::dump_schedule(ranges); // 스케줄 덤프 출력
+        std::cout << "Original weekly_ranges:\n" << origin_dump << "\n\n";
+
+        // 직렬화 (주단위 일정 -> JSON 문자열)
+        int indent = 4; // 들여쓰기 4칸
+        std::string json_text = mcsw::to_json_string(ranges, indent);
+        std::cout << "Serialized JSON:\n" << json_text << "\n\n";
+
+        // 역직렬화 (JSON 문자열 -> 주단위 일정)
+        std::optional<weekly_ranges> parsed = mcsw::from_json_string(json_text);
+        if (!parsed.has_value()) {
+            std::cerr << "Failed to parse JSON into weekly_ranges\n";
+            return 1;
+        }
+
+        // 파싱된 결과 출력 (사람이 읽기 쉬운 형태)
+        auto parsed_value = parsed.value();
+        auto parsed_dump = mcsw::dump_schedule(parsed_value);
+        std::cout << "Parsed weekly_ranges:\n" << parsed_dump << std::endl;
+    }
 
     print(endl, tce("All tests completed successfully!"));
     return 0;

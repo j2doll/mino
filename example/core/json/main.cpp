@@ -5,13 +5,8 @@
 #include <string>
 #include <cassert>
 
-#include "mino/core/json/value.hpp"
-#include "mino/core/json/value_type.hpp"
-#include "mino/core/json/parser.hpp"
-#include "mino/core/json/serializer.hpp"
-#include "mino/core/json/file_reader.hpp"
-
-#include "mino/core/string/to_console_encoding.hpp"
+#include "mino/core/string/string.hpp"
+#include "mino/core/json/json.hpp"
 
 void test_value_constructors_and_types() {
     namespace mjson = mino::core::json;

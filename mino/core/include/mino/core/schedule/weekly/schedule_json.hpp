@@ -1,22 +1,16 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
-#include "mino/core/schedule/weekly/schedule_types.hpp"
+#include "mino/core/schedule/weekly/weekly.hpp"
 
 namespace mino::core::schedule::weekly {
 
-    /*
+    std::optional<weekday> day_from_string(const std::string& s);
 
-    // weekly_ranges -> JSON 문자열
-    // (구현부에서 nlohmann::json을 사용하여 직렬화)
-     std::string to_json_string(const weekly_ranges& ranges);
+    std::string to_json_string(const weekly_ranges& ranges, int indent = -1);
 
-    // JSON 문자열 -> weekly_ranges
-    // (구현부에서 nlohmann::json을 사용하여 파싱)
-    // 예: from_json_string(R"([ { "start_day":"Mon", "start_h":8, ... } ])")
-     weekly_ranges from_json_string(const std::string& json_text);
-
-     //*/
+    std::optional<weekly_ranges> from_json_string(const std::string& json_text);
 
 }  
