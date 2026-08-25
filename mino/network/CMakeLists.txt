@@ -12,10 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. External dependency configuration
 
-# 3-0. Threads
+# 3-1. Threads
 find_package(Threads REQUIRED)
 
-# 3-1. OpenSSL
+# 3-2. OpenSSL
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
 
@@ -25,11 +25,11 @@ if(TARGET crypto AND TARGET ssl)
     add_library(OpenSSL::SSL ALIAS ssl)
 endif()
 
-# 3-2. CURL
+# 3-3. CURL
 find_package(CURL REQUIRED)
 message(STATUS "CURL version: ${CURL_VERSION}")
 
-# 3-3. brotli (check vcpkg-specific namespace first when vcpkg is used,
+# 3-4. brotli (check vcpkg-specific namespace first when vcpkg is used,
 # otherwise try standard package names quietly)
 set(MINO_BROTLI_AVAILABLE FALSE)
 if(DEFINED VCPKG_ROOT
@@ -58,7 +58,7 @@ else()
     endif()
 endif()
 
-# 3-7. libssh2
+# 3-5. libssh2
 find_package(Libssh2 CONFIG QUIET)
 if(TARGET Libssh2::libssh2)
     message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
@@ -92,7 +92,7 @@ target_include_directories(
 
 # 6. Link external libraries
 
-# 6-0. Threads link settings
+# 6-1. Threads link settings
 # Ensure consumers of the static library also link the threading library.
 # This propagates the necessary pthread linkage to executables that link `mino_network`.
 target_link_libraries(mino_network PUBLIC Threads::Threads)
@@ -105,7 +105,7 @@ if(WIN32)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
-# 6-1. OpenSSL link settings
+# 6-2. OpenSSL link settings
 set(MINO_OPENSSL_LINKS "")
 
 if(TARGET OpenSSL::Crypto AND TARGET OpenSSL::SSL)
@@ -125,7 +125,7 @@ else()
     target_compile_definitions(mino_network PUBLIC USE_OPENSSL=0)
 endif()
 
-# 6-2. CURL link settings
+# 6-3. CURL link settings
 set(MINO_CURL_LINKS "")
 if(TARGET CURL::libcurl)
     set(MINO_CURL_LINKS CURL::libcurl)
@@ -140,7 +140,7 @@ else()
     message(FATAL_ERROR "CURL not found.")
 endif()
 
-# 6-6. libssh2 link settings
+# 6-4. libssh2 link settings
 if(TARGET Libssh2::libssh2)
     target_link_libraries(mino_network PRIVATE Libssh2::libssh2)
 elseif(TARGET PkgConfig::LIBSSH2)
@@ -149,7 +149,7 @@ else()
     message(FATAL_ERROR "libssh2 target not available.")
 endif()
 
-# 6-7. iphlpapi (Windows only))
+# 6-5. iphlpapi (Windows only)
 if(WIN32)
     # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses
     target_link_libraries(mino_network PRIVATE ws2_32 iphlpapi)

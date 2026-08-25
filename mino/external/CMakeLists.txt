@@ -12,10 +12,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. External dependency configuration
 
-# 3-0. Threads
+# 3-1. Threads
 find_package(Threads REQUIRED)
  
-
 # 4. Create a library and configure the source code
 file(
   GLOB_RECURSE SRC_FILES
@@ -48,6 +47,8 @@ target_include_directories(mino_external PUBLIC
 )
 
 # 6. Link the external libraries being used
+
+# 6-1. Threads link settings
 target_link_libraries(mino_external PRIVATE Threads::Threads)
 
 # 7. [Dependency] If external uses core, link it here.

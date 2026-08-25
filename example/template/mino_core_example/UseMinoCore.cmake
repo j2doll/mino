@@ -26,7 +26,8 @@ function(use_mino_core EXE_NAME MINO_DIR)
             message(FATAL_ERROR "mino_core not found. Either add mino as a subdirectory or set -DMINO_DIR=/path/to/mino/install")
         endif()
 
-        # Set for shared memory function
+        # Link threading library for shared memory function
+        # (Set for shared memory function)
         find_package(Threads REQUIRED)
         if(UNIX AND NOT APPLE)
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)

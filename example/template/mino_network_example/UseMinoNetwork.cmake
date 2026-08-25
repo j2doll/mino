@@ -116,7 +116,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
             endif()
         endif()
 
-        # 4-5-8. libssh2
+        # 4-5-5. libssh2
         find_package(Libssh2 CONFIG QUIET)
         if(TARGET Libssh2::libssh2)
             message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
@@ -134,7 +134,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
             message(FATAL_ERROR "libssh2 target not available.")
         endif()
 
-        # 4-5-10. Windows-specific libraries
+        # 4-5-6. Windows-specific libraries
         if(WIN32)
             # Link winsock library (Windows only) and IP helper API for GetAdaptersAddresses
             target_link_libraries(${EXE_NAME} PRIVATE ws2_32 iphlpapi)
