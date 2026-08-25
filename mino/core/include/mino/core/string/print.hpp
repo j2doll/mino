@@ -59,4 +59,15 @@ namespace mino::core::string::print {
         std::cout << '\n';
     }
 
+    template <typename... Args>
+    void eprint(std::string_view fmt, const Args&... args) {
+        format_to(std::cerr, fmt, args...);
+    }
+
+    template <typename... Args>
+    void eprintln(std::string_view fmt, const Args&... args) {
+        format_to(std::cerr, fmt, args...);
+        std::cerr << '\n';
+    }
+
 } 

@@ -38,3 +38,6 @@
 #include "mino/core/uuid/uuid.hpp"           
 #include "mino/core/validation/validation.hpp"     
 #include "mino/core/xml/xml.hpp"
+#include "mino/core/yaml/yaml.hpp"
+
+
