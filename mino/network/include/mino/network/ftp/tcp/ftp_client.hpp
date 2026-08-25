@@ -12,8 +12,8 @@
 #include <condition_variable>
 
 #ifdef USE_OPENSSL
-typedef struct ssl_ctx_st SSL_CTX;
-typedef struct ssl_st SSL;
+    typedef struct ssl_ctx_st SSL_CTX;
+    typedef struct ssl_st SSL;
 #endif
 
 // libssh2 구조체 전방 선언

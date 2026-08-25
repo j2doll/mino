@@ -8,7 +8,9 @@
     #endif
 #endif
 
-#include "mino/network/httplib/httplib.h"
+// A C++ header-only HTTP/HTTPS server and client library
+// https://github.com/yhirose/cpp-httplib
+#include "mino/network/third-party/httplib/httplib.h"
 
 #include "mino/network/rest/httplib/get_client.hpp"
 
