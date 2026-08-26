@@ -19,6 +19,9 @@ void print_progress_bar(int percent) {
     std::cout << "] " << percent << "% " << std::flush;
 }
 
+// NOTICE:
+//  Windows 인 경우 main을 구동하기 전에 실행 프로그램이 있는 경로에 psftp.exe가 있어야 함.
+//  Linux 인 경우 psftp가 필요하며, chmod +x ./psftp 를 설정해야 함.
 int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
@@ -124,7 +127,6 @@ int main(int argc, char* argv[]) {
         idle_timeout
     );
     std::cout << std::endl;
-
     if (down_success) {
         std::cout << ">> Download complete." << std::endl;
     } else {
