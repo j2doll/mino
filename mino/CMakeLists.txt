@@ -53,3 +53,14 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/minoConfigVersion.cmake
     DESTINATION lib/cmake/mino
 )
+
+# 10. Install top-level support files into the package installation root
+#     These are optional: only installed if present in the source tree.
+if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg.json")
+    install(FILES "${CMAKE_SOURCE_DIR}/vcpkg.json" DESTINATION .)
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/CMakeSettings.json")
+    install(FILES "${CMAKE_SOURCE_DIR}/CMakeSettings.json" DESTINATION .)
+endif()
+
