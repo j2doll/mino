@@ -234,10 +234,13 @@ namespace mino::network::sftp::putty {
 
         while (true) {
             std::string chunk = read_output();
-            std::cout << chunk; 
+
+            // std::cout << chunk; // DEBUG
 
             if (!chunk.empty()) {
-                std::cout << chunk; // 실시간 터미널 출력
+
+                // std::cout << chunk; // 실시간 터미널 출력 // DEBUG
+
                 out_response += chunk;
                 last_active_time = std::chrono::steady_clock::now();
 
@@ -273,11 +276,20 @@ namespace mino::network::sftp::putty {
         }
     }
 
-    bool psftp_client::execute(const std::string& cmd, std::string& out_response, int idle_timeout_seconds) {
+    bool psftp_client::execute(
+        const std::string& cmd,
+        std::string& out_response,
+        int idle_timeout_seconds)
+    {
         return execute_with_progress(cmd, out_response, nullptr, idle_timeout_seconds);
     }
 
-    bool psftp_client::execute_with_progress(const std::string& cmd, std::string& out_response, progress_callback_t on_progress, int idle_timeout_seconds) {
+    bool psftp_client::execute_with_progress(
+        const std::string& cmd,
+        std::string& out_response,
+        progress_callback_t on_progress,
+        int idle_timeout_seconds)
+    {
         read_output();
 
         if (!send_command(cmd)) {
@@ -291,7 +303,7 @@ namespace mino::network::sftp::putty {
 
         std::string lower_resp = to_lower(out_response);
 
-        std::cout << lower_resp; // DEBUG
+        // std::cout << lower_resp; // DEBUG
 
         for (const auto& pattern : error_patterns_) {
             if (lower_resp.find(pattern) != std::string::npos) {

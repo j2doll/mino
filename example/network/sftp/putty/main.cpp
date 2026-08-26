@@ -24,21 +24,21 @@ void print_progress_bar(int percent) {
 int main(int argc, char* argv[]) {
     // 1. 실행 파일 디렉터리 기준으로 파일 경로 계산
     fs::path exe_dir = fs::absolute(argv[0]).parent_path();
-    fs::path local_upload_path = exe_dir / "large_file.zip";
+    // fs::path local_upload_path = exe_dir / "large_file.zip";
     fs::path local_download_path = exe_dir / "downloaded_file.zip";
 
     // 2. 테스트용 더미 파일이 없으면 자동 생성 (1MB)
-    if (!fs::exists(local_upload_path)) {
-        std::cout << ">> Generating test file: " << local_upload_path.string() << std::endl;
-        std::ofstream out(local_upload_path, std::ios::binary);
-        std::vector<char> buffer(1024 * 1024, 'A');
-        out.write(buffer.data(), buffer.size());
-        out.close();
-    }
+    // if (!fs::exists(local_upload_path)) {
+    //     std::cout << ">> Generating test file: " << local_upload_path.string() << std::endl;
+    //     std::ofstream out(local_upload_path, std::ios::binary);
+    //     std::vector<char> buffer(1024 * 1024, 'A');
+    //     out.write(buffer.data(), buffer.size());
+    //     out.close();
+    // }
 
     // Windows 역슬래시(\) 문제를 방지하기 위해 generic_string(/) 사용
-    const std::string upload_src = local_upload_path.generic_string();
-    const std::string download_dst = local_download_path.generic_string();
+    // const std::string upload_src = local_upload_path.generic_string();
+    // const std::string download_dst = local_download_path.generic_string();
 
     mino::network::sock mnsock;
     using psftp_client = mino::network::sftp::putty::psftp_client;
@@ -90,11 +90,12 @@ int main(int argc, char* argv[]) {
     }
 
     // 현재 작업 디렉터리 확인
+    std::cout << "------------------------\n";
     client.execute("pwd", response);
-    std::cout << "[PWD] " << response << std::endl;
-
+    std::cout << response << std::endl ;
     client.execute("lpwd", response);
-    std::cout << "[LPWD] " << response << std::endl;
+    std::cout << response << std::endl;
+    std::cout << "------------------------\n";
 
     std::string put_cmd = "put large_file.zip ";
     auto idle_timeout = 15;
@@ -113,10 +114,21 @@ int main(int argc, char* argv[]) {
         std::cerr << ">> Upload failed:\n" << response << std::endl;
     }
 
+    // 현재 작업 디렉터리 확인
+    std::cout << "------------------------\n";
+    client.execute("pwd", response);
+    std::cout << response << std::endl;
+    client.execute("lpwd", response);
+    std::cout << response << std::endl;
+    std::cout << "------------------------\n";
+
+
     // 5. 다운로드 실행 (원격은 파일명, 로컬은 슬래시 기반 절대 경로)
     std::cout << "\n[3] Downloading large_file.zip..." << std::endl;
-    auto remote_file = "large_file.zip";
-    auto resume_download = false;
+
+    std::string remote_file = "large_file.zip";
+    bool resume_download = false;
+    std::string download_dst = local_tmp_dir + "/large_file.zip";
     bool down_success = client.download_file(
         remote_file,
         download_dst,
