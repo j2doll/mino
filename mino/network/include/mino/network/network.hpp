@@ -10,6 +10,8 @@
 #include "mino/network/message_broker/message_broker.hpp"
 #include "mino/network/rest/rest.hpp"
 #include "mino/network/rpc/rpc.hpp"
+#include "mino/network/sftp/sftp.hpp"
 #include "mino/network/tcp/tcp.hpp"
 #include "mino/network/udp/udp.hpp"
 #include "mino/network/util/util.hpp"
+

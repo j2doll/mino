@@ -92,12 +92,18 @@
 #ifdef USE_PTHREAD
     #include <sys/types.h>
     #include <sys/socket.h>
+    #include <sys/wait.h>
+
     #include <arpa/inet.h>
     #include <arpa/inet.h>
+
     #include <netinet/in.h>
     #include <netinet/in.h>
+
     #include <unistd.h>
     #include <netdb.h>
+    #include <fcntl.h>
+    #include <limits.h>
 
     using socket_t = int;
 #endif
