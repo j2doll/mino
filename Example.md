@@ -1,99 +1,107 @@
 # 예제
 
-```
-.\example
-├── core
-│   ├── bit 
-│   ├── broker
-│   ├── config
-│   ├── container
-│   ├── convert
-│   ├── crypt
-│   ├── csv
-│   ├── daemon
-│   ├── datetime
-│   │   ├── unit
-│   │   └── util
-│   ├── encoding
-│   ├── enum
-│   ├── expected
-│   ├── file
-│   ├── hash
-│   ├── ini
-│   ├── json
-│   ├── log
-│   ├── macro
-│   ├── memory
-│   ├── notification
-│   ├── notifications
-│   ├── overload
-│   ├── pfr
-│   ├── process_util
-│   ├── reflect
-│   ├── resilience
-│   ├── result
-│   ├── schedule
-│   │   ├── task
-│   │   └── weekly
-│   ├── server
-│   ├── service
-│   ├── shared_memory
-│   ├── singleton
-│   ├── string
-│   ├── system
-│   ├── thread
-│   ├── tpm
-│   ├── uuid
-│   ├── validation
-│   ├── xml
-│   └── yaml
-├── external
-│   ├── json
-│   ├── log
-│   │   ├── adapter
-│   │   ├── factory
-│   │   └── spd
-│   └── schedule
-│       └── weekly
-├── network
-│   ├── download
-│   │   ├── curl
-│   │   └── httplib
-│   ├── ftp
-│   │   ├── curl
-│   │   └── tcp
-│   ├── interface
-│   ├── log
-│   │   └── manager
-│   ├── memory_store
-│   │   ├── client
-│   │   └── server
-│   ├── message_broker
-│   │   ├── broker
-│   │   ├── pub
-│   │   ├── python
-│   │   │   ├── pub
-│   │   │   └── sub
-│   │   └── sub
-│   ├── rest
-│   │   ├── curl
-│   │   └── httplib
-│   ├── rpc
-│   │   ├── client
-│   │   └── server
-│   ├── sftp
-│   │   └── putty
-│   ├── tcp
-│   │   ├── client
-│   │   └── server
-│   ├── udp
-│   │   ├── receiver
-│   │   └── sender
-│   └── util
-└── template
-    ├── mino_all_example
-    ├── mino_core_example
-    ├── mino_external_example
-    └── mino_network_example
-```
+- 이 파일은 `example` 디렉터리의 구조와 각 하위 폴더가 어떤 역할을 하는지 간단히 설명합니다. 
+- 소스는 사용 예제와 샘플 실행 코드를 포함하며, 각 모듈별로 작동 방식과 테스트/데모를 보여줍니다.
 
+- example/ — 예제 프로젝트 루트
+  - core/ — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
+    - bit — 비트 연산 및 비트맵 처리 예제
+    - broker — 로컬/경량 메시지 브로커 예제
+    - config — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
+    - container — 컨테이너(컬렉션) 유틸리티 예제
+    - convert — 데이터 형 변환 및 직렬화 예제
+    - crypt — 암호화/복호화 예제
+    - csv — CSV 입출력 및 파싱 예제
+    - daemon — 데몬/서비스화 관련 실행 예제
+    - datetime/ — 날짜/시간 유틸리티 예제
+      - unit — 날짜/시간 단위 테스트 및 유틸 예제
+      - util — 날짜/시간 관련 헬퍼 함수 예제
+    - encoding — 문자 인코딩/디코딩 예제
+    - enum — 열거형 사용 예제
+    - expected — 예상 값/검증 관련 예제
+    - file — 파일 입출력 및 파일 관련 유틸 예제
+    - hash — 해시 함수 및 체크섬 예제
+    - ini — INI 파일 파싱 예제 (`sample.ini` 포함)
+    - json — JSON 직렬화/역직렬화 예제
+    - log — 로깅 사용 예제
+    - macro — 매크로 및 템플릿 메타 프로그래밍 예제
+    - memory — 메모리 관리·유틸 예제
+    - notification — 단일 알림 관련 예제
+    - notifications — 복합 알림·구독 예제
+    - overload — 함수/연산자 오버로드 예제
+    - pfr — PFR(플랫 리플렉션) 관련 예제
+    - process_util — 프로세스 유틸리티 예제
+    - reflect — 리플렉션/메타프로그래밍 예제
+    - resilience — 오류 복원력(예: 재시도) 예제
+    - result — 결과 반환/에러 핸들링 관례 예제
+    - schedule/ — 스케줄링 예제
+      - task — 작업 스케줄 예제
+      - weekly — 주단위 스케줄 예제
+    - server — 간단한 서버 예제
+    - service — 서비스 레이어 샘플
+    - shared_memory — 공유 메모리 기반 통신 예제
+    - singleton — 싱글톤 패턴 예제
+    - string — 문자열 처리 유틸 예제
+    - system — 시스템 유틸리티 예제
+    - thread — 스레드/동시성 예제
+    - tpm — TPM(보안 모듈) 관련 예제
+    - uuid — UUID 생성/파싱 예제
+    - validation — 입력/모델 검증 예제
+    - xml — XML 처리 예제
+    - yaml — YAML 파싱/직렬화 예제
+
+  - external/ — 외부 종속 라이브러리(또는 어댑터) 관련 예제
+    - json — 외부 JSON 라이브러리 연동 예제
+    - log/ — 외부 로깅 어댑터/팩토리 예제
+      - adapter — 로그 어댑터 샘플
+      - factory — 로거 팩토리 샘플
+      - spd — spdlog 연동 예제
+    - schedule/ — 외부 스케줄러 연동 예제
+      - weekly — 외부 스케줄러의 주간 예제
+
+  - network/ — 네트워크 관련 예제(클라이언트/서버, 프로토콜 등)
+    - download/ — 다운로드 클라이언트 구현 예제
+      - curl — libcurl 기반 예제
+      - httplib — httplib 기반 예제
+    - ftp/ — FTP 연동 예제
+      - curl — curl 기반 FTP 예제
+      - tcp — TCP 기반 FTP 예제
+    - interface — 네트워크 인터페이스/추상화 예제
+    - log/ — 네트워크 로깅 관련 예제
+      - manager — 로그 전송/관리자 예제
+    - memory_store/ — 네트워크 기반 메모리 저장소 예제
+      - client — 클라이언트 예제
+      - server — 서버 예제
+    - message_broker/ — 메시지 브로커(분산 메시징) 예제
+      - broker — 브로커 구현 예제
+      - pub — 퍼블리셔 예제
+      - python/ — 파이썬 연동 예제
+        - pub — 파이썬 퍼블리셔
+        - sub — 파이썬 구독자
+      - sub — 구독자 예제
+    - rest/ — REST 클라이언트/서버 예제
+      - curl — curl 기반 REST 클라이언트 예제
+      - httplib — httplib 기반 REST 예제
+    - rpc/ — RPC 클라이언트/서버 예제
+      - client — 클라이언트 예제
+      - server — 서버 예제
+    - sftp/ — SFTP 연동 예제
+      - putty — PuTTY/psftp 연동 예제
+    - tcp/ — TCP 소켓 예제
+      - client — TCP 클라이언트 예제
+      - server — TCP 서버 예제
+    - udp/ — UDP 통신 예제
+      - receiver — UDP 수신 예제
+      - sender — UDP 전송 예제
+    - util — 네트워크 유틸리티/헬퍼
+
+  - template/ — 여러 예제 조합/템플릿 프로젝트
+    - mino_all_example — 전체 기능을 조합한 통합 예제
+    - mino_core_example — 코어 기능 중심 예제
+    - mino_external_example — 외부 라이브러리 연동 예제
+    - mino_network_example — 네트워크 기능 중심 예제
+
+### 사용 방법(간단)
+- 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
+- 샘플 설정 파일은 `config` 또는 `ini` 폴더를 확인하세요.
+- 특정 예제를 실행하려면 해당 폴더로 이동해 CMake 빌드 후 실행하면 됩니다.
