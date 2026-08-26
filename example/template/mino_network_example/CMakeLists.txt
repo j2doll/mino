@@ -52,13 +52,13 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Allow user to specify where the mino install/build is located.
-# If empty and in-tree target named `mino_network` exists, that target will be used.
+# Set MINO_DIR
+#
+# set(MINO_DIR "C:/opt/mino")
+# 
 set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
-
-# set(MINO_DIR "C:/opt/mino")  # Example for Windows
-
-# NOTE: Set the path to the installation path with the following directory structure.
+#
+# NOTE: Set MINO_DIR path with the following directory structure.
 # MINO_DIR
 #   ├── include
 #   │   └── mino

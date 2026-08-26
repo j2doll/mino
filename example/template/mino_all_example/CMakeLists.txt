@@ -52,11 +52,19 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Allow user to specify where the mino install/build is located.
-# If empty and an in-tree target named `mino_core` exists, that target will be used.
-if(NOT DEFINED MINO_DIR)
-    set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
-endif()
+# Set MINO_DIR
+#
+# set(MINO_DIR "C:/opt/mino") # Set custom MINO_DIR path here if needed
+#
+set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+#
+# NOTE: Set MINO_DIR path with the following directory structure.
+# MINO_DIR
+#   ├── include
+#   │   └── mino
+#   └── lib
+#       ├── cmake
+#       └── *.lib (or *.a)
 
 # Gather all .cpp files in the current directory
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
