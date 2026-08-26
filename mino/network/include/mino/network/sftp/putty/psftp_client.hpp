@@ -38,7 +38,7 @@ namespace mino::network::sftp::putty {
             int idle_timeout_seconds = 15);
 
         // 원격 디렉터리 확인 및 계층적 자동 생성
-        bool ensure_remote_directory(const std::string& remote_path, int timeout_sec = 15);
+        bool cd_remote_directory(const std::string& remote_path, int timeout_sec = 15);
 
         // 안전한 다운로드 (실패 시 불완전 파일 정리 및 이어받기 지원)
         bool download_file(const std::string& remote_file,

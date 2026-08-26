@@ -7,8 +7,6 @@
 #include "mino/network/ethernet.hpp"
 #include "mino/network/sftp/sftp.hpp"
 
-namespace fs = std::filesystem;
-
 void print_progress_bar(int percent) {
     int bar_width = 30;
     std::cout << "\r[";
@@ -22,26 +20,12 @@ void print_progress_bar(int percent) {
 }
 
 int main(int argc, char* argv[]) {
-    // 1. 실행 파일 디렉터리 기준으로 파일 경로 계산
-    fs::path exe_dir = fs::absolute(argv[0]).parent_path();
-    // fs::path local_upload_path = exe_dir / "large_file.zip";
-    fs::path local_download_path = exe_dir / "downloaded_file.zip";
-
-    // 2. 테스트용 더미 파일이 없으면 자동 생성 (1MB)
-    // if (!fs::exists(local_upload_path)) {
-    //     std::cout << ">> Generating test file: " << local_upload_path.string() << std::endl;
-    //     std::ofstream out(local_upload_path, std::ios::binary);
-    //     std::vector<char> buffer(1024 * 1024, 'A');
-    //     out.write(buffer.data(), buffer.size());
-    //     out.close();
-    // }
-
-    // Windows 역슬래시(\) 문제를 방지하기 위해 generic_string(/) 사용
-    // const std::string upload_src = local_upload_path.generic_string();
-    // const std::string download_dst = local_download_path.generic_string();
-
     mino::network::sock mnsock;
-    using psftp_client = mino::network::sftp::putty::psftp_client;
+
+    namespace mcs = mino::core::string;
+
+    namespace mnsp = mino::network::sftp::putty;
+    using psftp_client = mnsp::psftp_client;
     psftp_client client;
 
     std::cout << "[1] Connecting to SFTP server..." << std::endl;
@@ -57,9 +41,12 @@ int main(int argc, char* argv[]) {
     // std::string fingerprint = "y6CIn2/HAPNl+OfRXmrmKJvgINcXy5wCampYqfC3Szw"; // 8022
     std::string fingerprint = "QXtzSnrG1m4bXyK9qL1fiPLV6Trgu5gFnjT6PNMEixk"; // 9022
     std::string hostkey_fingerprint = "SHA256:" + fingerprint;
-    // std::string hostkey_fingerprint = "";
 
-    if (!client.connect(sftp_ip, sftp_port, sftp_user, sftp_password_or_key, is_key, hostkey_fingerprint)) {
+    if (!client.connect(
+        sftp_ip, sftp_port, // SFTP 서버 IP와 포트
+        sftp_user, sftp_password_or_key, is_key, // 사용자명과 비밀번호 또는 키 경로(키 사용 시)
+        hostkey_fingerprint)) // 호스트 키 핑거프린트 (배치 모드 연결 시 필요)
+    {
         std::cerr << ">> Connection failed." << std::endl;
         return 1;
     }
@@ -68,37 +55,38 @@ int main(int argc, char* argv[]) {
     std::string response;
 
     // 3. 디렉터리 확인/생성 및 진입 (/hello 로 이동됨)
-    std::string target_dir = "/hello"; // remote dir 
-    std::string local_tmp_dir = "C:/tmp"; // local dir : C:/tmp/large_file.zip 존재
-
-    if (!client.ensure_remote_directory(target_dir)) {
+    std::string remote_dir = "/hello"; // Remote dir 
+    if (!client.cd_remote_directory(remote_dir)) { // 원격 경로로 이동
         std::cerr << ">> Directory setup failed." << std::endl;
         client.disconnect();
         return 1;
     }
-    std::cout << ">> Directory verified & entered: " << target_dir << std::endl;
+    std::cout << ">> Directory verified & entered: " << remote_dir << std::endl;
 
     // 4. 업로드 실행 (로컬 경로는 슬래시 기반 절대 경로, 원격은 파일명만 전달)
-    std::cout << "\n[2] Uploading large_file.zip..." << std::endl;
-
-    // 로컬 작업 디렉터리 변경 (C:/tmp)
-    auto lcd_cmd = "lcd " + local_tmp_dir;
-    if (!client.execute(lcd_cmd, response, 15)) {
+    std::string local_tmp_dir = "C:/tmp"; // Local dir
+    std::string local_file_name = "large_file.zip"; // Local file name
+    std::cout << "\n[2] Uploading " << local_file_name << " ..." << std::endl;
+    auto lcd_cmd = "lcd " + local_tmp_dir; // local cd
+    auto idle_timeout = 15; // idle timeout in seconds
+    if (!client.execute(lcd_cmd, response, idle_timeout)) { // 로컬 작업 디렉터리 변경 (C:/tmp)
         std::cerr << ">> Failed to change local directory:\n" << response << std::endl;
         client.disconnect();
         return 1;
     }
+    // NOTE: 경로에 공란(space)가 있는 경우, \" 로 감싸야 함. 예: lcd "C:/My Documents"
+    // 가능하면 경로에 공란이 없는 경로를 사용하는 것이 좋음.
 
     // 현재 작업 디렉터리 확인
     std::cout << "------------------------\n";
     client.execute("pwd", response);
-    std::cout << response << std::endl ;
+    std::cout << mcs::replace(response, "\n", " ") << std::endl;
     client.execute("lpwd", response);
-    std::cout << response << std::endl;
+    std::cout << mcs::replace(response, "\n", " ") << std::endl;
     std::cout << "------------------------\n";
 
-    std::string put_cmd = "put large_file.zip ";
-    auto idle_timeout = 15;
+    // 업로드 명령 (put)
+    std::string put_cmd = "put " + local_file_name; // "put large_file.zip"
     bool up_success = client.execute_with_progress(
         put_cmd,
         response,
@@ -117,19 +105,18 @@ int main(int argc, char* argv[]) {
     // 현재 작업 디렉터리 확인
     std::cout << "------------------------\n";
     client.execute("pwd", response);
-    std::cout << response << std::endl;
+    std::cout << mcs::replace(response, "\n", " ") << std::endl;
     client.execute("lpwd", response);
-    std::cout << response << std::endl;
+    std::cout << mcs::replace(response, "\n", " ") << std::endl;
     std::cout << "------------------------\n";
 
-
     // 5. 다운로드 실행 (원격은 파일명, 로컬은 슬래시 기반 절대 경로)
-    std::cout << "\n[3] Downloading large_file.zip..." << std::endl;
-
     std::string remote_file = "large_file.zip";
-    bool resume_download = false;
-    std::string download_dst = local_tmp_dir + "/large_file.zip";
-    bool down_success = client.download_file(
+    std::cout << "\n[3] Downloading " << remote_file << " ..." << std::endl;
+
+    bool resume_download = false; // 이어받기 여부 (true: 이어받기, false: 새로 다운로드)
+    std::string download_dst = local_tmp_dir + "/other_download.zip"; // 다운로드 대상 경로 (C:/tmp/other_download.zip)
+    bool down_success = client.download_file( // 다운로드 실행
         remote_file,
         download_dst,
         [](int percent) { print_progress_bar(percent); },
@@ -140,8 +127,7 @@ int main(int argc, char* argv[]) {
 
     if (down_success) {
         std::cout << ">> Download complete." << std::endl;
-    }
-    else {
+    } else {
         std::cerr << ">> Download failed." << std::endl;
     }
 

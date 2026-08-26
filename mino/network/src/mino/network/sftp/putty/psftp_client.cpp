@@ -226,7 +226,11 @@ namespace mino::network::sftp::putty {
         return result;
     }
 
-    bool psftp_client::wait_for_prompt(std::string& out_response, progress_callback_t on_progress, int idle_timeout_seconds) {
+    bool psftp_client::wait_for_prompt(
+        std::string& out_response,
+        progress_callback_t on_progress,
+        int idle_timeout_seconds)
+    {
         out_response.clear();
         auto last_active_time = std::chrono::steady_clock::now();
         std::regex percent_regex(R"((\d{1,3})%)");
@@ -235,11 +239,11 @@ namespace mino::network::sftp::putty {
         while (true) {
             std::string chunk = read_output();
 
-            // std::cout << chunk; // DEBUG
+             // std::cout << chunk; // DEBUG
 
             if (!chunk.empty()) {
 
-                // std::cout << chunk; // 실시간 터미널 출력 // DEBUG
+                 // std::cout << chunk; // 실시간 터미널 출력 // DEBUG
 
                 out_response += chunk;
                 last_active_time = std::chrono::steady_clock::now();
@@ -314,7 +318,7 @@ namespace mino::network::sftp::putty {
         return true;
     }
 
-    bool psftp_client::ensure_remote_directory(const std::string& remote_path, int timeout_sec) {
+    bool psftp_client::cd_remote_directory(const std::string& remote_path, int timeout_sec) {
         std::string response;
 
         auto mk_dir_string = "mkdir " + remote_path;
