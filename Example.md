@@ -86,7 +86,7 @@
       - [client](example/network/rpc/client/main.cpp) — 클라이언트 예제
       - [server](example/network/rpc/server/main.cpp) — 서버 예제
     - `sftp` — SFTP 연동 예제
-      - [putty](example/network/sftp/putty/main.cpp) — PuTTY/psftp 연동 예제
+      - [putty](example/network/sftp/putty/main.cpp) — psftp 연동 예제
     - `tcp` — TCP 소켓 예제
       - [client](example/network/tcp/client/main.cpp) — TCP 클라이언트 예제
       - [server](example/network/tcp/server/main.cpp) — TCP 서버 예제
