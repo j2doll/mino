@@ -1,5 +1,7 @@
 # `mino`
 
+> :kr: This project and the documentation were written in Korean.
+
 - **`mino`** 는 **`C++` `범용 라이브러리`** 로 다양한 기능들을 제공합니다.
    - [**core**](mino/core) — 핵심 기능
    - [**external**](mino/external) — 외부 라이브러리를 사용하는 기능
