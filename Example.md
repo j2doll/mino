@@ -5,7 +5,7 @@
 
 - [example](example) — 예제 프로젝트 루트
   - [core](example/core) — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
-    - [bit](example/core/bit) — 비트 연산 및 비트맵 처리 예제
+    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
     - [broker](example/core/broker) — 로컬/경량 메시지 브로커 예제
     - [config](example/core/config) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
     - [container](example/core/container) — 컨테이너(컬렉션) 유틸리티 예제
