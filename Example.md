@@ -9,7 +9,7 @@
   - `core` — 핵심 라이브러리 예제 모음
     - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
     - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커 예제
-    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
+    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 ([app_config.conf](example/core/config/app_config.conf) 포함)
     - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티 예제
     - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화 예제
     - [crypt](example/core/crypt/main.cpp) — 암호화/복호화 예제
@@ -23,7 +23,7 @@
     - [expected](example/core/expected/main.cpp) — 예상 값/검증 관련 예제
     - [file](example/core/file/main.cpp) — 파일 입출력 및 파일 관련 유틸 예제
     - [hash](example/core/hash/main.cpp) — 해시 함수 및 체크섬 예제
-    - [ini](example/core/ini/main.cpp) — INI 파일 파싱 예제 (`sample.ini` 포함)
+    - [ini](example/core/ini/main.cpp) — INI 파일 파싱 예제 ([sample.ini](example/core/ini/sample.ini) 포함)
     - [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화 예제
     - [log](example/core/log/main.cpp) — 로깅 사용 예제
     - [macro](example/core/macro/main.cpp) — 매크로 및 템플릿 메타 프로그래밍 예제
