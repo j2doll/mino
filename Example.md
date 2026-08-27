@@ -3,8 +3,10 @@
 - 이 파일은 `example` 디렉터리의 구조와 각 하위 폴더가 어떤 역할을 하는지 간단히 설명합니다. 
 - 소스는 사용 예제와 샘플 실행 코드를 포함하며, 각 모듈별로 작동 방식과 테스트/데모를 보여줍니다.
 
-- example — 예제 프로젝트 루트
-  - core — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
+---
+
+- `example` — 예제 프로젝트 루트
+  - `core` — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
     - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
     - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커 예제
     - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
@@ -13,7 +15,7 @@
     - [crypt](example/core/crypt/main.cpp) — 암호화/복호화 예제
     - [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱 예제
     - [daemon](example/core/daemon/main.cpp) — 데몬/서비스화 관련 실행 예제
-    - datetime — 날짜/시간 유틸리티 예제
+    - `datetime` — 날짜/시간 유틸리티 예제
       - [unit](example/core/datetime/unit/main.cpp) — 날짜/시간 단위 테스트 및 유틸 예제
       - [util](example/core/datetime/util/main.cpp) — 날짜/시간 관련 헬퍼 함수 예제
     - [encoding](example/core/encoding/main.cpp) — 문자 인코딩/디코딩 예제
@@ -34,7 +36,7 @@
     - [reflect](example/core/reflect/main.cpp) — 리플렉션/메타프로그래밍 예제
     - [resilience](example/core/resilience/main.cpp) — 오류 복원력(예: 재시도) 예제
     - [result](example/core/result/main.cpp) — 결과 반환/에러 핸들링 관례 예제
-    - schedule — 스케줄링 예제
+    - `schedule` — 스케줄링 예제
       - [task](example/core/schedule/task/main.cpp) — 작업 스케줄 예제
       - [weekly](example/core/schedule/weekly/main.cpp) — 주단위 스케줄 예제
     - [server](example/core/server/main.cpp) — 간단한 서버 예제
@@ -49,50 +51,50 @@
     - [validation](example/core/validation/main.cpp) — 입력/모델 검증 예제
     - [xml](example/core/xml/main.cpp) — XML 처리 예제
     - [yaml](example/core/yaml/main.cpp) — YAML 파싱/직렬화 예제
-  - external — 외부 종속 라이브러리(또는 어댑터) 관련 예제
+  - `external` — 외부 종속 라이브러리(또는 어댑터) 관련 예제
     - [json](example/external/json/main.cpp) — 외부 JSON 라이브러리 연동 예제
-    - log — 외부 로깅 어댑터/팩토리 예제
+    - `log` — 외부 로깅 어댑터/팩토리 예제
       - [adapter](example/external/log/adapter/main.cpp) — 로그 어댑터 샘플
       - [factory](example/external/log/factory/main.cpp) — 로거 팩토리 샘플
       - [spd](example/external/log/spd/main.cpp) — spdlog 연동 예제
-    - schedule — 외부 스케줄러 연동 예제
+    - `schedule` — 외부 스케줄러 연동 예제
       - [weekly](example/external/schedule/weekly/main.cpp) — 외부 스케줄러의 주간 예제
-  - network — 네트워크 관련 예제(클라이언트/서버, 프로토콜 등)
-    - download — 다운로드 클라이언트 구현 예제
+  - `network` — 네트워크 관련 예제(클라이언트/서버, 프로토콜 등)
+    - `download` — 다운로드 클라이언트 구현 예제
       - [curl](example/network/download/curl/main.cpp) — libcurl 기반 예제
       - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 예제
-    - ftp — FTP 연동 예제
+    - `ftp` — FTP 연동 예제
       - [curl](example/network/ftp/curl/main.cpp) — curl 기반 FTP 예제
       - [tcp](example/network/ftp/tcp/main.cpp) — TCP 기반 FTP 예제
     - [interface](example/network/interface/main.cpp) — 네트워크 인터페이스/추상화 예제
-    - log — 네트워크 로깅 관련 예제
+    - `log` — 네트워크 로깅 관련 예제
       - [manager](example/network/log/manager/main.cpp) — 로그 전송/관리자 예제
-    - memory_store — 네트워크 기반 메모리 저장소 예제
+    - `memory_store` — 네트워크 기반 메모리 저장소 예제
       - [client](example/network/memory_store/client/main.cpp) — 클라이언트 예제
       - [server](example/network/memory_store/server/main.cpp) — 서버 예제
-    - message_broker — 메시지 브로커(분산 메시징) 예제
+    - `message_broker` — 메시지 브로커(분산 메시징) 예제
       - [broker](example/network/message_broker/broker/main.cpp) — 브로커 구현 예제
       - [pub](example/network/message_broker/pub/main.cpp) — 퍼블리셔 예제
-      - python — 파이썬 연동 예제
+      - `python` — 파이썬 연동 예제
         - [pub](example/network/message_broker/python/pub/main.cpp) — 파이썬 퍼블리셔
         - [sub](example/network/message_broker/python/sub/main.cpp) — 파이썬 구독자
       - [sub](example/network/message_broker/sub/main.cpp) — 구독자 예제
-    - rest — REST 클라이언트/서버 예제
+    - `rest` — REST 클라이언트/서버 예제
       - [curl](example/network/rest/curl/main.cpp) — curl 기반 REST 클라이언트 예제
       - [httplib](example/network/rest/httplib/main.cpp) — httplib 기반 REST 예제
-    - rpc — RPC 클라이언트/서버 예제
+    - `rpc` — RPC 클라이언트/서버 예제
       - [client](example/network/rpc/client/main.cpp) — 클라이언트 예제
       - [server](example/network/rpc/server/main.cpp) — 서버 예제
-    - sftp — SFTP 연동 예제
+    - `sftp` — SFTP 연동 예제
       - [putty](example/network/sftp/putty/main.cpp) — PuTTY/psftp 연동 예제
-    - tcp — TCP 소켓 예제
+    - `tcp` — TCP 소켓 예제
       - [client](example/network/tcp/client/main.cpp) — TCP 클라이언트 예제
       - [server](example/network/tcp/server/main.cpp) — TCP 서버 예제
-    - udp — UDP 통신 예제
+    - `udp` — UDP 통신 예제
       - [receiver](example/network/udp/receiver/main.cpp) — UDP 수신 예제
       - [sender](example/network/udp/sender/main.cpp) — UDP 전송 예제
     - [util](example/network/util/main.cpp) — 네트워크 유틸리티/헬퍼
-  - template — 여러 예제 조합/템플릿 프로젝트
+  - `template` — 여러 예제 조합/템플릿 프로젝트
     - [mino_all_example](example/template/mino_all_example/main.cpp) — 전체 기능을 조합한 통합 예제
     - [mino_core_example](example/template/mino_core_example/main.cpp) — 코어 기능 중심 예제
     - [mino_external_example](example/template/mino_external_example/main.cpp) — 외부 라이브러리 연동 예제
