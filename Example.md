@@ -100,6 +100,8 @@
     - [mino_external_example](example/template/mino_external_example/main.cpp) — 외부 라이브러리 연동 예제
     - [mino_network_example](example/template/mino_network_example/main.cpp) — 네트워크 기능 중심 예제
 
+---
+
 ### 사용 방법(간단)
 - 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
 - 샘플 설정 파일은 `config` 또는 `ini` 폴더를 확인하세요.
