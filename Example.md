@@ -6,7 +6,7 @@
 ---
 
 - `example` — 예제 프로젝트 루트
-  - `core` — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
+  - `core` — 핵심 라이브러리 예제 모음
     - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
     - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커 예제
     - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
@@ -51,7 +51,7 @@
     - [validation](example/core/validation/main.cpp) — 입력/모델 검증 예제
     - [xml](example/core/xml/main.cpp) — XML 처리 예제
     - [yaml](example/core/yaml/main.cpp) — YAML 파싱/직렬화 예제
-  - `external` — 외부 종속 라이브러리(또는 어댑터) 관련 예제
+  - `external` — 외부 라이브러리를 사용하는 예제 모음
     - [json](example/external/json/main.cpp) — 외부 JSON 라이브러리 연동 예제
     - `log` — 외부 로깅 어댑터/팩토리 예제
       - [adapter](example/external/log/adapter/main.cpp) — 로그 어댑터 샘플
@@ -59,7 +59,7 @@
       - [spd](example/external/log/spd/main.cpp) — spdlog 연동 예제
     - `schedule` — 외부 스케줄러 연동 예제
       - [weekly](example/external/schedule/weekly/main.cpp) — 외부 스케줄러의 주간 예제
-  - `network` — 네트워크 관련 예제(클라이언트/서버, 프로토콜 등)
+  - `network` — 네트워크 관련 예제
     - `download` — 다운로드 클라이언트 구현 예제
       - [curl](example/network/download/curl/main.cpp) — libcurl 기반 예제
       - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 예제
@@ -102,7 +102,7 @@
 
 ---
 
-### 사용 방법(간단)
+### 사용 방법
 - 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
-- 샘플 설정 파일은 `config` 또는 `ini` 폴더를 확인하세요.
+- 샘플 설정 파일은 `config`, `ini` 등의 파일를 확인하세요.
 - 특정 예제를 실행하려면 해당 폴더로 이동해 CMake 빌드 후 실행하면 됩니다.
