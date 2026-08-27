@@ -6,17 +6,17 @@
 - [example](example) — 예제 프로젝트 루트
   - [core](example/core) — 프로젝트의 핵심 유틸리티·라이브러리 예제 모음
     - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
-    - [broker](example/core/broker) — 로컬/경량 메시지 브로커 예제
-    - [config](example/core/config) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
-    - [container](example/core/container) — 컨테이너(컬렉션) 유틸리티 예제
-    - [convert](example/core/convert) — 데이터 형 변환 및 직렬화 예제
-    - [crypt](example/core/crypt) — 암호화/복호화 예제
-    - [csv](example/core/csv) — CSV 입출력 및 파싱 예제
-    - [daemon](example/core/daemon) — 데몬/서비스화 관련 실행 예제
+    - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커 예제
+    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 (`app_config.conf` 포함)
+    - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티 예제
+    - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화 예제
+    - [crypt](example/core/crypt/main.cpp) — 암호화/복호화 예제
+    - [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱 예제
+    - [daemon](example/core/daemon/main.cpp) — 데몬/서비스화 관련 실행 예제
     - [datetime](example/core/datetime) — 날짜/시간 유틸리티 예제
-      - [unit](example/core/datetime/unit) — 날짜/시간 단위 테스트 및 유틸 예제
-      - [util](example/core/datetime/util) — 날짜/시간 관련 헬퍼 함수 예제
-    - [encoding](example/core/encoding) — 문자 인코딩/디코딩 예제
+      - [unit](example/core/datetime/unit/main.cpp) — 날짜/시간 단위 테스트 및 유틸 예제
+      - [util](example/core/datetime/util/main.cpp) — 날짜/시간 관련 헬퍼 함수 예제
+    - [encoding](example/core/encoding/main.cpp) — 문자 인코딩/디코딩 예제
     - [enum](example/core/enum) — 열거형 사용 예제
     - [expected](example/core/expected) — 예상 값/검증 관련 예제
     - [file](example/core/file) — 파일 입출력 및 파일 관련 유틸 예제
