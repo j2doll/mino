@@ -248,7 +248,7 @@ cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
-:: cmake 설정 (Windows) (vcpkg 미사용)
+:: cmake 설정 (Windows) (vcpkg 미사용) (Release)
 cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 3.24)
 # TODO: Set MINO_DIR
 
 # (1-1) Set MINO_DIR path to the installed or built mino root directory (contains include/ and lib/)
-# set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
 
 # (1-2) Or, Set custom MINO_DIR path here if needed
-set(MINO_DIR "C:/opt/mino") 
+# set(MINO_DIR "C:/opt/mino") 
 
 # NOTE: Set MINO_DIR path with the following directory structure.
 # MINO_DIR
