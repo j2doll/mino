@@ -30,7 +30,7 @@ if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(mino_core PRIVATE -Wno-free-nonheap-object)
+    target_compile_options(mino_core INTERFACE -Wno-free-nonheap-object)
 endif()
 
 # Ensure consumers of the static library also link the threading library.
