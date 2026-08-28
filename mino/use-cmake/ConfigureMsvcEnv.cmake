@@ -8,16 +8,13 @@ include_guard(GLOBAL)
 # Usage   : configure_vcpkg_manifest(<target_dir>)
 # -----------------------------------------------------------------------------
 function(configure_vcpkg_manifest target_dir)
-    if(NOT MSVC)
-        return()
-    endif()
-
     # Skip custom configuration if vcpkg.json already exists in the project root directory
     if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg.json")
         message(STATUS "[vcpkg] Found vcpkg.json in root directory (${CMAKE_SOURCE_DIR}). Skipping custom manifest configuration.")
         return()
     endif()
 
+    # Skip custom configuration if not using MSVC
     if(NOT target_dir)
         message(WARNING "[vcpkg] Target directory is not specified.")
         return()
@@ -34,15 +31,18 @@ endfunction()
 # Usage   : load_cmake_settings_json(<settings_dir> [project_root_dir])
 # -----------------------------------------------------------------------------
 function(load_cmake_settings_json settings_dir)
+    # CMakeSettings.json is primarily used for MSVC environments; skip on non-MSVC platforms.
     if(NOT MSVC)
-        return()
+        return() 
     endif()
 
+    # Skip custom configuration if CMakeSettings.json already exists in the project root directory
     if(EXISTS "${CMAKE_SOURCE_DIR}/CMakeSettings.json")
         message(STATUS "[CMakeSettings] Found CMakeSettings.json in root directory (${CMAKE_SOURCE_DIR}). Skipping custom manifest configuration.")
         return()
     endif()
 
+    # Set the path to CMakeSettings.json in the specified settings_dir
     set(settings_file "${settings_dir}/CMakeSettings.json")
 
     # Optional 2nd argument: custom project root directory for ${projectDir} expansion
