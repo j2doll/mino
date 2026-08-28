@@ -9,9 +9,9 @@
 - 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공을 목표로 합니다.
 
 ### 아키텍처 요약
-- [**core**](mino/core) — 기본 유틸리티와 공통 기능 구현.
-- [**external**](mino/external) — 외부 통합용 어댑터 및 서드파티 연동 코드.
-- [**network**](mino/network) — 네트워크 계층과 프로토콜 관련 구현.
+- [**core**](mino/core/include/mino/core) — 기본 유틸리티와 공통 기능 구현.
+- [**external**](mino/external/include/mino/external) — 외부 통합용 어댑터 및 서드파티 연동 코드.
+- [**network**](mino/network/include/mino/network) — 네트워크 계층과 프로토콜 관련 구현.
 
 <br />
 
@@ -22,7 +22,7 @@
 - 이 파일은 `example` 디렉터리의 구조와 각 하위 폴더가 어떤 역할을 하는지 간단히 설명합니다. 
 - 소스는 사용 예제와 샘플 실행 코드를 포함하며, 각 모듈별로 작동 방식과 테스트/데모를 보여줍니다.
 
----
+<br />
 
 - `example` — 예제 프로젝트 루트
   - `core` — 핵심 라이브러리 예제 모음
@@ -120,7 +120,7 @@
     - [mino_external_example](example/template/mino_external_example/main.cpp) — 외부 라이브러리 연동 예제
     - [mino_network_example](example/template/mino_network_example/main.cpp) — 네트워크 기능 중심 예제
 
----
+<br />
 
 ### 예제 사용 방법
 - 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
