@@ -29,7 +29,7 @@ if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(mino_external INTERFACE -Wno-free-nonheap-object)
+    target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
 endif()
 
 # 5. Specify the header file path
