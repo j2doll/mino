@@ -37,7 +37,10 @@ namespace mino::external::log::adapter {
 #endif
             }
             else {
-                msg = fmt::format(std::forward<Fmt>(fmt_arg), std::forward<Args>(args)...);
+                // 수정 전:
+                // msg = fmt::format(std::forward<Fmt>(fmt_arg), std::forward<Args>(args)...);
+                // 수정 후:
+                msg = fmt::format(fmt::runtime(std::forward<Fmt>(fmt_arg)), std::forward<Args>(args)...);
             }
 
             std::lock_guard<std::mutex> lk(mutex_);

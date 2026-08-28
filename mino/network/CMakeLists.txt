@@ -83,6 +83,7 @@ if(MSVC)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_network PUBLIC -Wno-free-nonheap-object)
+    target_compile_options(mino_network PUBLIC -Wno-deprecated-literal-operator)
 endif()
 
 # 5. Specify the header file path
