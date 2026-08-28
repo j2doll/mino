@@ -8,11 +8,6 @@ if (MSVC)
     set(VCPKG_MANIFEST_MODE ON CACHE BOOL "Enable vcpkg manifest mode" FORCE)
 endif()
 # ============================================================================
-
-project(mino_network_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "mino_network_example")
-
-# ============================================================================
 # If CMakeSettings.json is not configured in Visual C++
 if (MSVC)
   set(SETTINGS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../CMakeSettings.json")
@@ -47,6 +42,9 @@ if (MSVC)
 endif()
 # ============================================================================ 
 
+project(mino_network_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "mino_network_example")
+
 # Set C++ standard to C++17 if not already defined
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
@@ -54,7 +52,7 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set MINO_DIR
+# TODO: Set MINO_DIR
 #
 # set(MINO_DIR "C:/opt/mino")
 # 

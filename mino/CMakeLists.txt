@@ -17,9 +17,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # 4. Add subdirectories
-add_subdirectory(core) # 1st 
-add_subdirectory(network) # 2nd
-add_subdirectory(external) # 3rd
+add_subdirectory(core)  
+add_subdirectory(network) 
+add_subdirectory(external) 
 
 # 5. Export package and generate CMake configuration files
 include(CMakePackageConfigHelpers)
@@ -54,7 +54,16 @@ install(
     DESTINATION lib/cmake/mino
 )
 
-# 10. Install top-level support files into the package installation root
+# 10. Copy cmake directory to the installation directory
+if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake")
+    install(
+        DIRECTORY "${CMAKE_SOURCE_DIR}/mino/cmake"
+        DESTINATION lib/cmake/mino
+        FILES_MATCHING PATTERN "*.cmake"
+    )
+endif()
+
+# 11. Install top-level support files into the package installation root
 #     These are optional: only installed if present in the source tree.
 if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg.json")
     install(FILES "${CMAKE_SOURCE_DIR}/vcpkg.json" DESTINATION .)
@@ -63,4 +72,5 @@ endif()
 if(EXISTS "${CMAKE_SOURCE_DIR}/CMakeSettings.json")
     install(FILES "${CMAKE_SOURCE_DIR}/CMakeSettings.json" DESTINATION .)
 endif()
+
 

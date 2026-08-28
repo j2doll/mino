@@ -327,6 +327,15 @@ mino
 
 ### 라이선스
 - MIT License
-- 상세 내용은 [LICENSE](LICENSE) 참고
+   - 상세 내용은 [LICENSE](LICENSE) 참고
 
+#### 외부 라이브러리
+##### 소스 포함 
+- [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
+- [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
 
+##### 외부 사용
+- [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
+- [libssh2](https://www.libssh2.org/) : BSD-3 License
+- [openssl](https://www.openssl.org/) : Apache License 2.0
+- [brotli](https://github.com/google/brotli) : MIT License

@@ -4,19 +4,14 @@ cmake_minimum_required(VERSION 3.24)
 # If vcpkg.json is not configured in Visual C++
 if (MSVC)
     set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../.." CACHE PATH "Path to vcpkg manifest directory" FORCE)
-    # set(VCPKG_MANIFEST_DIR "C:/opt/mino/vcpkg.json")
+    # set(VCPKG_MANIFEST_DIR "C:/opt/mino/vcpkg.json") # You can set a custom path if needed
     set(VCPKG_MANIFEST_MODE ON CACHE BOOL "Enable vcpkg manifest mode" FORCE)
 endif()
-# ============================================================================
-
-project(mino_all_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "mino_all_example")
-
 # ============================================================================
 # If CMakeSettings.json is not configured in Visual C++
 if (MSVC)
   set(SETTINGS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../CMakeSettings.json")
-  # set(SETTINGS_PATH "C:/opt/mino/CMakeSettings.json")
+  # set(SETTINGS_PATH "C:/opt/mino/CMakeSettings.json") # You can set a custom path if needed
   if(EXISTS "${SETTINGS_PATH}")
       file(READ "${SETTINGS_PATH}" JSON_CONTENT)
 
@@ -47,6 +42,10 @@ if (MSVC)
 endif()
 # ============================================================================
 
+project(mino_all_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "mino_all_example")
+
+
 # Set C++ standard to C++17 if not already defined
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
@@ -54,11 +53,11 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set MINO_DIR
+# TODO: Set MINO_DIR
 #
 # set(MINO_DIR "C:/opt/mino") # Set custom MINO_DIR path here if needed
 #
-set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
+# set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino" CACHE PATH "Path to installed or built mino root (contains include/ and lib/)")
 #
 # NOTE: Set MINO_DIR path with the following directory structure.
 # MINO_DIR
