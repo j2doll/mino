@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 # ============================================================================
-# vcpkg.json 
+# If vcpkg.json is not configured in Visual C++
 if (MSVC)
     set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../.." CACHE PATH "Path to vcpkg manifest directory" FORCE)
     # set(VCPKG_MANIFEST_DIR "C:/opt/mino/vcpkg.json")
@@ -13,7 +13,7 @@ project(mino_external_example_project VERSION 0.1 LANGUAGES CXX)
 set(EXE_NAME "mino_external_example")
 
 # ============================================================================
-# CMakeSettings.json
+# If CMakeSettings.json is not configured in Visual C++
 if (MSVC)
   set(SETTINGS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../CMakeSettings.json")
   # set(SETTINGS_PATH "C:/opt/mino/CMakeSettings.json")
