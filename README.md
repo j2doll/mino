@@ -13,17 +13,10 @@
 - [**external**](mino/external/include/mino/external) — 외부 통합용 어댑터 및 서드파티 연동 코드.
 - [**network**](mino/network/include/mino/network) — 네트워크 계층과 프로토콜 관련 구현.
 
-<br />
-
----
-
-## 예제 
+### 예제 
 
 - 이 파일은 `example` 디렉터리의 구조와 각 하위 폴더가 어떤 역할을 하는지 간단히 설명합니다. 
 - 소스는 사용 예제와 샘플 실행 코드를 포함하며, 각 모듈별로 작동 방식과 테스트/데모를 보여줍니다.
-
-<br />
-
 - `example` — 예제 프로젝트 루트
   - `core` — 핵심 라이브러리 예제 모음
     - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
@@ -122,7 +115,7 @@
 
 <br />
 
-### 예제 사용 방법
+#### 예제 사용 방법
 - 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
 - 샘플 설정 파일은 `config`, `ini` 등의 파일를 확인하세요.
 - 특정 예제를 실행하려면 해당 폴더로 이동해 CMake 빌드 후 실행하면 됩니다.
@@ -320,6 +313,8 @@ mino
     │       └── minoTargets.cmake
     └── libmino_core.a
 ```
+
+<br />
 
 ---
 
