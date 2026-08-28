@@ -28,6 +28,9 @@ add_library(mino_external STATIC ${SRC_FILES})
 if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    add_compile_options(-Wno-free-nonheap-object)
+endif()
 
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
