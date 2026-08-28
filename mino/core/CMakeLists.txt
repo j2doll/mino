@@ -11,6 +11,11 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# 2-1. GCC compiler warning suppression for std::variant false positive
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-free-nonheap-object)
+endif()
+
 # 3. External dependency configuration
 
 # 3-0. Threads
@@ -28,9 +33,6 @@ file(
 add_library(mino_core STATIC ${SRC_FILES})
 if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
-endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    add_compile_options(-Wno-free-nonheap-object)
 endif()
 
 # Ensure consumers of the static library also link the threading library.

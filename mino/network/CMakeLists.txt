@@ -10,6 +10,11 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# 2-1. GCC compiler warning suppression for std::variant false positive
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-free-nonheap-object)
+endif()
+
 # 3. External dependency configuration
 
 # 3-1. Threads
@@ -80,9 +85,7 @@ add_library(mino_network STATIC ${SRC_FILES})
 if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    add_compile_options(-Wno-free-nonheap-object)
-endif()
+
 
 # 5. Specify the header file path
 target_include_directories(
