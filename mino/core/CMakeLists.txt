@@ -29,6 +29,9 @@ add_library(mino_core STATIC ${SRC_FILES})
 if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    add_compile_options(-Wno-free-nonheap-object)
+endif()
 
 # Ensure consumers of the static library also link the threading library.
 # This propagates the necessary pthread linkage to executables that link `mino_core`.

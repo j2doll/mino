@@ -269,7 +269,7 @@ rm -rf build
 
 #############################################
 # cmake 설정 (Linux)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="/home/jaytwo/workspace/mino"
+cmake -B build -S . -G "Ninja" -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="~/mino"
 # -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능
 
 #############################################
@@ -279,10 +279,6 @@ cmake --build build -j
 #############################################
 # 빌드 (코어 갯수 한정. $(nproc) 대신 숫자로 정의)
 cmake --build build -j "$(nproc)"
-
-#############################################
-# Linux 전용 빌드 (빌드만 빠르게 진행)
-rm -rf build; cmake -S . -B build -G "Ninja" -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug; cmake --build build -j "$(nproc)"
 
 #############################################
 # 설치
