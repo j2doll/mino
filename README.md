@@ -290,10 +290,7 @@ mino
 └── lib
     ├── cmake
     │   └── mino
-    │       ├── minoConfig.cmake
-    │       ├── minoConfigVersion.cmake
-    │       ├── minoTargets-release.cmake
-    │       └── minoTargets.cmake
+    │       └── *.cmake
     └── mino_core.lib
 ```
 
@@ -307,10 +304,7 @@ mino
 └── lib
     ├── cmake
     │   └── mino
-    │       ├── minoConfig.cmake
-    │       ├── minoConfigVersion.cmake
-    │       ├── minoTargets-release.cmake
-    │       └── minoTargets.cmake
+    │       └── *.cmake
     └── libmino_core.a
 ```
 
