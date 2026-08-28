@@ -55,10 +55,10 @@ install(
 )
 
 # 10. Copy cmake directory to the installation directory
-if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake")
+if(EXISTS "${CMAKE_SOURCE_DIR}/mino/use-cmake")
     install(
-        DIRECTORY "${CMAKE_SOURCE_DIR}/mino/cmake"
-        DESTINATION lib/cmake/mino
+        DIRECTORY "${CMAKE_SOURCE_DIR}/mino/use-cmake"
+        DESTINATION .
         FILES_MATCHING PATTERN "*.cmake"
     )
 endif()

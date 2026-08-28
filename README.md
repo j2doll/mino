@@ -233,6 +233,7 @@ sudo apt install -y libbrotli-dev
 ###### (1) `Visual Studio` + `vcpkg` 환경
 
 ```bat
+::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 기존 작업 경로 삭제 (Windows)
 rmdir /s /q build
 
@@ -262,6 +263,7 @@ cmake --install build
 ###### (2) `Linux` 환경
  
 ```bash
+#############################################
 # 작업 경로 삭제 (Linux)
 rm -rf build
 
