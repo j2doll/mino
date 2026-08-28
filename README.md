@@ -326,6 +326,7 @@ mino
 ---
 
 ### 라이선스
-- [LICENSE](LICENSE) 파일 참고.
+- MIT License
+- 상세 내용은 [LICENSE](LICENSE) 참고
 
 
