@@ -34,6 +34,12 @@
         - **수명 주기 관리**: 특정 인스턴스 해제(`unregister_instance`), 전체 초기화(`clear`), 스코프 기반 자동 등록/해제를 지원하는 RAII 가드(`registration_guard`)를 제공합니다.
         - **멀티스레드 안정성**: 다중 스레드 환경에서 동시 등록, 읽기, 삭제 시 레이스 컨디션 없이 안전하게 동작함을 검증합니다.
     - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
+        - 설정 파일(`app_config.conf`) 로딩, 주석/데이터 라인 파싱, `std::optional` 기반의 타입별(String, Int, Bool, Double) 설정값 조회 예제
+        - **싱글톤 인스턴스 관리**: `config_manager::get_instance()`를 통해 전역 설정 관리자 객체를 가져옵니다.
+        - **파일 로딩**: `set_config_file()`로 대상 파일 경로(`app_config.conf`)를 지정하고 `load()`로 파일을 파싱합니다.
+        - **전체 내용 순회 (`get_all`)**: 파싱된 데이터(`is_data == true`, `key=value`)와 주석/빈 줄 등 원본 텍스트(`raw_text`)를 구분하여 파일의 전체 구조를 출력합니다.
+        - **타입별 안전한 값 조회**: `get_string()`, `get_int()`, `get_bool()`, `get_double()` 등의 메서드로 특정 키의 값을 `std::optional` 형태로 안전하게 조회합니다.
+        - **인코딩 처리**: `to_console_encoding` 유틸리티를 적용해 콘솔 출력 시 문자 인코딩 깨짐을 방지합니다.
     - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티
     - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화
     - [crypt](example/core/crypt/main.cpp) — 암호화/복호화
