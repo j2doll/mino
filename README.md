@@ -141,10 +141,11 @@
 - [util](example/network/util/main.cpp)
     - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.  
 ##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
-- [mino_all_example](example/template/mino_all_example) : 통합 예제 템플릿.  
-- [mino_core_example](example/template/mino_core_example) : 코어 기능 예제 템플릿.  
-- [mino_external_example](example/template/mino_external_example) : 외부 기능 예제 템플릿.
-- [mino_network_example](example/template/mino_network_example) : 네트워크 기능 예제 템플릿.
+- [mino_all_example](example/template/mino_all_example/CMakeLists.txt
+) : 통합 예제 템플릿.  
+- [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 기능 예제 템플릿.  
+- [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : 외부 기능 예제 템플릿.
+- [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : 네트워크 기능 예제 템플릿.
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
