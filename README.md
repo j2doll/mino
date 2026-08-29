@@ -1,6 +1,6 @@
 # `mino` 
 
-> :kr: This project and the documentation were written in Korean.
+> :kr: **This project and the documentation were written in Korean.**
 
 ## 개요
 
