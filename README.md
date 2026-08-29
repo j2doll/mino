@@ -17,8 +17,8 @@
    - 네트워크 기능 모듈.
 
 ### 예제 
-#### `example` <sub> 예제 루트 경로 </sub>
-##### ⚙️ `core` <sub> 코어 라이브러리 예제 </sub>
+#### [example](example/) <sub> 예제 루트 경로 </sub>
+##### ⚙️ [core](example/core) <sub> 코어 라이브러리 예제 </sub>
 - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리  
     - 초기화 및 크기 관리, 비트 조작, 슬라이싱 & 병합, 연산자 오버로딩
     - 변환·디버깅: 변환, 비트 순서 역전, 출력 포맷 예시.
