@@ -9,84 +9,84 @@
 - 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공을 목표로 합니다.
 
 ### 아키텍처 요약
-- [**core**](mino/core/include/mino/core) — 기본 유틸리티와 공통 기능 구현.
-- [**external**](mino/external/include/mino/external) — 외부 통합용 어댑터 및 서드파티 연동 코드.
-- [**network**](mino/network/include/mino/network) — 네트워크 계층과 프로토콜 관련 구현.
+- [**core**](mino/core/include/mino/core)
+   — 코어 기능. 외부 종속성이 없는 모듈.
+- [**external**](mino/external/include/mino/external)
+   - 외부 라이브러리 종속성이 있는 모듈.
+- [**network**](mino/network/include/mino/network)
+   - 네트워크 기능 모듈.
 
 ### 예제 
-
-- 이 파일은 `example` 디렉터리의 구조와 각 하위 폴더가 어떤 역할을 하는지 간단히 설명합니다. 
-- 소스는 사용 예제와 샘플 실행 코드를 포함하며, 각 모듈별로 작동 방식과 테스트/데모를 보여줍니다.
-- `example` — 예제 프로젝트 루트
-  - `core` — 핵심 라이브러리 예제 모음
-    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 예제
-    - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커 예제
-    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 예제 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
-    - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티 예제
-    - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화 예제
-    - [crypt](example/core/crypt/main.cpp) — 암호화/복호화 예제
-    - [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱 예제
-    - [daemon](example/core/daemon/main.cpp) — 데몬/서비스화 관련 실행 예제
+- `example` — 예제 루트 경로
+  - `core` — 코어 라이브러리 예제 
+    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 
+    - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커
+    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
+    - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티
+    - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화
+    - [crypt](example/core/crypt/main.cpp) — 암호화/복호화
+    - [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱 
+    - [daemon](example/core/daemon/main.cpp) — 데몬/서비스화 관련 실행
     - `datetime` — 날짜/시간 유틸리티 예제
-      - [unit](example/core/datetime/unit/main.cpp) — 날짜/시간 단위 테스트 및 유틸 예제
-      - [util](example/core/datetime/util/main.cpp) — 날짜/시간 관련 헬퍼 함수 예제
-    - [encoding](example/core/encoding/main.cpp) — 문자 인코딩/디코딩 예제
-    - [enum](example/core/enum/main.cpp) — 열거형 사용 예제
-    - [expected](example/core/expected/main.cpp) — 예상 값/검증 관련 예제
-    - [file](example/core/file/main.cpp) — 파일 입출력 및 파일 관련 유틸 예제
-    - [hash](example/core/hash/main.cpp) — 해시 함수 및 체크섬 예제
-    - [ini](example/core/ini/main.cpp) — INI 파일 파싱 예제 ([sample.ini](example/core/ini/sample.ini) 환경 정보)
-    - [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화 예제
-    - [log](example/core/log/main.cpp) — 로깅 사용 예제
-    - [macro](example/core/macro/main.cpp) — 매크로 및 템플릿 메타 프로그래밍 예제
-    - [memory](example/core/memory/main.cpp) — 메모리 관리·유틸 예제
-    - [notification](example/core/notification/main.cpp) — 단일 알림 관련 예제
-    - [notifications](example/core/notifications/main.cpp) — 복합 알림·구독 예제
-    - [overload](example/core/overload/main.cpp) — 함수/연산자 오버로드 예제
-    - [pfr](example/core/pfr/main.cpp) — PFR(플랫 리플렉션) 관련 예제
-    - [process_util](example/core/process_util/main.cpp) — 프로세스 유틸리티 예제
-    - [reflect](example/core/reflect/main.cpp) — 리플렉션/메타프로그래밍 예제
-    - [resilience](example/core/resilience/main.cpp) — 오류 복원력(예: 재시도) 예제
-    - [result](example/core/result/main.cpp) — 결과 반환/에러 핸들링 관례 예제
+      - [unit](example/core/datetime/unit/main.cpp) — 날짜/시간 단위 테스트 및 유틸
+      - [util](example/core/datetime/util/main.cpp) — 날짜/시간 관련 헬퍼 함수
+    - [encoding](example/core/encoding/main.cpp) — 문자 인코딩/디코딩
+    - [enum](example/core/enum/main.cpp) — 열거형 사용
+    - [expected](example/core/expected/main.cpp) — 예상 값/검증 관련
+    - [file](example/core/file/main.cpp) — 파일 입출력 및 파일 관련 유틸
+    - [hash](example/core/hash/main.cpp) — 해시 함수 및 체크섬
+    - [ini](example/core/ini/main.cpp) — INI 파일 파싱 ([sample.ini](example/core/ini/sample.ini) 환경 정보)
+    - [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화
+    - [log](example/core/log/main.cpp) — 로깅 사용
+    - [macro](example/core/macro/main.cpp) — 매크로 및 템플릿 메타 프로그래밍
+    - [memory](example/core/memory/main.cpp) — 메모리 관리·유틸
+    - [notification](example/core/notification/main.cpp) — 단일 알림 관련
+    - [notifications](example/core/notifications/main.cpp) — 복합 알림·구독
+    - [overload](example/core/overload/main.cpp) — 함수/연산자 오버로드
+    - [pfr](example/core/pfr/main.cpp) — PFR(플랫 리플렉션) 관련
+    - [process_util](example/core/process_util/main.cpp) — 프로세스 유틸리티
+    - [reflect](example/core/reflect/main.cpp) — 리플렉션/메타프로그래밍
+    - [resilience](example/core/resilience/main.cpp) — 오류 복원력(예: 재시도)
+    - [result](example/core/result/main.cpp) — 결과 반환/에러 핸들링 관례
     - `schedule` — 스케줄링 예제
-      - [task](example/core/schedule/task/main.cpp) — 작업 스케줄 예제
-      - [weekly](example/core/schedule/weekly/main.cpp) — 주단위 스케줄 예제
-    - [server](example/core/server/main.cpp) — 간단한 서버 예제
+      - [task](example/core/schedule/task/main.cpp) — 작업 스케줄
+      - [weekly](example/core/schedule/weekly/main.cpp) — 주단위 스케줄
+    - [server](example/core/server/main.cpp) — 간단한 서버
     - [service](example/core/service/main.cpp) — 서비스 레이어 샘플
-    - [shared_memory](example/core/shared_memory/main.cpp) — 공유 메모리 기반 통신 예제
-    - [singleton](example/core/singleton/main.cpp) — 싱글톤 패턴 예제
-    - [string](example/core/string/main.cpp) — 문자열 처리 유틸 예제
-    - [system](example/core/system/main.cpp) — 시스템 유틸리티 예제
-    - [thread](example/core/thread/main.cpp) — 스레드/동시성 예제
-    - [tpm](example/core/tpm/main.cpp) — TPM(보안 모듈) 관련 예제
-    - [uuid](example/core/uuid/main.cpp) — UUID 생성/파싱 예제
-    - [validation](example/core/validation/main.cpp) — 입력/모델 검증 예제
-    - [xml](example/core/xml/main.cpp) — XML 처리 예제
-    - [yaml](example/core/yaml/main.cpp) — YAML 파싱/직렬화 예제
-  - `external` — 외부 라이브러리를 사용하는 예제 모음
-    - [json](example/external/json/main.cpp) — nlohmann json 확장 연동 예제
-    - `log` — 외부 로깅 어댑터/팩토리 예제
+    - [shared_memory](example/core/shared_memory/main.cpp) — 공유 메모리 기반 통신
+    - [singleton](example/core/singleton/main.cpp) — 싱글톤 패턴
+    - [string](example/core/string/main.cpp) — 문자열 처리 유틸
+    - [system](example/core/system/main.cpp) — 시스템 유틸리티
+    - [thread](example/core/thread/main.cpp) — 스레드/동시성
+    - [tpm](example/core/tpm/main.cpp) — TPM(보안 모듈) 관련
+    - [uuid](example/core/uuid/main.cpp) — UUID 생성/파싱
+    - [validation](example/core/validation/main.cpp) — 입력/모델 검증
+    - [xml](example/core/xml/main.cpp) — XML 처리
+    - [yaml](example/core/yaml/main.cpp) — YAML 파싱/직렬화
+  - `external` — 외부 라이브러리 사용
+    - [json](example/external/json/main.cpp) — 놀먼 json 확장 연동
+    - `log` — 외부 로깅 어댑터/팩토리 
       - [adapter](example/external/log/adapter/main.cpp) — 로그 어댑터 샘플
-      - [factory](example/external/log/factory/main.cpp) — 동적 로깅 설정 변경 예제
+      - [factory](example/external/log/factory/main.cpp) — 동적 로깅 설정 변경 
       - [spd](example/external/log/spd/main.cpp) — spdlog 확장 연동
     - `schedule` — 외부 스케줄러 연동 예제
       - [weekly](example/external/schedule/weekly/main.cpp) — 주간 스케줄러의 놀먼 json 확장
-  - `network` — 네트워크 관련 예제
-    - `download` — 다운로드 클라이언트 구현 예제
-      - [curl](example/network/download/curl/main.cpp) — libcurl 기반 예제
-      - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 예제
+  - `network` — 네트워크 관련
+    - `download` — 다운로드 클라이언트 구현 
+      - [curl](example/network/download/curl/main.cpp) — libcurl 기반 다운로드
+      - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 다운로드
     - `ftp` — FTP 연동 예제
-      - [curl](example/network/ftp/curl/main.cpp) — curl 기반 FTP 예제
-      - [tcp](example/network/ftp/tcp/main.cpp) — TCP 기반 FTP 예제
-    - [interface](example/network/interface/main.cpp) — 네트워크 인터페이스/추상화 예제
+      - [curl](example/network/ftp/curl/main.cpp) — curl 기반 FTP
+      - [tcp](example/network/ftp/tcp/main.cpp) — TCP 기반 FTP
+    - [interface](example/network/interface/main.cpp) — 네트워크 인터페이스/추상화
     - `log` — 네트워크 로깅 관련 예제
-      - [manager](example/network/log/manager/main.cpp) — 로그 전송/관리자 예제 ([logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini) 환경 정보)
-    - `memory_store` — 네트워크 기반 메모리 저장소 예제
-      - [client](example/network/memory_store/client/main.cpp) — 클라이언트 예제
-      - [server](example/network/memory_store/server/main.cpp) — 서버 예제
-    - `message_broker` — 메시지 브로커(분산 메시징) 예제
-      - [broker](example/network/message_broker/broker/main.cpp) — 브로커 구현 예제
-      - [pub](example/network/message_broker/pub/main.cpp) — 퍼블리셔 예제
+      - [manager](example/network/log/manager/main.cpp) — 로그 전송/관리자([logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini) 환경 정보)
+    - `memory_store` — 네트워크 기반 메모리 저장소
+      - [client](example/network/memory_store/client/main.cpp) — 저장소 클라이언트
+      - [server](example/network/memory_store/server/main.cpp) — 저장소 서버
+    - `message_broker` — 메시지 브로커(분산 메시징)
+      - [broker](example/network/message_broker/broker/main.cpp) — 브로커 구현
+      - [pub](example/network/message_broker/pub/main.cpp) — 퍼블리셔
       - `python` — 파이썬 연동 예제
         - [pub](example/network/message_broker/python/pub/main.cpp) — 파이썬 퍼블리셔
         - [sub](example/network/message_broker/python/sub/main.cpp) — 파이썬 구독자
