@@ -127,22 +127,24 @@
     - [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트.
     - [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트.
 - `rpc` : `RPC` 클라이언트/서버
-    - [server](example/network/rpc/server/main.cpp) : `RPC` 서버
-    - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
+    - [server](example/network/rpc/server/main.cpp) : `RPC` 서버.
+    - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트.
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- `sftp` — SFTP 연동  
-    - putty — 외부 툴(psftp) 연동 자동화 샘플.  
-- `tcp` — TCP 소켓 예제  
-    - client / server — 연결 관리, 멀티플렉싱, 프래밍 처리 예.  
+- `sftp` : SFTP 클라이언트
+    - [putty](example/network/sftp/putty/main.cpp) — `psftp` 연동 클라이언트.  
+- `tcp` — TCP 소켓 예제
+    - [server](example/network/tcp/server/main.cpp) — TCP 서버.
+    - [client](example/network/tcp/client/main.cpp) — TCP 클라이언트.
 - `udp` — UDP 통신 예제  
-    - receiver / sender — 비연결 전송, 멀티캐스트·브로드캐스트 예.  
-- util — 네트워크 헬퍼  
-    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸 예.  
+    - [receiver](example/network/udp/receiver/main.cpp) — UDP 수신.
+    - [sender](example/network/udp/sender/main.cpp) — UDP 송신.
+- [util](example/network/util/main.cpp)
+    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.  
 ##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
-- mino_all_example — 코어·외부·네트워크 통합 예: 앱 초기화·모듈 통합 흐름 시연.  
-- mino_core_example — 코어 기능만으로 구성한 최소 실행 샘플.  
-- mino_external_example — vcpkg로 설치한 외부 종속성과의 통합 흐름 예.  
-- mino_network_example — 네트워크 기능 중심의 통합 데모 (클라이언트/서버 메시지 흐름).
+- [mino_all_example](example/template/mino_all_example) : 통합 예제 템플릿.  
+- [mino_core_example](example/template/mino_core_example) : 코어 기능 예제 템플릿.  
+- [mino_external_example](example/template/mino_external_example) : 외부 기능 예제 템플릿.
+- [mino_network_example](example/template/mino_network_example) : 네트워크 기능 예제 템플릿.
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
