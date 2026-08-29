@@ -5,147 +5,163 @@
 ## 개요
 
 ### 프로젝트 개요
-- `mino`는 `C++` 기반의 범용 라이브러리입니다.
-- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공을 목표로 합니다.
+- `mino`는 `C++` 기반의 범용 라이브러리.
+- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공 목표.
 
 ### 아키텍처 요약
 - [**core**](mino/core/include/mino/core)
-   — 코어 기능. 외부 종속성이 없는 모듈.
+   - 코어 기능. 외부 종속성이 없는 모듈.
 - [**external**](mino/external/include/mino/external)
    - 외부 라이브러리 종속성이 있는 모듈.
 - [**network**](mino/network/include/mino/network)
    - 네트워크 기능 모듈.
 
 ### 예제 
-- `example` — 예제 루트 경로
-  - `core` — 코어 라이브러리 예제 
-    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리
-        - `mino::core::bit::bit_array` 클래스의 주요 기능과 연산자를 검증하고 사용법을 보여주는 예제입니다.
-        - **초기화 및 크기 관리**: 바이트 단위 자동 환산 초기화, `set_bits`/`set_bytes`, `clear` 동작
-        - **비트 조작 및 연산**:
-        - **슬라이싱 & 병합**: 바이트 경계에 구애받지 않는 임의 오프셋 추출(`get`) 및 병합(`merge`)
-        - **연산자 오버로딩**: 비트열 결합(`+`), Bitwise NOT(`~`), 비트 시프트(`<<`, `>>`)
-        - **변환 및 반전**: `std::vector<bool>` 변환(`to_array`), 비트 순서 역전(`reverser`)
-        - **디버깅 출력**: 콘솔 포맷 출력(`print`), 메모리 16진수 덤프(`dump`)     
-    - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커
-        - typeid와 이름을 키로 사용하는 스레드 안전(Thread-safe) 서비스 로케이터 및 RAII 가드 예제
-        - **인스턴스 등록 및 조회**: 타입(`typeid`)과 이름(문자열)을 키로 `std::shared_ptr` 객체를 등록(`register_instance`), 조회(`get`, `get_optional`), 확인(`contains`)합니다.
-        - **목록 및 메타데이터 수집**: 특정 타입의 모든 인스턴스(`get_all`)나 등록된 이름/엔트리 목록(`list_all_names`, `list_all_entries`)을 반환합니다.
-        - **수명 주기 관리**: 특정 인스턴스 해제(`unregister_instance`), 전체 초기화(`clear`), 스코프 기반 자동 등록/해제를 지원하는 RAII 가드(`registration_guard`)를 제공합니다.
-        - **멀티스레드 안정성**: 다중 스레드 환경에서 동시 등록, 읽기, 삭제 시 레이스 컨디션 없이 안전하게 동작함을 검증합니다.
-    - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
-        - 설정 파일(`app_config.conf`) 로딩, 주석/데이터 라인 파싱, `std::optional` 기반의 타입별(String, Int, Bool, Double) 설정값 조회 예제
-        - **싱글톤 인스턴스 관리**: `config_manager::get_instance()`를 통해 전역 설정 관리자 객체를 가져옵니다.
-        - **파일 로딩**: `set_config_file()`로 대상 파일 경로(`app_config.conf`)를 지정하고 `load()`로 파일을 파싱합니다.
-        - **전체 내용 순회 (`get_all`)**: 파싱된 데이터(`is_data == true`, `key=value`)와 주석/빈 줄 등 원본 텍스트(`raw_text`)를 구분하여 파일의 전체 구조를 출력합니다.
-        - **타입별 안전한 값 조회**: `get_string()`, `get_int()`, `get_bool()`, `get_double()` 등의 메서드로 특정 키의 값을 `std::optional` 형태로 안전하게 조회합니다.
-        - **인코딩 처리**: `to_console_encoding` 유틸리티를 적용해 콘솔 출력 시 문자 인코딩 깨짐을 방지합니다.
-    - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티
-    - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화
-    - [crypt](example/core/crypt/main.cpp) — 암호화/복호화
-    - [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱 
-    - [daemon](example/core/daemon/main.cpp) — 데몬/서비스화 관련 실행
-    - `datetime` — 날짜/시간 유틸리티 예제
-      - [unit](example/core/datetime/unit/main.cpp) — 날짜/시간 단위 테스트 및 유틸
-      - [util](example/core/datetime/util/main.cpp) — 날짜/시간 관련 헬퍼 함수
-    - [encoding](example/core/encoding/main.cpp) — 문자 인코딩/디코딩
-    - [enum](example/core/enum/main.cpp) — 열거형 사용
-    - [expected](example/core/expected/main.cpp) — 예상 값/검증 관련
-    - [file](example/core/file/main.cpp) — 파일 입출력 및 파일 관련 유틸
-    - [hash](example/core/hash/main.cpp) — 해시 함수 및 체크섬
-    - [ini](example/core/ini/main.cpp) — INI 파일 파싱 ([sample.ini](example/core/ini/sample.ini) 환경 정보)
-    - [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화
-    - [log](example/core/log/main.cpp) — 로깅 사용
-    - [macro](example/core/macro/main.cpp) — 매크로 및 템플릿 메타 프로그래밍
-    - [memory](example/core/memory/main.cpp) — 메모리 관리·유틸
-    - [notification](example/core/notification/main.cpp) — 단일 알림 관련
-    - [notifications](example/core/notifications/main.cpp) — 복합 알림·구독
-    - [overload](example/core/overload/main.cpp) — 함수/연산자 오버로드
-    - [pfr](example/core/pfr/main.cpp) — PFR(플랫 리플렉션) 관련
-    - [process_util](example/core/process_util/main.cpp) — 프로세스 유틸리티
-    - [reflect](example/core/reflect/main.cpp) — 리플렉션/메타프로그래밍
-    - [resilience](example/core/resilience/main.cpp) — 오류 복원력(예: 재시도)
-    - [result](example/core/result/main.cpp) — 결과 반환/에러 핸들링 관례
-    - `schedule` — 스케줄링 예제
-      - [task](example/core/schedule/task/main.cpp) — 작업 스케줄
-      - [weekly](example/core/schedule/weekly/main.cpp) — 주단위 스케줄
-    - [server](example/core/server/main.cpp) — 간단한 서버
-    - [service](example/core/service/main.cpp) — 서비스 레이어 샘플
-    - [shared_memory](example/core/shared_memory/main.cpp) — 공유 메모리 기반 통신
-    - [singleton](example/core/singleton/main.cpp) — 싱글톤 패턴
-    - [string](example/core/string/main.cpp) — 문자열 처리 유틸
-    - [system](example/core/system/main.cpp) — 시스템 유틸리티
-    - [thread](example/core/thread/main.cpp) — 스레드/동시성
-    - [tpm](example/core/tpm/main.cpp) — TPM(보안 모듈) 관련
-    - [uuid](example/core/uuid/main.cpp) — UUID 생성/파싱
-    - [validation](example/core/validation/main.cpp) — 입력/모델 검증
-    - [xml](example/core/xml/main.cpp) — XML 처리
-    - [yaml](example/core/yaml/main.cpp) — YAML 파싱/직렬화
-  - `external` — 외부 라이브러리 사용
-    - [json](example/external/json/main.cpp) — 놀먼 json 확장 연동
-    - `log` — 외부 로깅 어댑터/팩토리 
-      - [adapter](example/external/log/adapter/main.cpp) — 로그 어댑터 샘플
-      - [factory](example/external/log/factory/main.cpp) — 동적 로깅 설정 변경 
-      - [spd](example/external/log/spd/main.cpp) — spdlog 확장 연동
-    - `schedule` — 외부 스케줄러 연동 예제
-      - [weekly](example/external/schedule/weekly/main.cpp) — 주간 스케줄러의 놀먼 json 확장
-  - `network` — 네트워크 관련
-    - `download` — 다운로드 클라이언트 구현 
-      - [curl](example/network/download/curl/main.cpp) — libcurl 기반 다운로드
-      - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 다운로드
-    - `ftp` — FTP 연동 예제
-      - [curl](example/network/ftp/curl/main.cpp) — curl 기반 FTP
-      - [tcp](example/network/ftp/tcp/main.cpp) — TCP 기반 FTP
-    - [interface](example/network/interface/main.cpp) — 네트워크 인터페이스/추상화
-    - `log` — 네트워크 로깅 관련 예제
-      - [manager](example/network/log/manager/main.cpp) — 로그 전송/관리자([logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini) 환경 정보)
-    - `memory_store` — 네트워크 기반 메모리 저장소
-      - [client](example/network/memory_store/client/main.cpp) — 저장소 클라이언트
-      - [server](example/network/memory_store/server/main.cpp) — 저장소 서버
-    - `message_broker` — 메시지 브로커(분산 메시징)
-      - [broker](example/network/message_broker/broker/main.cpp) — 브로커 구현
-      - [pub](example/network/message_broker/pub/main.cpp) — 퍼블리셔
-      - `python` — 파이썬 연동 예제
-        - [pub](example/network/message_broker/python/pub/main.cpp) — 파이썬 퍼블리셔
-        - [sub](example/network/message_broker/python/sub/main.cpp) — 파이썬 구독자
-      - [sub](example/network/message_broker/sub/main.cpp) — 구독자 예제
-    - `rest` — REST 클라이언트/서버 예제
-      - [curl](example/network/rest/curl/main.cpp) — curl 기반 REST 클라이언트 예제
-      - [httplib](example/network/rest/httplib/main.cpp) — httplib 기반 REST 예제
-    - `rpc` — RPC 클라이언트/서버 예제
-      - [client](example/network/rpc/client/main.cpp) — 클라이언트 예제
-      - [server](example/network/rpc/server/main.cpp) — 서버 예제
-      - [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp) — RPC 공통 헤더
-    - `sftp` — SFTP 연동 예제
-      - [putty](example/network/sftp/putty/main.cpp) — psftp 연동 예제
-    - `tcp` — TCP 소켓 예제
-      - [client](example/network/tcp/client/main.cpp) — TCP 클라이언트 예제
-      - [server](example/network/tcp/server/main.cpp) — TCP 서버 예제
-    - `udp` — UDP 통신 예제
-      - [receiver](example/network/udp/receiver/main.cpp) — UDP 수신 예제
-      - [sender](example/network/udp/sender/main.cpp) — UDP 전송 예제
-    - [util](example/network/util/main.cpp) — 네트워크 유틸리티/헬퍼
-  - `template` — 예제 템플릿 프로젝트
-    - [mino_all_example](example/template/mino_all_example/main.cpp) — 전체 기능을 조합한 통합 예제
-    - [mino_core_example](example/template/mino_core_example/main.cpp) — 코어 기능 중심 예제
-    - [mino_external_example](example/template/mino_external_example/main.cpp) — 외부 라이브러리 연동 예제
-    - [mino_network_example](example/template/mino_network_example/main.cpp) — 네트워크 기능 중심 예제
-
-<br />
-
-#### 예제 사용 방법
-- 각 서브폴더의 `CMakeLists.txt`와 `main.cpp`를 확인해 빌드·실행 방법을 참고하세요.
-- 샘플 설정 파일은 `config`, `ini` 등의 파일를 확인하세요.
-- 특정 예제를 실행하려면 해당 폴더로 이동해 CMake 빌드 후 실행하면 됩니다.
-
-<br />
-
----
+#### `example` <sub> 예제 루트 경로 </sub>
+##### `core` <sub> 코어 라이브러리 예제 </sub>
+- bit — 비트 연산 및 비트맵 처리  
+    - 초기화 및 크기 관리, 비트 조작, 슬라이싱 & 병합, 연산자 오버로딩
+    - 변환·디버깅: 변환, 비트 순서 역전, 출력 포맷 예시.  
+- broker — 로컬/경량 메시지 브로커  
+    - 타입(`typeid`)과 이름(문자열)을 키로 객체를 등록·조회하는 서비스 로케이터 예제.  
+    - 등록/조회/확인
+    - 목록·메타수집: 특정 타입의 모든 인스턴스 반환, 등록된 이름/엔트리 열거.  
+    - 수명 관리 자동 등록/해제 패턴.  
+    - 동시성 검증: 멀티스레드 환경에서 동시 등록·읽기·삭제 시 안전성 시나리오 재현.  
+- config — 설정 파일 로드·파싱  
+    - 설정 파일의 주석·데이터 라인 분리와 타입별 안전 조회 예제입니다.  
+    - 싱글톤·파일 로드
+    - 타입 안전 조회 
+    - 파일 순회로 원본 라인(주석/빈줄 포함)과 파싱 결과 동시 출력.  
+    - 인코딩 처리: 콘솔 출력 적용 예시로 한글 환경 대응 설명.  
+- container — 컨테이너 유틸리티  
+    - 컨테이너 어댑터, 범용 반복자 유틸, 변환·검색 편의 함수 사용 예제.  
+    - 사용 패턴: 복합 컨테이너 조작, 성능/메모리 고려된 반복 및 뷰 활용 사례.  
+- convert — 데이터 변환·직렬화  
+    - 문자열↔숫자/시간 변환, 바이트 오더 변환, Base64/Hex 인코딩·디코딩 예제.  
+    - 사용자 타입 직렬화: 구조체 ↔ 바이너리/문자열 직렬화 샘플과 에러 처리 관례.  
+- crypt — 암호화·복호화  
+    - 대칭/비대칭 암호화, 해시(sha/md), HMAC, 키 파생(KDF) 기본 사용 예.  
+    - 스트림 암복호화: 파일·스트림에 대한 블록 처리와 패딩/IV 관리 예.  
+- csv — CSV 입출력 및 파싱  
+    - 구분자·인용 처리, 스트리밍 파싱 및 대용량 파일 처리 패턴.  
+    - 매핑·검증: 필드 매핑, 타입 변환, 오류 라인 건너뛰기/보고 방식 예시.  
+- daemon — 데몬/서비스 실행  
+    - POSIX/Windows 서비스 초기화, 백그라운드 전환, 신호 및 종료 핸들링 패턴.  
+    - 운영 관례: PID 파일 관리, 로그 초기화, 안전한 종료 시퀀스 예.  
+- `datetime`  
+    - unit — 단위 테스트 및 유틸 검증(경계·윤년 등)  
+    - util — 포맷/파싱, ISO 표기, 타임존 보정 예제  
+- encoding — 문자 인코딩·디코딩  
+    - UTF-8/16/32 변환, BOM 처리, 로케일별 콘솔 출력 예시로 다국어 대응.  
+- enum — 열거형 헬퍼  
+    - enum↔문자열 변환, 비트플래그 조작, 안전한 직렬화/파싱 예제.  
+- expected — `expected<T,E>` 스타일 오류 처리  
+    - 성공·실패 체이닝, 에러 전파 예제 및 디버깅용 메시지 수집 패턴.  
+- file — 파일 I/O 유틸  
+    - 원자적 쓰기(atomic write), 파일 잠금(lock), 메모리 매핑, 임시 파일 안전 사용법.  
+- hash — 해시·체크섬 생성  
+    - MD5/SHA/CRC 등 해시 생성과 스트림/파일 연동 사용 예.  
+- ini — INI 파서  
+    - 섹션·키 파싱, 원본 주석 보존, 타입별 안전 조회(`sample.ini` 포함).  
+- json — JSON 직렬화/역직렬화  
+    - nlohmann::json 연동, 사용자 타입 어댑터, 스트림 입출력 및 성능 팁.  
+- log — 로깅 사용 예  
+    - 로거 초기화, 레벨·포맷 설정, sink 교체 및 비동기 로깅 설정 예.  
+- macro — 매크로·템플릿 메타프로그래밍  
+    - 컴파일 타임 유틸리티, SFINAE/컨셉 기반 예제, 안전한 매크로 패턴.  
+- memory — 메모리 유틸리티  
+    - 풀 allocator, 스마트 포인터 확장, 메모리 누수 검사 보조 유틸.  
+- notification — 단일 알림 패턴  
+    - 콜백 등록/해제, 동기·비동기 알림 처리 예.  
+- notifications — 복합 알림·구독  
+    - 토픽 기반 배포, 다중 구독자, 필터링 및 스레드 안전 배포 예.  
+- overload — 오버로드 유틸  
+    - 여러 callable 결합, 오버로드 해상도 예시, 가변 인자 처리 패턴.  
+- pfr — 플랫 리플렉션(PFR) 예제  
+    - 구조체 필드 자동 접근·순회, 자동 직렬화·비교 샘플.  
+- process_util — 프로세스 유틸리티  
+    - 자식 프로세스 실행·출력 캡처·타임아웃 처리 및 종료 코드 분석.  
+- reflect — 리플렉션·메타데이터  
+    - 런타임/컴파일타임 리플렉션 사용 패턴, 메타데이터 주입 예.  
+- resilience — 복원력 패턴  
+    - 재시도 전략, 지수 백오프, 서킷 브레이커 기본 예제.  
+- result — `result<T,E>` 관례 예제  
+    - 에러 캡슐화, 안전한 전파·변환 패턴.  
+- `schedule`  
+    - task — 단일/지연/주기 작업 등록·취소 예  
+    - weekly — 요일 기반 반복 작업 스케줄 예  
+- server — 간단 서버 예제  
+    - 요청 수신·응답 루프, 멀티스레드 처리 골격, 종료 관리.  
+- service — 서비스 레이어 샘플  
+    - 비즈니스 로직 분리, 의존성 주입·인터페이스 모킹 예.  
+- shared_memory — 공유 메모리 IPC  
+    - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
+- singleton — 싱글톤 패턴  
+    - 안전한 지연 초기화, 멀티스레드 환경에서의 접근 패턴.  
+- string — 문자열 유틸리티  
+    - 트림/스플릿/포맷/유효성 검사, 성능 고려 사례.  
+- system — 시스템 헬퍼  
+    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회 예.  
+- thread — 스레드·동시성 유틸  
+    - 스레드풀, 동기화 프리미티브, 작업 큐 패턴.  
+- tpm — TPM(보안 모듈) 워크플로우  
+    - TPM 초기화, 키 생성·서명·검증(실환경에서 동작 여부 확인 필요).  
+- uuid — UUID 생성·파싱  
+    - 버전별 생성, 문자열 ↔ UUID 변환, 비교 예제.  
+- validation — 입력/모델 검증  
+    - 필드 규칙 정의, 체이닝 검증, 에러 메시지 집계.  
+- xml — XML 파싱·직렬화  
+    - DOM/스트리밍 파싱, 네임스페이스·XPath 유사 접근 예.  
+- yaml — YAML 파싱·직렬화  
+    - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.  
+##### `external` <sub> 외부 라이브러리 사용 예제 </sub>
+- json — nlohmann::json 확장 연동  
+    - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
+- `log` — 외부 로깅 어댑터/팩토리  
+    - adapter — 내부 로그 추상화층에 외부 로거 연결 예.  
+    - factory — 런타임 로거 구성 변경·팩토리 패턴 예.  
+    - spd — spdlog 연동: sink/formatter/비동기 설정 예.  
+- `schedule` — 외부 스케줄러 연동  
+    - weekly — 외부 스케줄러 어댑터 통합 예.  
+##### `network` <sub> 네트워크 관련 예제 </sub>
+- `download` — 다운로드 클라이언트
+    - curl — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
+    - httplib — httplib 기반 간단 HTTP 다운로드 예.  
+- `ftp` — FTP 연동
+    - curl — curl을 이용한 업/다운로드, 인증 처리 예.  
+    - tcp — 저수준 TCP로 FTP 프로토콜 처리하는 실습 예.  
+- interface — 네트워크 추상화  
+    - 플랫폼 간 소켓 추상화, 동기/비동기 IO 모델 비교 예.  
+- `log` — 네트워크 로깅
+    - manager — 원격 로그 전송 파이프라인과 설정 예(`logger_manager_config.ini`).  
+- `memory_store` — 네트워크 기반 메모리 저장소  
+    - client / server — 간단한 키-값 프로토콜, 동시성/직렬화 예.  
+- `message_broker` — 분산 메시지 브로커  
+    - broker — 퍼블리시/구독 모델, 토픽 라우팅 예.  
+    - pub / sub — 퍼블리셔/구독자 샘플과 직렬화 포맷.  
+    - `python` 연동: pub / sub — 언어 경계 통합 시나리오.  
+- `rest` — REST 클라이언트/서버  
+    - curl / httplib — 요청/응답, 헤더·쿼리 처리, JSON 페이로드 전송 예.  
+- `rpc` — RPC 클라이언트/서버  
+    - client / server — 직렬화·버전 호환 패턴과 인터페이스 정의 예.  
+    - 공통: `rpc_example_common.hpp`.  
+- `sftp` — SFTP 연동  
+    - putty — 외부 툴(psftp) 연동 자동화 샘플.  
+- `tcp` — TCP 소켓 예제  
+    - client / server — 연결 관리, 멀티플렉싱, 프래밍 처리 예.  
+- `udp` — UDP 통신 예제  
+    - receiver / sender — 비연결 전송, 멀티캐스트·브로드캐스트 예.  
+- util — 네트워크 헬퍼  
+    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸 예.  
+##### `template` <sub> 템플릿 예제 프로젝트 </sub> 
+- mino_all_example — 코어·외부·네트워크 통합 예: 앱 초기화·모듈 통합 흐름 시연.  
+- mino_core_example — 코어 기능만으로 구성한 최소 실행 샘플.  
+- mino_external_example — vcpkg로 설치한 외부 종속성과의 통합 흐름 예.  
+- mino_network_example — 네트워크 기능 중심의 통합 데모 (클라이언트/서버 메시지 흐름).
 
 ### 🏗️ 빌드 도구
-
 #### ⊞ Windows 환경 🧩
-
 - `Visual Studio` (2022 이상)
 - `cmake` (3.30 이상)
 - `ninja` (1.12.1 이상)
@@ -171,15 +187,12 @@
         }
      }
     ```
-
 #### 🐧 Linux 환경 🧩
-
 - `gcc` (8.5 이상)
 - `cmake` (3.26 이상) 
 - `ninja` (1.8.2 이상)
 
 #### 외부 라이브러리 설치
-
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
 # Rocky 8
@@ -212,7 +225,6 @@ cmake -S . -B build -G "Ninja" \
 cmake --build build -j
 
 ``` 
-
 - `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
 # Ubuntu 22.04 LTS
@@ -235,14 +247,10 @@ sudo apt install -y libcurl4-openssl-dev
 sudo apt install -y libbrotli-dev
 
 ```
-
 ##### 📦 라이브러리 설치 
-
 - 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
-
 ###### (1) `Visual Studio` + `vcpkg` 환경
-
 ```bat
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 기존 작업 경로 삭제 (Windows)
@@ -270,9 +278,7 @@ cmake --build build -j
 :: 설치
 cmake --install build
 ```
-
 ###### (2) `Linux` 환경
- 
 ```bash
 #############################################
 # 작업 경로 삭제 (Linux)
@@ -297,7 +303,6 @@ cmake --install build
 ```
 
 - 🚀 설치 후 디렉토리 구조 확인
- 
 ```
 C:\opt>eza --tree mino
 mino
