@@ -28,27 +28,11 @@
         - **변환 및 반전**: `std::vector<bool>` 변환(`to_array`), 비트 순서 역전(`reverser`)
         - **디버깅 출력**: 콘솔 포맷 출력(`print`), 메모리 16진수 덤프(`dump`)     
     - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커
-        - `typeid`와 이름을 조합하여 `std::shared_ptr` 인스턴스를 전역/중앙에서 관리하는 스레드 안전(Thread-safe) 서비스 로케이터 및 RAII 가드(`registration_guard`) 검증 예제
-        - **1. 키 식별 및 해싱 메커니즘 (`test_object_broker` - [1])**
-           - `object_broker::key`: 객체 타입을 식별하는 `typeid`와 식별 문자열(`name`)의 조합으로 고유 키를 구성합니다.
-           - 동일한 타입과 이름을 가질 때만 일치하도록 동치 연산자(`==`) 및 해시 함수(`key_hash`)가 올바르게 작동하는지 검증합니다.
-        - **2. 인스턴스 등록 및 조회 API (`test_object_broker` - [2], `unit_test_object_broker`)**
-           - `register_instance<T>()`: `std::shared_ptr<T>` 인스턴스를 등록합니다. 이름 없이 등록할 경우 내부 기본값(`__default__`)으로 매핑되며, 커스텀 이름을 부여할 수도 있습니다.
-           - `get<T>()` / `get_optional<T>()`: 등록된 인스턴스를 포인터 또는 `std::optional` 형태로 안전하게 조회하며, 미등록 키에 대해서는 `nullptr` 또는 빈 `optional`을 반환합니다.
-           - `contains<T>()`: 특정 타입/이름의 인스턴스가 등록되어 있는지 빠르게 존재 여부를 검사합니다.
-           - **별칭(Alias) 지원**: 하나의 인스턴스를 여러 다른 이름으로 중복 등록하여 참조할 수 있습니다.
-        - **3. 목록 조회 및 수집 API (`test_object_broker` - [3], `ListAllNamesAndEntries`)**
-           - `get_all<T>()`: 특정 타입으로 등록된 모든 인스턴스를 벡터로 수집합니다.
-           - `get_all_with_names<T>()` / `list_names_for_type<T>()`: 특정 타입에 등록된 인스턴스와 이름 쌍 또는 이름 목록만 추출합니다.
-           - `list_all_names()`, `list_unique_names()`, `list_all_entries()`: 전체 등록 엔트리의 이름 목록, 중복 제거된 유니크 이름 목록, 전체 `(type_info, name)` 메타데이터 쌍을 일괄 조회합니다.
-        - **4. 등록 해제 및 전체 초기화 (`test_object_broker` - [4], `UnregisterInstance`, `ClearRemovesAll`)**
-           - `unregister_instance<T>()`: 특정 타입과 이름의 엔트리만 선별적으로 제거합니다.
-           - `clear()`: 브로커에 저장된 모든 타입과 인스턴스 맵을 비워 메모리를 정리하고 상태를 초기화합니다.
-        - **5. RAII 기반 생명주기 관리 가드 (`test_object_broker` - [5], `RegistrationGuard...`)**
-           - `object_broker::registration_guard<T>`: 생성 시 객체를 자동으로 브로커에 등록하고, 스코프를 벗어나 객체가 소멸할 때 자동으로 `unregister_instance`를 호출하여 안전한 리소스 생명주기를 보장합니다.
-        - **6. 멀티스레드 안정성 및 동시성 검증 (`MultithreadedUsage`, `SingleRegistrarMultiReaders`, `MainRegisters_TwoReadersAccess`)**
-           - **동시 등록/조회/삭제**: 여러 워커 스레드가 동시에 인스턴스를 등록하고 반복 읽기 및 등록 해제를 수행할 때 레이스 컨디션(Race Condition) 없이 안전하게 동작하는지 검증합니다.
-           - **1-Writer / Multi-Reader 패턴**: 한 스레드가 인스턴스를 등록하는 동안 여러 리더 스레드가 대기 후 동시 접근할 때 메모리 가시성 및 스레드 동기화가 정상 작동하는지 확인합니다.
+        - typeid와 이름을 키로 사용하는 스레드 안전(Thread-safe) 서비스 로케이터 및 RAII 가드 예제
+        - **인스턴스 등록 및 조회**: 타입(`typeid`)과 이름(문자열)을 키로 `std::shared_ptr` 객체를 등록(`register_instance`), 조회(`get`, `get_optional`), 확인(`contains`)합니다.
+        - **목록 및 메타데이터 수집**: 특정 타입의 모든 인스턴스(`get_all`)나 등록된 이름/엔트리 목록(`list_all_names`, `list_all_entries`)을 반환합니다.
+        - **수명 주기 관리**: 특정 인스턴스 해제(`unregister_instance`), 전체 초기화(`clear`), 스코프 기반 자동 등록/해제를 지원하는 RAII 가드(`registration_guard`)를 제공합니다.
+        - **멀티스레드 안정성**: 다중 스레드 환경에서 동시 등록, 읽기, 삭제 시 레이스 컨디션 없이 안전하게 동작함을 검증합니다.
     - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
     - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티
     - [convert](example/core/convert/main.cpp) — 데이터 형 변환 및 직렬화
