@@ -19,7 +19,14 @@
 ### 예제 
 - `example` — 예제 루트 경로
   - `core` — 코어 라이브러리 예제 
-    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리 
+    - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리
+        - `mino::core::bit::bit_array` 클래스의 주요 기능과 연산자를 검증하고 사용법을 보여주는 예제입니다.
+        - **초기화 및 크기 관리**: 바이트 단위 자동 환산 초기화, `set_bits`/`set_bytes`, `clear` 동작
+        - **비트 조작 및 연산**:
+        - **슬라이싱 & 병합**: 바이트 경계에 구애받지 않는 임의 오프셋 추출(`get`) 및 병합(`merge`)
+        - **연산자 오버로딩**: 비트열 결합(`+`), Bitwise NOT(`~`), 비트 시프트(`<<`, `>>`)
+        - **변환 및 반전**: `std::vector<bool>` 변환(`to_array`), 비트 순서 역전(`reverser`)
+        - **디버깅 출력**: 콘솔 포맷 출력(`print`), 메모리 16진수 덤프(`dump`)     
     - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커
     - [config](example/core/config/main.cpp) — 설정 파일 로드/파싱 ([app_config.conf](example/core/config/app_config.conf) 환경 정보)
     - [container](example/core/container/main.cpp) — 컨테이너(컬렉션) 유틸리티
