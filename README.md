@@ -16,7 +16,7 @@
 - 🔀 [**network**](mino/network/include/mino/network)
    - 네트워크 기능 모듈.
 
-### 예제 
+### 예제
 #### [example](example/) <sub> 예제 루트 경로 </sub>
 ##### ⚙️ [core](example/core) <sub> 코어 라이브러리 예제 </sub>
 - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리  
@@ -24,26 +24,26 @@
     - 변환·디버깅: 변환, 비트 순서 역전, 출력 포맷 예시.
 - [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커  
     - 타입과 이름(문자열)을 키로 객체를 등록·조회하는 서비스 로케이터 예제.  
-- config — 설정 파일 로드·파싱  
+- [config](example/core/config/main.cpp) — 설정 파일 로드·파싱  
     - 설정 파일의 주석·데이터 라인 분리와 타입별 안전 조회 예제입니다.  
-- container — 컨테이너 유틸리티  
+- [container](example/core/container/main.cpp) — 컨테이너 유틸리티  
     - 컨테이너 어댑터, 범용 반복자 유틸, 변환·검색 편의 함수 사용 예제.  
     - 사용 패턴: 복합 컨테이너 조작, 성능/메모리 고려된 반복 및 뷰 활용 사례.  
-- convert — 데이터 변환·직렬화  
+- [convert](example/core/convert/main.cpp) — 데이터 변환·직렬화  
     - 문자열↔숫자/시간 변환, 바이트 오더 변환, Base64/Hex 인코딩·디코딩 예제.  
     - 사용자 타입 직렬화: 구조체 ↔ 바이너리/문자열 직렬화 샘플과 에러 처리 관례.  
-- crypt — 암호화·복호화  
+- [crypt](example/core/crypt/main.cpp) — 암호화·복호화  
     - 대칭/비대칭 암호화, 해시(sha/md), HMAC, 키 파생(KDF) 기본 사용 예.  
     - 스트림 암복호화: 파일·스트림에 대한 블록 처리와 패딩/IV 관리 예.  
-- csv — CSV 입출력 및 파싱  
+- [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱  
     - 구분자·인용 처리, 스트리밍 파싱 및 대용량 파일 처리 패턴.  
     - 매핑·검증: 필드 매핑, 타입 변환, 오류 라인 건너뛰기/보고 방식 예시.  
-- daemon — 데몬/서비스 실행  
+- [daemon](example/core/daemon/main.cpp) — 데몬/서비스 실행  
     - POSIX/Windows 서비스 초기화, 백그라운드 전환, 신호 및 종료 핸들링 패턴.  
     - 운영 관례: PID 파일 관리, 로그 초기화, 안전한 종료 시퀀스 예.  
-- `datetime`  
-    - unit — 단위 테스트 및 유틸 검증(경계·윤년 등)  
-    - util — 포맷/파싱, ISO 표기, 타임존 보정 예제  
+- `datetime` - 날짜·시간 처리 
+    - [unit](example/core/datetime/unit/main.cpp) — 단위 테스트 및 유틸 검증(경계·윤년 등)
+    - [util](example/core/datetime/util/main.cpp) — 포맷/파싱, ISO 표기, 타임존 보정 예제
 - encoding — 문자 인코딩·디코딩  
     - UTF-8/16/32 변환, BOM 처리, 로케일별 콘솔 출력 예시로 다국어 대응.  
 - enum — 열거형 헬퍼  
@@ -107,7 +107,7 @@
     - DOM/스트리밍 파싱, 네임스페이스·XPath 유사 접근 예.  
 - yaml — YAML 파싱·직렬화  
     - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.  
-##### 📦 `external` <sub> 외부 라이브러리 사용 예제 </sub>
+##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
 - json — nlohmann::json 확장 연동  
     - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
 - `log` — 외부 로깅 어댑터/팩토리  
@@ -116,7 +116,7 @@
     - spd — spdlog 연동: sink/formatter/비동기 설정 예.  
 - `schedule` — 외부 스케줄러 연동  
     - weekly — 외부 스케줄러 어댑터 통합 예.  
-##### 🔀 `network` <sub> 네트워크 관련 예제 </sub>
+##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
 - `download` — 다운로드 클라이언트
     - curl — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
     - httplib — httplib 기반 간단 HTTP 다운로드 예.  
@@ -146,7 +146,7 @@
     - receiver / sender — 비연결 전송, 멀티캐스트·브로드캐스트 예.  
 - util — 네트워크 헬퍼  
     - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸 예.  
-##### 🧱 `template` <sub> 템플릿 예제 프로젝트 </sub> 
+##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
 - mino_all_example — 코어·외부·네트워크 통합 예: 앱 초기화·모듈 통합 흐름 시연.  
 - mino_core_example — 코어 기능만으로 구성한 최소 실행 샘플.  
 - mino_external_example — vcpkg로 설치한 외부 종속성과의 통합 흐름 예.  
