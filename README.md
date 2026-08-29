@@ -97,37 +97,39 @@
 - [xml](example/core/xml/main.cpp) : `.xml` 파싱·직렬화
 - [yaml](example/core/yaml/main.cpp) : `.yaml` 파싱·직렬화
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
-- [json](example/external/json/main.cpp) — nlohmann::json 확장 연동  
-    - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
-- `log` — 외부 로깅 어댑터/팩토리  
-    - [adapter](example/external/log/adapter/main.cpp) — 내부 로그 추상화층에 외부 로거 연결 예.  
-    - [factory](example/external/log/factory/main.cpp) — 런타임 로거 구성 변경·팩토리 패턴 예.  
-    - [spd](example/external/log/spd/main.cpp) — spdlog 연동: sink/formatter/비동기 설정 예.  
-- `schedule` — 외부 스케줄러 연동  
-    - [weekly](example/external/schedule/weekly/main.cpp) — 외부 스케줄러 어댑터 통합 예.  
+- [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능.
+- `log` : 외부 로깅 어댑터/팩토리
+    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결.  
+    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴.  
+    - [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능.
+- `schedule` : 외부 스케줄러 연동
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장.
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
-- `download` — 다운로드 클라이언트
-    - [curl](example/network/download/curl/main.cpp) — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
-    - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 간단 HTTP 다운로드 예.  
-- `ftp` — FTP 연동
-    - [curl](example/network/ftp/curl/main.cpp) — curl을 이용한 업/다운로드, 인증 처리 예.  
-    - [tcp](example/network/ftp/tcp/main.cpp) — 저수준 TCP로 FTP 프로토콜 처리하는 실습 예.  
-- [interface](example/network/interface/main.cpp) — 네트워크 추상화  
-    - 플랫폼 간 소켓 추상화, 동기/비동기 IO 모델 비교 예.  
-- `log` — 네트워크 로깅
-    - [manager](example/network/log/manager/main.cpp) — 원격 로그 전송 파이프라인과 설정 예(`logger_manager_config.ini`).  
-- `memory_store` — 네트워크 기반 메모리 저장소  
-    - [client](example/network/memory_store/client/main.cpp)
-    - [server](example/network/memory_store/server/main.cpp)
-- `message_broker` — 분산 메시지 브로커  
-    - broker — 퍼블리시/구독 모델, 토픽 라우팅 예.  
-    - pub / sub — 퍼블리셔/구독자 샘플과 직렬화 포맷.  
-    - `python` 연동: pub / sub — 언어 경계 통합 시나리오.  
-- `rest` — REST 클라이언트/서버  
-    - curl / httplib — 요청/응답, 헤더·쿼리 처리, JSON 페이로드 전송 예.  
-- `rpc` — RPC 클라이언트/서버  
-    - client / server — 직렬화·버전 호환 패턴과 인터페이스 정의 예.  
-    - 공통: `rpc_example_common.hpp`.  
+- `download` : http 다운로드 클라이언트
+    - [curl](example/network/download/curl/main.cpp) : libcurl 기반 다운로드
+    - [httplib](example/network/download/httplib/main.cpp) : httplib 기반 다운로드
+- `ftp` : FTP 클라이언트
+    - [curl](example/network/ftp/curl/main.cpp) : libcurl 기반 FTP 클라이언트.
+    - [tcp](example/network/ftp/tcp/main.cpp) : TCP 소켓 기반 FTP 클라이언트.
+- [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회.
+- `log` : 네트워크 로깅
+    - [manager](example/network/log/manager/main.cpp)
+        - 핫/소프트 로깅 환경 정보 리로딩. [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini) 참조.
+- `memory_store` : 네트워크 기반 정보(메모리) 저장소
+    - [server](example/network/memory_store/server/main.cpp) : 서버.
+    - [client](example/network/memory_store/client/main.cpp) : 클라이언트.
+- `message_broker` : 분산 메시지 브로커  
+    - [broker](example/network/message_broker/broker) : 브로커 예제.
+    - [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제.
+    - [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제.
+    - [python](example/network/message_broker/python) : 파이썬 `pub/sub` 예제.
+- `rest` : `REST API` 클라이언트  
+    - [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트.
+    - [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트.
+- `rpc` : `RPC` 클라이언트/서버
+    - [server](example/network/rpc/server/main.cpp) : `RPC` 서버
+    - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
+    - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
 - `sftp` — SFTP 연동  
     - putty — 외부 툴(psftp) 연동 자동화 샘플.  
 - `tcp` — TCP 소켓 예제  
