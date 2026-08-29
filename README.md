@@ -35,100 +35,101 @@
 - [crypt](example/core/crypt/main.cpp) — 암호화·복호화  
     - 대칭/비대칭 암호화, 해시(sha/md), HMAC, 키 파생(KDF) 기본 사용 예.  
     - 스트림 암복호화: 파일·스트림에 대한 블록 처리와 패딩/IV 관리 예.  
-- [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱  
+- [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱
     - 구분자·인용 처리, 스트리밍 파싱 및 대용량 파일 처리 패턴.  
     - 매핑·검증: 필드 매핑, 타입 변환, 오류 라인 건너뛰기/보고 방식 예시.  
 - [daemon](example/core/daemon/main.cpp) — 데몬/서비스 실행  
     - POSIX/Windows 서비스 초기화, 백그라운드 전환, 신호 및 종료 핸들링 패턴.  
     - 운영 관례: PID 파일 관리, 로그 초기화, 안전한 종료 시퀀스 예.  
 - `datetime` - 날짜·시간 처리 
-    - [unit](example/core/datetime/unit/main.cpp) — 단위 테스트 및 유틸 검증(경계·윤년 등)
-    - [util](example/core/datetime/util/main.cpp) — 포맷/파싱, ISO 표기, 타임존 보정 예제
-- encoding — 문자 인코딩·디코딩  
+    - [unit](example/core/datetime/unit/main.cpp) — 날자/시간 처리 단위 클래스
+    - [util](example/core/datetime/util/main.cpp) — 포맷/파싱, ISO 표기, 타임존 보정 등
+- [encoding](example/core/encoding/main.cpp) — 문자 인코딩·디코딩  
     - UTF-8/16/32 변환, BOM 처리, 로케일별 콘솔 출력 예시로 다국어 대응.  
-- enum — 열거형 헬퍼  
+- [enum](example/core/enum/main.cpp) — 열거형 헬퍼  
     - enum↔문자열 변환, 비트플래그 조작, 안전한 직렬화/파싱 예제.  
-- expected — `expected<T,E>` 스타일 오류 처리  
+- [expected](example/core/expected/main.cpp) — `expected<T,E>` 스타일 오류 처리  
     - 성공·실패 체이닝, 에러 전파 예제 및 디버깅용 메시지 수집 패턴.  
-- file — 파일 I/O 유틸  
+- [file](example/core/file/main.cpp) — 파일 I/O 유틸  
     - 원자적 쓰기(atomic write), 파일 잠금(lock), 메모리 매핑, 임시 파일 안전 사용법.  
-- hash — 해시·체크섬 생성  
+- [hash](example/core/hash/main.cpp) — 해시·체크섬 생성  
     - MD5/SHA/CRC 등 해시 생성과 스트림/파일 연동 사용 예.  
-- ini — INI 파서  
+- [ini](example/core/ini/main.cpp) — INI 파서  
     - 섹션·키 파싱, 원본 주석 보존, 타입별 안전 조회(`sample.ini` 포함).  
-- json — JSON 직렬화/역직렬화  
+- [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화  
     - nlohmann::json 연동, 사용자 타입 어댑터, 스트림 입출력 및 성능 팁.  
-- log — 로깅 사용 예  
+- [log](example/core/log/main.cpp) — 로깅 사용 예  
     - 로거 초기화, 레벨·포맷 설정, sink 교체 및 비동기 로깅 설정 예.  
-- macro — 매크로·템플릿 메타프로그래밍  
+- [macro](example/core/macro/main.cpp) — 매크로·템플릿 메타프로그래밍  
     - 컴파일 타임 유틸리티, SFINAE/컨셉 기반 예제, 안전한 매크로 패턴.  
-- memory — 메모리 유틸리티  
+- [memory](example/core/memory/main.cpp) — 메모리 유틸리티  
     - 풀 allocator, 스마트 포인터 확장, 메모리 누수 검사 보조 유틸.  
-- notification — 단일 알림 패턴  
+- [notification](example/core/notification/main.cpp) — 단일 알림 패턴  
     - 콜백 등록/해제, 동기·비동기 알림 처리 예.  
-- notifications — 복합 알림·구독  
+- [notifications](example/core/notifications/main.cpp) — 복합 알림·구독  
     - 토픽 기반 배포, 다중 구독자, 필터링 및 스레드 안전 배포 예.  
-- overload — 오버로드 유틸  
+- [overload](example/core/overload/main.cpp) — 오버로드 유틸  
     - 여러 callable 결합, 오버로드 해상도 예시, 가변 인자 처리 패턴.  
-- pfr — 플랫 리플렉션(PFR) 예제  
+- [pfr](example/core/pfr/main.cpp) — 플랫 리플렉션(PFR) 예제  
     - 구조체 필드 자동 접근·순회, 자동 직렬화·비교 샘플.  
-- process_util — 프로세스 유틸리티  
+- [process_util](example/core/process_util/main.cpp) — 프로세스 유틸리티  
     - 자식 프로세스 실행·출력 캡처·타임아웃 처리 및 종료 코드 분석.  
-- reflect — 리플렉션·메타데이터  
+- [reflect](example/core/reflect/main.cpp) — 리플렉션·메타데이터  
     - 런타임/컴파일타임 리플렉션 사용 패턴, 메타데이터 주입 예.  
-- resilience — 복원력 패턴  
+- [resilience](example/core/resilience/main.cpp) — 복원력 패턴  
     - 재시도 전략, 지수 백오프, 서킷 브레이커 기본 예제.  
-- result — `result<T,E>` 관례 예제  
+- [result](example/core/result/main.cpp) — `result<T,E>` 관례 예제  
     - 에러 캡슐화, 안전한 전파·변환 패턴.  
 - `schedule`  
-    - task — 단일/지연/주기 작업 등록·취소 예  
-    - weekly — 요일 기반 반복 작업 스케줄 예  
-- server — 간단 서버 예제  
+    - [task](example/core/schedule/task/main.cpp) — 단일/지연/주기 작업 등록·취소 예  
+    - [weekly](example/core/schedule/weekly/main.cpp) — 요일 기반 반복 작업 스케줄 예  
+- [server](example/core/server/main.cpp) — 간단 서버 예제  
     - 요청 수신·응답 루프, 멀티스레드 처리 골격, 종료 관리.  
-- service — 서비스 레이어 샘플  
+- [service](example/core/service/main.cpp) — 서비스 레이어 샘플  
     - 비즈니스 로직 분리, 의존성 주입·인터페이스 모킹 예.  
-- shared_memory — 공유 메모리 IPC  
+- [shared_memory](example/core/shared_memory/main.cpp) — 공유 메모리 IPC  
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
-- singleton — 싱글톤 패턴  
+- [singleton](example/core/singleton/main.cpp) — 싱글톤 패턴  
     - 안전한 지연 초기화, 멀티스레드 환경에서의 접근 패턴.  
-- string — 문자열 유틸리티  
+- [string](example/core/string/main.cpp) — 문자열 유틸리티  
     - 트림/스플릿/포맷/유효성 검사, 성능 고려 사례.  
-- system — 시스템 헬퍼  
+- [system](example/core/system/main.cpp) — 시스템 헬퍼  
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회 예.  
-- thread — 스레드·동시성 유틸  
+- [thread](example/core/thread/main.cpp) — 스레드·동시성 유틸  
     - 스레드풀, 동기화 프리미티브, 작업 큐 패턴.  
-- tpm — TPM(보안 모듈) 워크플로우  
+- [tpm](example/core/tpm/main.cpp) — TPM(보안 모듈) 워크플로우  
     - TPM 초기화, 키 생성·서명·검증(실환경에서 동작 여부 확인 필요).  
-- uuid — UUID 생성·파싱  
+- [uuid](example/core/uuid/main.cpp) — UUID 생성·파싱  
     - 버전별 생성, 문자열 ↔ UUID 변환, 비교 예제.  
-- validation — 입력/모델 검증  
+- [validation](example/core/validation/main.cpp) — 입력/모델 검증  
     - 필드 규칙 정의, 체이닝 검증, 에러 메시지 집계.  
-- xml — XML 파싱·직렬화  
+- [xml](example/core/xml/main.cpp) — XML 파싱·직렬화  
     - DOM/스트리밍 파싱, 네임스페이스·XPath 유사 접근 예.  
-- yaml — YAML 파싱·직렬화  
-    - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.  
+- [yaml](example/core/yaml/main.cpp) — YAML 파싱·직렬화  
+    - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
-- json — nlohmann::json 확장 연동  
+- [json](example/external/json/main.cpp) — nlohmann::json 확장 연동  
     - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
 - `log` — 외부 로깅 어댑터/팩토리  
-    - adapter — 내부 로그 추상화층에 외부 로거 연결 예.  
-    - factory — 런타임 로거 구성 변경·팩토리 패턴 예.  
-    - spd — spdlog 연동: sink/formatter/비동기 설정 예.  
+    - [adapter](example/external/log/adapter/main.cpp) — 내부 로그 추상화층에 외부 로거 연결 예.  
+    - [factory](example/external/log/factory/main.cpp) — 런타임 로거 구성 변경·팩토리 패턴 예.  
+    - [spd](example/external/log/spd/main.cpp) — spdlog 연동: sink/formatter/비동기 설정 예.  
 - `schedule` — 외부 스케줄러 연동  
-    - weekly — 외부 스케줄러 어댑터 통합 예.  
+    - [weekly](example/external/schedule/weekly/main.cpp) — 외부 스케줄러 어댑터 통합 예.  
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
 - `download` — 다운로드 클라이언트
-    - curl — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
-    - httplib — httplib 기반 간단 HTTP 다운로드 예.  
+    - [curl](example/network/download/curl/main.cpp) — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
+    - [httplib](example/network/download/httplib/main.cpp) — httplib 기반 간단 HTTP 다운로드 예.  
 - `ftp` — FTP 연동
-    - curl — curl을 이용한 업/다운로드, 인증 처리 예.  
-    - tcp — 저수준 TCP로 FTP 프로토콜 처리하는 실습 예.  
-- interface — 네트워크 추상화  
+    - [curl](example/network/ftp/curl/main.cpp) — curl을 이용한 업/다운로드, 인증 처리 예.  
+    - [tcp](example/network/ftp/tcp/main.cpp) — 저수준 TCP로 FTP 프로토콜 처리하는 실습 예.  
+- [interface](example/network/interface/main.cpp) — 네트워크 추상화  
     - 플랫폼 간 소켓 추상화, 동기/비동기 IO 모델 비교 예.  
 - `log` — 네트워크 로깅
-    - manager — 원격 로그 전송 파이프라인과 설정 예(`logger_manager_config.ini`).  
+    - [manager](example/network/log/manager/main.cpp) — 원격 로그 전송 파이프라인과 설정 예(`logger_manager_config.ini`).  
 - `memory_store` — 네트워크 기반 메모리 저장소  
-    - client / server — 간단한 키-값 프로토콜, 동시성/직렬화 예.  
+    - [client](example/network/memory_store/client/main.cpp)
+    - [server](example/network/memory_store/server/main.cpp)
 - `message_broker` — 분산 메시지 브로커  
     - broker — 퍼블리시/구독 모델, 토픽 라우팅 예.  
     - pub / sub — 퍼블리셔/구독자 샘플과 직렬화 포맷.  
