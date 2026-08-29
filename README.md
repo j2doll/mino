@@ -18,7 +18,7 @@
 
 ### 예제 
 #### `example` <sub> 예제 루트 경로 </sub>
-##### `core` <sub> 코어 라이브러리 예제 </sub>
+##### ⚙️ `core` <sub> 코어 라이브러리 예제 </sub>
 - [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리  
     - 초기화 및 크기 관리, 비트 조작, 슬라이싱 & 병합, 연산자 오버로딩
     - 변환·디버깅: 변환, 비트 순서 역전, 출력 포맷 예시.
@@ -107,7 +107,7 @@
     - DOM/스트리밍 파싱, 네임스페이스·XPath 유사 접근 예.  
 - yaml — YAML 파싱·직렬화  
     - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.  
-##### `external` <sub> 외부 라이브러리 사용 예제 </sub>
+##### 📦 `external` <sub> 외부 라이브러리 사용 예제 </sub>
 - json — nlohmann::json 확장 연동  
     - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
 - `log` — 외부 로깅 어댑터/팩토리  
@@ -116,7 +116,7 @@
     - spd — spdlog 연동: sink/formatter/비동기 설정 예.  
 - `schedule` — 외부 스케줄러 연동  
     - weekly — 외부 스케줄러 어댑터 통합 예.  
-##### `network` <sub> 네트워크 관련 예제 </sub>
+##### 🔀 `network` <sub> 네트워크 관련 예제 </sub>
 - `download` — 다운로드 클라이언트
     - curl — libcurl 기반 다운로드: 파일/스트림, 재시도, 프로그레스 처리.  
     - httplib — httplib 기반 간단 HTTP 다운로드 예.  
@@ -146,7 +146,7 @@
     - receiver / sender — 비연결 전송, 멀티캐스트·브로드캐스트 예.  
 - util — 네트워크 헬퍼  
     - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸 예.  
-##### `template` <sub> 템플릿 예제 프로젝트 </sub> 
+##### 🧱 `template` <sub> 템플릿 예제 프로젝트 </sub> 
 - mino_all_example — 코어·외부·네트워크 통합 예: 앱 초기화·모듈 통합 흐름 시연.  
 - mino_core_example — 코어 기능만으로 구성한 최소 실행 샘플.  
 - mino_external_example — vcpkg로 설치한 외부 종속성과의 통합 흐름 예.  
