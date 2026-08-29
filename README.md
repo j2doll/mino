@@ -19,94 +19,83 @@
 ### 예제
 #### [example](example/) <sub> 예제 루트 경로 </sub>
 ##### ⚙️ [core](example/core) <sub> 코어 라이브러리 예제 </sub>
-- [bit](example/core/bit/main.cpp) — 비트 연산 및 비트맵 처리  
-    - 초기화 및 크기 관리, 비트 조작, 슬라이싱 & 병합, 연산자 오버로딩
-    - 변환·디버깅: 변환, 비트 순서 역전, 출력 포맷 예시.
-- [broker](example/core/broker/main.cpp) — 로컬/경량 메시지 브로커  
-    - 타입과 이름(문자열)을 키로 객체를 등록·조회하는 서비스 로케이터 예제.  
-- [config](example/core/config/main.cpp) — 설정 파일 로드·파싱  
-    - 설정 파일의 주석·데이터 라인 분리와 타입별 안전 조회 예제입니다.  
-- [container](example/core/container/main.cpp) — 컨테이너 유틸리티  
-    - 컨테이너 어댑터, 범용 반복자 유틸, 변환·검색 편의 함수 사용 예제.  
-    - 사용 패턴: 복합 컨테이너 조작, 성능/메모리 고려된 반복 및 뷰 활용 사례.  
-- [convert](example/core/convert/main.cpp) — 데이터 변환·직렬화  
-    - 문자열↔숫자/시간 변환, 바이트 오더 변환, Base64/Hex 인코딩·디코딩 예제.  
-    - 사용자 타입 직렬화: 구조체 ↔ 바이너리/문자열 직렬화 샘플과 에러 처리 관례.  
-- [crypt](example/core/crypt/main.cpp) — 암호화·복호화  
-    - 대칭/비대칭 암호화, 해시(sha/md), HMAC, 키 파생(KDF) 기본 사용 예.  
-    - 스트림 암복호화: 파일·스트림에 대한 블록 처리와 패딩/IV 관리 예.  
-- [csv](example/core/csv/main.cpp) — CSV 입출력 및 파싱
-    - 구분자·인용 처리, 스트리밍 파싱 및 대용량 파일 처리 패턴.  
-    - 매핑·검증: 필드 매핑, 타입 변환, 오류 라인 건너뛰기/보고 방식 예시.  
-- [daemon](example/core/daemon/main.cpp) — 데몬/서비스 실행  
-    - POSIX/Windows 서비스 초기화, 백그라운드 전환, 신호 및 종료 핸들링 패턴.  
-    - 운영 관례: PID 파일 관리, 로그 초기화, 안전한 종료 시퀀스 예.  
-- `datetime` - 날짜·시간 처리 
-    - [unit](example/core/datetime/unit/main.cpp) — 날자/시간 처리 단위 클래스
-    - [util](example/core/datetime/util/main.cpp) — 포맷/파싱, ISO 표기, 타임존 보정 등
-- [encoding](example/core/encoding/main.cpp) — 문자 인코딩·디코딩  
+- [bit](example/core/bit/main.cpp)
+   - 비트 단위 연산
+- [broker](example/core/broker/main.cpp)
+   - 인메모리+경량 메시지 브로커
+- [config](example/core/config/main.cpp)
+   - 설정 파일(`.config`) 읽기 기능
+- [container](example/core/container/main.cpp) 
+    - `std::`의 `container`를 확장한 컨테이너들
+- [convert](example/core/convert/main.cpp)
+    - 문자열 ↔ 숫자(정수,실수) 변환
+- [crypt](example/core/crypt/main.cpp)
+    - 암복호화(키 사용, 키 미사용)
+- [csv](example/core/csv/main.cpp)
+    - `.csv` 파일 입출력 및 파싱
+- [daemon](example/core/daemon/main.cpp)
+    - 상주형 데몬 예제.
+- `datetime` : 날짜·시간 처리 
+    - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
+    - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
+- [encoding](example/core/encoding/main.cpp)
+    - 한글 문자 인코딩·디코딩
     - UTF-8/16/32 변환, BOM 처리, 로케일별 콘솔 출력 예시로 다국어 대응.  
-- [enum](example/core/enum/main.cpp) — 열거형 헬퍼  
-    - enum↔문자열 변환, 비트플래그 조작, 안전한 직렬화/파싱 예제.  
-- [expected](example/core/expected/main.cpp) — `expected<T,E>` 스타일 오류 처리  
-    - 성공·실패 체이닝, 에러 전파 예제 및 디버깅용 메시지 수집 패턴.  
-- [file](example/core/file/main.cpp) — 파일 I/O 유틸  
-    - 원자적 쓰기(atomic write), 파일 잠금(lock), 메모리 매핑, 임시 파일 안전 사용법.  
-- [hash](example/core/hash/main.cpp) — 해시·체크섬 생성  
-    - MD5/SHA/CRC 등 해시 생성과 스트림/파일 연동 사용 예.  
-- [ini](example/core/ini/main.cpp) — INI 파서  
-    - 섹션·키 파싱, 원본 주석 보존, 타입별 안전 조회(`sample.ini` 포함).  
-- [json](example/core/json/main.cpp) — JSON 직렬화/역직렬화  
-    - nlohmann::json 연동, 사용자 타입 어댑터, 스트림 입출력 및 성능 팁.  
-- [log](example/core/log/main.cpp) — 로깅 사용 예  
-    - 로거 초기화, 레벨·포맷 설정, sink 교체 및 비동기 로깅 설정 예.  
-- [macro](example/core/macro/main.cpp) — 매크로·템플릿 메타프로그래밍  
-    - 컴파일 타임 유틸리티, SFINAE/컨셉 기반 예제, 안전한 매크로 패턴.  
-- [memory](example/core/memory/main.cpp) — 메모리 유틸리티  
-    - 풀 allocator, 스마트 포인터 확장, 메모리 누수 검사 보조 유틸.  
-- [notification](example/core/notification/main.cpp) — 단일 알림 패턴  
-    - 콜백 등록/해제, 동기·비동기 알림 처리 예.  
-- [notifications](example/core/notifications/main.cpp) — 복합 알림·구독  
-    - 토픽 기반 배포, 다중 구독자, 필터링 및 스레드 안전 배포 예.  
-- [overload](example/core/overload/main.cpp) — 오버로드 유틸  
-    - 여러 callable 결합, 오버로드 해상도 예시, 가변 인자 처리 패턴.  
-- [pfr](example/core/pfr/main.cpp) — 플랫 리플렉션(PFR) 예제  
-    - 구조체 필드 자동 접근·순회, 자동 직렬화·비교 샘플.  
-- [process_util](example/core/process_util/main.cpp) — 프로세스 유틸리티  
-    - 자식 프로세스 실행·출력 캡처·타임아웃 처리 및 종료 코드 분석.  
-- [reflect](example/core/reflect/main.cpp) — 리플렉션·메타데이터  
-    - 런타임/컴파일타임 리플렉션 사용 패턴, 메타데이터 주입 예.  
-- [resilience](example/core/resilience/main.cpp) — 복원력 패턴  
-    - 재시도 전략, 지수 백오프, 서킷 브레이커 기본 예제.  
-- [result](example/core/result/main.cpp) — `result<T,E>` 관례 예제  
-    - 에러 캡슐화, 안전한 전파·변환 패턴.  
+- [enum](example/core/enum/main.cpp)
+    - 열거(`enum`) ↔ 문자열 변환
+- [expected](example/core/expected/main.cpp)
+    - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
+- [file](example/core/file/main.cpp)
+    - 실행 프로그램 경로/파일명 얻기. UTF-8 한글 경로.
+    - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
+- [hash](example/core/hash/main.cpp) 
+    - MD5/SHA/CRC 등 해시.
+- [ini](example/core/ini/main.cpp)
+    - `.ini` 파일 파서  
+- [json](example/core/json/main.cpp)
+    - `.json` 직렬화/역직렬화  
+- [log](example/core/log/main.cpp)
+    - 콘솔 로깅 싱크, 파일 로깅 싱크, 싱크 통합 로거
+- [macro](example/core/macro/main.cpp)
+    - `TRY_OPT`(함수 시도) 계열 매크로
+- [memory](example/core/memory/main.cpp)
+    - 메모리 직렬화/역직렬화. 딥 카피.
+- [notification](example/core/notification/main.cpp)
+    - 옵저버 등록 및 경고 알림.
+- [notifications](example/core/notifications/main.cpp)
+    - 이벤트 등록 및 알림/해제. 
+- [overload](example/core/overload/main.cpp)
+    - 다중 타입 처리.
+- [pfr](example/core/pfr/main.cpp) : 플랫 리플렉션(PFR)
+    - 구조체 필드의 값 및 타입 접근. 
+- [process_util](example/core/process_util/main.cpp)
+    - 프로세스 목록 및 정보 얻기.
+- [reflect](example/core/reflect/main.cpp)
+    - 구조체 직렬화/역직렬화 매크로.
+- [resilience](example/core/resilience/main.cpp) : 복원력 패턴  
+    - 재시도 전략, 지수 백오프, 서킷 브레이커.
+- [result](example/core/result/main.cpp)
+    - 타입 별 성공/실패 처리.
 - `schedule`  
-    - [task](example/core/schedule/task/main.cpp) — 단일/지연/주기 작업 등록·취소 예  
-    - [weekly](example/core/schedule/weekly/main.cpp) — 요일 기반 반복 작업 스케줄 예  
-- [server](example/core/server/main.cpp) — 간단 서버 예제  
-    - 요청 수신·응답 루프, 멀티스레드 처리 골격, 종료 관리.  
-- [service](example/core/service/main.cpp) — 서비스 레이어 샘플  
-    - 비즈니스 로직 분리, 의존성 주입·인터페이스 모킹 예.  
-- [shared_memory](example/core/shared_memory/main.cpp) — 공유 메모리 IPC  
+    - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
+    - [weekly](example/core/schedule/weekly/main.cpp) : 주단위 반복 작업 스케줄
+- [server](example/core/server/main.cpp) 
+    - 서버를 위한 기본 구조
+- [service](example/core/service/main.cpp) 
+    - 서비스 등록, 시작/중지, 상태 확인
+- [shared_memory](example/core/shared_memory/main.cpp) : 공유 메모리 IPC  
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
-- [singleton](example/core/singleton/main.cpp) — 싱글톤 패턴  
-    - 안전한 지연 초기화, 멀티스레드 환경에서의 접근 패턴.  
-- [string](example/core/string/main.cpp) — 문자열 유틸리티  
-    - 트림/스플릿/포맷/유효성 검사, 성능 고려 사례.  
-- [system](example/core/system/main.cpp) — 시스템 헬퍼  
-    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회 예.  
-- [thread](example/core/thread/main.cpp) — 스레드·동시성 유틸  
-    - 스레드풀, 동기화 프리미티브, 작업 큐 패턴.  
-- [tpm](example/core/tpm/main.cpp) — TPM(보안 모듈) 워크플로우  
-    - TPM 초기화, 키 생성·서명·검증(실환경에서 동작 여부 확인 필요).  
-- [uuid](example/core/uuid/main.cpp) — UUID 생성·파싱  
-    - 버전별 생성, 문자열 ↔ UUID 변환, 비교 예제.  
-- [validation](example/core/validation/main.cpp) — 입력/모델 검증  
-    - 필드 규칙 정의, 체이닝 검증, 에러 메시지 집계.  
-- [xml](example/core/xml/main.cpp) — XML 파싱·직렬화  
-    - DOM/스트리밍 파싱, 네임스페이스·XPath 유사 접근 예.  
-- [yaml](example/core/yaml/main.cpp) — YAML 파싱·직렬화  
-    - 설정 로드, 노드 탐색, 사용자 타입 매핑 예.
+- [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
+- [string](example/core/string/main.cpp) : 문자열 유틸리티
+    - <sub> Trim, Replace, Case, Contains, Starts/Ends With, Split and Join, Whitespace / Newline Normalization, Padding / Repeat / Quotes / Indent, Prefix/Suffix removal, Safe Substr & Ellipsize, Parsing & Wildcard, Korean numeric formatters, tokenizer, to_string, mutex_string, u8string, encoding_function, to_console_encoding </sub>
+- [system](example/core/system/main.cpp)
+    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.  
+- [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
+- [tpm](example/core/tpm/main.cpp) : 인메모리 TP 모니터
+- [uuid](example/core/uuid/main.cpp) : 고유 ID 생성·파싱  
+- [validation](example/core/validation/main.cpp) : 필드 검증
+- [xml](example/core/xml/main.cpp) : `.xml` 파싱·직렬화
+- [yaml](example/core/yaml/main.cpp) : `.yaml` 파싱·직렬화
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
 - [json](example/external/json/main.cpp) — nlohmann::json 확장 연동  
     - 외부 JSON 라이브러리 커스터마이즈, 사용자 타입 어댑터 및 성능 팁.  
