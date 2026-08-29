@@ -107,7 +107,7 @@
       - [receiver](example/network/udp/receiver/main.cpp) — UDP 수신 예제
       - [sender](example/network/udp/sender/main.cpp) — UDP 전송 예제
     - [util](example/network/util/main.cpp) — 네트워크 유틸리티/헬퍼
-  - `template` — 여러 예제 조합/템플릿 프로젝트
+  - `template` — 예제 템플릿 프로젝트
     - [mino_all_example](example/template/mino_all_example/main.cpp) — 전체 기능을 조합한 통합 예제
     - [mino_core_example](example/template/mino_core_example/main.cpp) — 코어 기능 중심 예제
     - [mino_external_example](example/template/mino_external_example/main.cpp) — 외부 라이브러리 연동 예제
