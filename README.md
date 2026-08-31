@@ -26,9 +26,10 @@
 - 🏛️ [broker](example/core/broker/main.cpp)
    - 인메모리+경량 메시지 브로커
 - 🏛️ [config](example/core/config/main.cpp)
-   - 설정 파일(`.config`) 읽기 기능
+   - [설정 파일(`.config`)](example/core/config/app_config.conf) 읽기 기능
 - 🏛️ [container](example/core/container/main.cpp) 
     - `std::`의 `container`를 확장한 컨테이너들
+    - <sub> [bimap](mino/core/include/mino/core/container/bimap.hpp), binomial_heap, circular_buffer, concurrent_queue, container, devector, d_ary_heap, fibonacci_heap, flat_map, flat_multimap, flat_multiset, flat_set, multi_array, multi_index_container, pairing_heap, priority_queue, skew_heap, small_vector, stable_vector, static_vector, topic_queue </sub>
 - 🏛️ [convert](example/core/convert/main.cpp)
     - 문자열 ↔ 숫자(정수,실수) 변환
 - 🏛️ [crypt](example/core/crypt/main.cpp)
