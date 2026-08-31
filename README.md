@@ -2,7 +2,7 @@
 
 > :kr: **This project and the documentation were written in Korean.**
 
-<img src="docs/images/mino_logo.png" width="100%" />
+<img src="docs/images/mino-logo.png" width="100%" />
 
 ## 개요
 
