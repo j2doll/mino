@@ -323,12 +323,13 @@ mino/
 - MIT License
    - 상세 내용 [LICENSE](LICENSE) 참고
 #### 외부 라이브러리 라이선스
-##### 소스 포함 
-- [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
-- [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
-##### 외부 사용
-- [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
-- [libssh2](https://www.libssh2.org/) : BSD-3 License
-- [openssl](https://www.openssl.org/) : Apache License 2.0
-- [brotli](https://github.com/google/brotli) : MIT License
+- 📦 `external` 모듈
+    - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
+    - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
+- 🔀 `network` 모듈
+    - [openssl](https://www.openssl.org/) : Apache License 2.0
+    - [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
+    - [brotli](https://github.com/google/brotli) : MIT License- 
+    - [libssh2](https://www.libssh2.org/) : BSD-3 License
+
 
