@@ -42,8 +42,7 @@
     - 🏛️ [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
     - 🏛️ [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
 - 🏛️ [encoding](example/core/encoding/main.cpp)
-    - 한글 문자 인코딩·디코딩
-    - UTF-8/16/32 변환, BOM 처리, 로케일별 콘솔 출력 예시로 다국어 대응.  
+    - Base64 인코딩/디코딩.
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
