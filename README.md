@@ -2,13 +2,13 @@
 
 > :kr: **This project and the documentation were written in Korean.**
 
-<p align="center"><picture><img src="docs/images/mino_logo.svg" width="70%" alt="" /></picture></p>
+<p align="center"><picture><img src="docs/images/mino_logo.svg" width="50%" alt="" /></picture></p>
 
 ## 개요
 
 ### 프로젝트 개요
-- `mino`는 `C++` 기반의 범용 라이브러리.
-- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공 목표.
+- `mino`는 `C++` 기반의 범용 라이브러리 입니다.
+- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공이 목표입니다.
 
 ### 아키텍처 요약
 - 🏛️ [**core**](mino/core/include/mino/core)
