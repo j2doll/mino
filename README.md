@@ -35,7 +35,7 @@
 - 🏛️ [crypt](example/core/crypt/main.cpp)
     - 암복호화(키 사용, 키 미사용)
 - 🏛️ [csv](example/core/csv/main.cpp)
-    - `.csv` 파일 입출력 및 파싱
+    - `.csv` 파일 입출력 및 파싱. 엑셀용 `csv` 파일 생성.
 - 🏛️ [daemon](example/core/daemon/main.cpp)
     - 상주형 데몬 예제.
 - `datetime` : 날짜·시간 처리 
@@ -52,7 +52,7 @@
     - 실행 프로그램 경로/파일명 얻기. UTF-8 한글 경로.
     - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
 - 🏛️ [hash](example/core/hash/main.cpp) 
-    - MD5/SHA/CRC 등 해시.
+    - MD5, SHA-256, HMAC-SHA256, KDF(PBKDF2)
 - 🏛️ [ini](example/core/ini/main.cpp)
     - [`.ini`](example/core/ini/sample.ini) 파일 파서
 - 🏛️ [json](example/core/json/main.cpp)
@@ -79,9 +79,9 @@
     - 재시도 전략, 지수 백오프, 서킷 브레이커.
 - 🏛️ [result](example/core/result/main.cpp)
     - 타입 별 성공/실패 처리.
-- 🏛️ `schedule`  
-    - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
-    - [weekly](example/core/schedule/weekly/main.cpp) : 주단위 반복 작업 스케줄
+- `schedule`  
+    - 🏛️ [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
+    - 🏛️ [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
 - 🏛️ [server](example/core/server/main.cpp) 
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 
