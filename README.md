@@ -291,28 +291,28 @@ cmake --install build
 - 🏛️ 설치 후 디렉토리 구조 확인
 ```
 C:\opt>eza --tree mino
-mino/
-+- include/
-|   +- mino/
-|       +- xxx/
-|           +- xxx.hpp
-+- lib/
-|   +- cmake/
-|   +- libmino_*.lib
-+- use-cmake/
+📁 mino/
+ +- 📁 include/
+ |   +- 📁 mino/
+ |       +- 📁 xxx/
+ |           +- 📄 xxx.hpp
+ +- 📁 lib/
+ |   +- 📁 cmake/
+ |   +- 📄 libmino_*.lib
+ +- 📁 use-cmake/
 ```
 
 ```
 $ eza --tree mino
-mino/
-+- include/
-|   +- mino/
-|       +- xxx/
-|           +- xxx.hpp
-+- lib/
-|   +- cmake/
-|   +- libmino_*.a
-+- use-cmake
+📁 mino/
+ +- 📁 include/
+ |   +- 📁 mino/
+ |       +- 📁 xxx/
+ |           +- 📄 xxx.hpp
+ +- 📁 lib/
+ |   +- 📁 cmake/
+ |   +- 📄 libmino_*.a
+ +- 📁  use-cmake/
 ```
 
 <br />
@@ -322,7 +322,7 @@ mino/
 ### ©️ 라이선스
 - MIT License
    - 상세 내용 [LICENSE](LICENSE) 참고
-#### 외부 라이브러리 라이선스
+#### 📜 외부 라이브러리 라이선스
 - 📦 `external` 모듈
     - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
     - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
