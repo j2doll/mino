@@ -2,6 +2,8 @@
 
 > :kr: **This project and the documentation were written in Korean.**
 
+<image src="docs/images/mino_logo.png" width="100%" />
+
 ## 개요
 
 ### 프로젝트 개요
