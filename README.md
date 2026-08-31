@@ -17,7 +17,7 @@
    - 네트워크 기능 모듈.
 
 ### 예제
-#### [example](example/) <sub> 예제 루트 경로 </sub>
+#### 💡 [example](example/) <sub> 예제 루트 경로 </sub>
 ##### ⚙️ [core](example/core) <sub> 코어 라이브러리 예제 </sub>
 - [bit](example/core/bit/main.cpp)
    - 비트 단위 연산
@@ -292,30 +292,28 @@ cmake --install build
 - 🚀 설치 후 디렉토리 구조 확인
 ```
 C:\opt>eza --tree mino
-mino
-├── include
-│   └── mino
-│       └── xxx
-│           └── xxx.hpp
-└── lib
-    ├── cmake
-    │   └── mino
-    │       └── *.cmake
-    └── mino_core.lib
+mino/
++- include/
+|   +- mino/
+|       +- xxx/
+|           +- xxx.hpp
++- lib/
+|   +- cmake/
+|   +- libmino_*.lib
++- use-cmake/
 ```
 
 ```
 $ eza --tree mino
-mino
-├── include
-│   └── mino
-│       └── xxx
-│           └── xxx.hpp
-└── lib
-    ├── cmake
-    │   └── mino
-    │       └── *.cmake
-    └── libmino_core.a
+mino/
++- include/
+|   +- mino/
+|       +- xxx/
+|           +- xxx.hpp
++- lib/
+|   +- cmake/
+|   +- libmino_*.a
++- use-cmake
 ```
 
 <br />
@@ -336,3 +334,4 @@ mino
 - [libssh2](https://www.libssh2.org/) : BSD-3 License
 - [openssl](https://www.openssl.org/) : Apache License 2.0
 - [brotli](https://github.com/google/brotli) : MIT License
+
