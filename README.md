@@ -149,7 +149,7 @@
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
 - `Visual Studio` (2022 이상)
-- `cmake` (3.30 이상)
+- `cmake` (3.24 이상)
 - `ninja` (1.12.1 이상)
 - `vcpkg` (2023.06 이상)
     - `Visual Studio` : `vcpkg integrate install` 명령 실행
@@ -161,7 +161,7 @@
         }
     }
     ```
-    - `CMakeSettings.json` 설정 (MSVC 전용 설정 파일)
+    - `CMakeSettings.json` 설정 (`MSVC` 전용 설정 파일)
     ```json
      {
         // ...
@@ -173,12 +173,12 @@
         }
      }
     ```
-#### 🐧 Linux 환경 🧩
+#### 🐧 Linux 환경 
 - `gcc` (8.5 이상)
-- `cmake` (3.26 이상) 
+- `cmake` (3.24 이상)
 - `ninja` (1.8.2 이상)
 
-#### 외부 라이브러리 설치
+#### 🧩 외부 라이브러리 설치
 - `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
 # Rocky 8
@@ -319,15 +319,13 @@ mino/
 
 ---
 
-### 라이선스
+### ©️ 라이선스
 - MIT License
-   - 상세 내용은 [LICENSE](LICENSE) 참고
-
-#### 외부 라이브러리
+   - 상세 내용 [LICENSE](LICENSE) 참고
+#### 외부 라이브러리 라이선스
 ##### 소스 포함 
 - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
 - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
-
 ##### 외부 사용
 - [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
 - [libssh2](https://www.libssh2.org/) : BSD-3 License
