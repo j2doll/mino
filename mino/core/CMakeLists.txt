@@ -13,10 +13,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. External dependency configuration
 
-# 3-0. Threads
+# 3-1. Threads
 find_package(Threads REQUIRED)
 
 # 4. Create a library and configure the source code
+
+# 4-1. Create a library
 file(
     GLOB_RECURSE SRC_FILES
     CONFIGURE_DEPENDS
@@ -26,15 +28,18 @@ file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
 add_library(mino_core STATIC ${SRC_FILES})
+
+# 4-2. Visual Studio setting
 if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
+
+# 4-3. gcc setting
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_core PUBLIC -Wno-free-nonheap-object)
 endif()
 
-# Ensure consumers of the static library also link the threading library.
-# This propagates the necessary pthread linkage to executables that link `mino_core`.
+# 4-4. Link the Threads library 
 target_link_libraries(mino_core PUBLIC Threads::Threads)
 
 # 5. Specify the header file path
@@ -59,3 +64,4 @@ install(
 # 7. Public header file installation (copy the entire folder)
 # Set the mino folder inside include/ as the target to maintain the include/mino/core/ structure.
 install(DIRECTORY include/mino DESTINATION include)
+

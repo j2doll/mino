@@ -10,7 +10,6 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
  
-
 # 3. External dependency configuration
 
 # 3-1. Threads
@@ -20,7 +19,7 @@ find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
 
-# Create ALIAS targets only if the upstream build actually created 'crypto' and 'ssl' targets.
+# 3-2-1. Create ALIAS targets only if the upstream build actually created 'crypto' and 'ssl' targets.
 if(TARGET crypto AND TARGET ssl)
     add_library(OpenSSL::Crypto ALIAS crypto)
     add_library(OpenSSL::SSL ALIAS ssl)
@@ -69,6 +68,8 @@ else()
 endif()
 
 # 4. Configure the library source code
+
+# 4-1. Create a library
 file(
     GLOB_RECURSE SRC_FILES
     CONFIGURE_DEPENDS
@@ -78,9 +79,13 @@ file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
 add_library(mino_network STATIC ${SRC_FILES})
+
+# 4-2. Visual Studio setting
 if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
+
+# 4-3. gcc setting
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_network PUBLIC -Wno-free-nonheap-object)
     target_compile_options(mino_network PUBLIC -Wno-deprecated-literal-operator)
@@ -97,10 +102,9 @@ target_include_directories(
 # 6. Link external libraries
 
 # 6-1. Threads link settings
-# Ensure consumers of the static library also link the threading library.
-# This propagates the necessary pthread linkage to executables that link `mino_network`.
 target_link_libraries(mino_network PUBLIC Threads::Threads)
 
+# 6-2. Winsock link settings (Windows only)
 if(WIN32)
     # Link winsock library (Windows only)
     target_link_libraries(mino_network PRIVATE ws2_32)
@@ -112,10 +116,12 @@ endif()
 # 6-2. OpenSSL link settings
 set(MINO_OPENSSL_LINKS "")
 
+# 6-2-1. Create ALIAS targets only if the upstream build actually created 'crypto' and 'ssl' targets.
 if(TARGET OpenSSL::Crypto AND TARGET OpenSSL::SSL)
     set(MINO_OPENSSL_LINKS OpenSSL::Crypto OpenSSL::SSL)
 endif()
 
+# 6-2-2. If the ALIAS targets were not created, fall back to the imported targets provided by find_package(OpenSSL)
 if(MINO_OPENSSL_LINKS)
     target_link_libraries(mino_network PUBLIC ${MINO_OPENSSL_LINKS})
     # Define USE_OPENSSL so source files can use #if USE_OPENSSL
@@ -135,6 +141,7 @@ if(TARGET CURL::libcurl)
     set(MINO_CURL_LINKS CURL::libcurl)
 endif()
 
+# 6-3-1. If the ALIAS target was not created, fall back to the imported target provided by find_package(CURL)
 if(MINO_CURL_LINKS)
     target_link_libraries(mino_network PUBLIC ${MINO_CURL_LINKS})
     # Define USE_CURL so curl-backed implementation files (guarded by #ifdef USE_CURL)
@@ -177,3 +184,5 @@ install(
 
 # 9. Install header files as well
 install(DIRECTORY include/mino DESTINATION include)
+
+

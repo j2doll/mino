@@ -16,6 +16,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
  
 # 4. Create a library and configure the source code
+
+# 4-1. Create a library
 file(
   GLOB_RECURSE SRC_FILES
   CONFIGURE_DEPENDS
@@ -25,15 +27,21 @@ file(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
 add_library(mino_external STATIC ${SRC_FILES})
+
+# 4-2. Visual Studio setting
 if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
+
+# 4-3. gcc setting
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
 endif()
 
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
+
+# 5-1. Specify the header file path for mino_external
 target_include_directories(
   mino_external
   PUBLIC
@@ -41,9 +49,7 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-# Use generator expressions for the third-party headers so an absolute
-# source-tree path is not exported into the installed target's
-# INTERFACE_INCLUDE_DIRECTORIES (this caused the CMake error).
+# 5-2. Specify the header file path for third-party libraries used by mino_external
 target_include_directories(mino_external PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
   $<INSTALL_INTERFACE:include/mino/external/third-party>
@@ -70,3 +76,4 @@ install(
 # 9. Install public header files (copy the entire folder)
 # Set the mino folder inside include/ as the target to maintain the include/mino/core/ structure.
 install(DIRECTORY include/mino DESTINATION include)
+
