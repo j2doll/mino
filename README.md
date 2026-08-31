@@ -33,7 +33,7 @@
 - 🏛️ [convert](example/core/convert/main.cpp)
     - 문자열 ↔ 숫자(정수,실수) 변환
 - 🏛️ [crypt](example/core/crypt/main.cpp)
-    - 암복호화(키 사용, 키 미사용)
+    - 암복호화 (키 사용/미사용 방식)
 - 🏛️ [csv](example/core/csv/main.cpp)
     - `.csv` 파일 입출력 및 파싱. 엑셀용 `csv` 파일 생성.
 - 🏛️ [daemon](example/core/daemon/main.cpp)
@@ -73,7 +73,7 @@
 - 🏛️ [process_util](example/core/process_util/main.cpp)
     - 프로세스 목록 및 정보 얻기.
 - 🏛️ [reflect](example/core/reflect/main.cpp)
-    - 구조체 직렬화/역직렬화 매크로.
+    - 구조체의 직렬화/역직렬화 매크로.
 - 🏛️ [resilience](example/core/resilience/main.cpp) : 복원력 패턴  
     - 재시도 전략, 지수 백오프, 서킷 브레이커.
 - 🏛️ [result](example/core/result/main.cpp)
@@ -90,12 +90,12 @@
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
     - <sub> Trim, Replace, Case, Contains, Starts/Ends With, Split and Join, Whitespace / Newline Normalization, Padding / Repeat / Quotes / Indent, Prefix/Suffix removal, Safe Substr & Ellipsize, Parsing & Wildcard, Korean numeric formatters, tokenizer, to_string, mutex_string, u8string, encoding_function, to_console_encoding </sub>
-- 🏛️ [system](example/core/system/main.cpp)
-    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.  
+- 🏛️ [system](example/core/system/main.cpp) 
+    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
 - 🏛️ [tpm](example/core/tpm/main.cpp) : 인메모리 TP 모니터
 - 🏛️ [uuid](example/core/uuid/main.cpp) : 고유 ID 생성·파싱  
-- 🏛️ [validation](example/core/validation/main.cpp) : 필드 검증
+- 🏛️ [validation](example/core/validation/main.cpp) : 이메일, 전화번호, URL, IP, Base64, HEX 색, JSON, 주민번호 검증
 - 🏛️ [xml](example/core/xml/main.cpp) : `.xml` 파싱·직렬화
 - 🏛️ [yaml](example/core/yaml/main.cpp) : `.yaml` 파싱·직렬화
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
