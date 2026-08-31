@@ -6,11 +6,60 @@
 #include <initializer_list>
 #include <utility>
 #include <optional>
+#include <iostream>
+#include <string>
+
+// ============+====================+====================+==================
+// 항목        |  std::vector       |  std::deque        |  stable_vector
+// ------------+--------------------+--------------------+------------------
+// 메모리 구조 | 단일 연속 배열     | 다중 청크(Chunk)   | 간접 참조 포인터 테이블
+// 요소 메모리 | 재할당 시 전체 이동| 청크 내 이동       | 노드 개별 할당 (주소 불변)
+// 참조 안정성 | 재할당 시 무효화   | 양 끝 삽입 시 무효 | 영구 불변 (절대 무효화 안 됨)
+// ------------+--------------------+--------------------+------------------
+// 임의 접근   | O(1) (최속)        | O(1) (2중 역참조)  | O(1) (2중 역참조)
+// 캐시 효율성 | 최상 (연속 메모리) | 우수               | 보통 (포인터 역참조)
+// 삽입 (뒤쪽) | O(1) [상환]        | O(1)               | O(1) [상환]
+// ------------+--------------------+--------------------+------------------
+// 실무 추천   | 범용 연속 컨테이너 | 양방향 큐          | 원소의 포인터/참조를 외부에
+//             |                    |                    | 안전하게 보관해야 하는 경우
+// ============+====================+====================+==================
+//
+// stable_vector는 내부적으로 포인터 인덱스 테이블(std::vector<T*>)을 유지하여
+// 벡터가 재할당(Reallocation)되더라도 기존 요소의 메모리 주소와 참조가
+// 절대 무효화되지 않는(Stable Reference) 컨테이너입니다.
+//
+// stable_vector<int> sv;
+// 
+// // [1] 요소 추가
+// sv.push_back(10);
+// sv.push_back(20);
+// 
+// // [2] 요소의 주소 및 참조 보관 (안정성 테스트)
+// int* ptr10 = &sv[0];
+// int& ref20 = sv[1];
+// 
+// // [3] 대량 삽입으로 내부 벡터 재할당 유발
+// for (int i = 30; i <= 100; i += 10) {
+//     sv.push_back(i);
+// }
+// 
+// // 재할당 후에도 이전에 얻은 포인터와 참조가 100% 안전하게 유지됨
+// std::cout << "*ptr10: " << *ptr10 << std::endl; // 10
+// std::cout << "ref20: "  << ref20  << std::endl; // 20
+// 
+// // [4] 임의 접근 및 수정
+// sv[0] = 99;
+// std::cout << "*ptr10 after update: " << *ptr10 << std::endl; // 99
+// 
+// // [5] 초기화
+// sv.clear();
+// std::cout << "Is empty: " << sv.empty() << std::endl; // 1 (true)
+// 
 
 namespace mino::core::container {
 
     template <typename T, typename Allocator = std::allocator<T>>
-    class  stable_vector {
+    class stable_vector {
     private:
         using ptr_allocator_t = typename std::allocator_traits<Allocator>::template rebind_alloc<T*>;
         std::vector<T*, ptr_allocator_t> m_impl;
@@ -117,7 +166,10 @@ namespace mino::core::container {
             return *this;
         }
 
-        stable_vector(stable_vector&& other) noexcept : m_impl(std::move(other.m_impl)), m_alloc(std::move(other.m_alloc)) {}
+        stable_vector(stable_vector&& other) noexcept
+            : m_impl(std::move(other.m_impl)), m_alloc(std::move(other.m_alloc)) {
+        }
+
         stable_vector& operator=(stable_vector&& other) noexcept {
             if (this != &other) {
                 clear_internal();
@@ -127,7 +179,6 @@ namespace mino::core::container {
             return *this;
         }
 
-        // Element Access - non-throwing: return pointer or nullptr
         pointer at(size_type pos) {
             if (pos >= size()) return nullptr;
             return m_impl[pos];
@@ -146,42 +197,32 @@ namespace mino::core::container {
         reference back() { return *m_impl.back(); }
         const_reference back() const { return *m_impl.back(); }
 
-        bool empty() const noexcept { return m_impl.empty(); }
-        size_type size() const noexcept { return m_impl.size(); }
-        size_type max_size() const noexcept { return m_impl.max_size(); }
+        [[nodiscard]] bool empty() const noexcept { return m_impl.empty(); }
+        [[nodiscard]] size_type size() const noexcept { return m_impl.size(); }
+        [[nodiscard]] size_type max_size() const noexcept { return m_impl.max_size(); }
         void reserve(size_type new_cap) { m_impl.reserve(new_cap); }
-        size_type capacity() const noexcept { return m_impl.capacity(); }
+        [[nodiscard]] size_type capacity() const noexcept { return m_impl.capacity(); }
         void shrink_to_fit() { m_impl.shrink_to_fit(); }
 
         void clear() noexcept { clear_internal(); }
 
-        // emplace_back: return pointer or nullptr on failure
-        pointer emplace_back() {
-            T* ptr = nullptr;
-            try {
-                ptr = m_alloc.allocate(1);
-                std::allocator_traits<Allocator>::construct(m_alloc, ptr);
-            }
-            catch (...) {
-                if (ptr) m_alloc.deallocate(ptr, 1);
-                return nullptr;
-            }
-            m_impl.push_back(ptr);
-            return ptr;
-        }
-
         template <typename... Args>
         pointer emplace_back(Args&&... args) {
-            T* ptr = nullptr;
+            T* ptr = m_alloc.allocate(1);
             try {
-                ptr = m_alloc.allocate(1);
                 std::allocator_traits<Allocator>::construct(m_alloc, ptr, std::forward<Args>(args)...);
+                try {
+                    m_impl.push_back(ptr);
+                }
+                catch (...) {
+                    std::allocator_traits<Allocator>::destroy(m_alloc, ptr);
+                    throw;
+                }
             }
             catch (...) {
-                if (ptr) m_alloc.deallocate(ptr, 1);
+                m_alloc.deallocate(ptr, 1);
                 return nullptr;
             }
-            m_impl.push_back(ptr);
             return ptr;
         }
 
@@ -227,10 +268,38 @@ namespace mino::core::container {
         const_iterator end() const noexcept { return const_iterator(m_impl.end()); }
         const_iterator cbegin() const noexcept { return const_iterator(m_impl.cbegin()); }
         const_iterator cend() const noexcept { return const_iterator(m_impl.cend()); }
+
         reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
         reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
         const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
         const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+        const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
+        const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
+        // ==========================================
+        // 순수 ASCII 기반 Stable Vector Dump
+        // ==========================================
+        void dump(const std::string& title = "") const {
+            if (!title.empty()) {
+                std::cout << "=== " << title << " (Size: " << size() << ", Cap: " << capacity() << ") ===\n";
+            }
+            else {
+                std::cout << "=== Stable Vector Dump (Size: " << size() << ", Cap: " << capacity() << ") ===\n";
+            }
+
+            if (empty()) {
+                std::cout << "  \\-- <Empty Stable Vector>\n\n";
+                return;
+            }
+
+            for (size_type i = 0; i < m_impl.size(); ++i) {
+                bool is_last = (i == m_impl.size() - 1);
+                std::string connector = is_last ? "\\-- " : "|-- ";
+                std::cout << connector << "[" << i << "] (NodePtr: " << static_cast<const void*>(m_impl[i])
+                    << ") => " << *m_impl[i] << "\n";
+            }
+            std::cout << "\n";
+        }
     };
 
     template <typename T, typename Alloc>

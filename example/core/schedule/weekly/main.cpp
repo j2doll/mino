@@ -30,7 +30,7 @@ int main() {
     print(tce("========================================"), endl);
 
     // ----------------------------------------------------
-    // 1. 테스트용 스케줄 데이터 생성[cite: 4]
+    // 1. 테스트용 스케줄 데이터 생성
     // ----------------------------------------------------
     weekly_range work_hours{
         weekday::mon, {9, 0}, // 월요일 09:00
@@ -45,7 +45,7 @@ int main() {
     weekly_ranges sample_ranges = { work_hours, overnight_maintenance };
 
     // ----------------------------------------------------
-    // 2. dump_schedule() 테스트[cite: 1]
+    // 2. dump_schedule() 테스트
     // ----------------------------------------------------
     print(tce("[TEST 1] dump_schedule() Output:"));
     std::string dumped = mcsw::dump_schedule(sample_ranges); // 스케줄 덤프 문자열 생성
@@ -56,7 +56,7 @@ int main() {
     // Fri 22:0 -> Sat 4:0
 
     // ----------------------------------------------------
-    // 3. schedule_normalizer 테스트[cite: 3]
+    // 3. schedule_normalizer 테스트
     // ----------------------------------------------------
     print(tce("[TEST 2] schedule_normalizer::normalize():"));
     weekly_ranges normalized = schedule_normalizer::normalize(sample_ranges); // 스케줄 정규화 (중복 제거 및 범위 병합)
@@ -69,7 +69,7 @@ int main() {
     // Sat 0:0 -> Sat 4:0 
 
     // ----------------------------------------------------
-    // 4. to_xml() 테스트[cite: 5]
+    // 4. to_xml() 테스트
     // ----------------------------------------------------
     print(tce("[TEST 3] to_xml() Output:"));
     std::string xml_output = mcsw::to_xml(sample_ranges); // 스케줄을 XML 형식으로 변환
@@ -82,7 +82,7 @@ int main() {
     // </WeeklySchedule>
 
     // ----------------------------------------------------
-    // 5. scheduler 활성 상태(is_active_now) 테스트[cite: 6]
+    // 5. scheduler 활성 상태(is_active_now) 테스트
     // ----------------------------------------------------
     print(tce("[TEST 4] scheduler is_active_now() Tests:"));
     scheduler sched(time_base::localtime); // 로컬 타임 기준 스케줄러 생성
@@ -138,7 +138,7 @@ int main() {
     // [PASS] Sat 05:00 (After maintenance -> Inactive)
 
     // ----------------------------------------------------
-    // 6. std::function 기반 now_provider 테스트[cite: 6]
+    // 6. std::function 기반 now_provider 테스트
     // ----------------------------------------------------
     print(endl, tce("[TEST 5] scheduler with custom now_provider:"));
     sched.set_now_provider([]() {

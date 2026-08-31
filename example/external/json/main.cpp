@@ -163,7 +163,7 @@ void test_value_or_path() {
 void test_external_api() {
     namespace mej = mino::external::json;
 
-    // [1. 경로 존재 여부 및 특수문자 이스케이프 (~0, ~1) 테스트][cite: 4]
+    // [1. 경로 존재 여부 및 특수문자 이스케이프 (~0, ~1) 테스트]
     nlohmann::json config_json = {
         {"config", {
             {"database",

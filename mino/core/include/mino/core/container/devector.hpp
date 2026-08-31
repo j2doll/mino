@@ -6,11 +6,68 @@
 #include <initializer_list>
 #include <iterator>
 #include <optional>
+#include <utility>
+#include <string>
 
-namespace mino::core::container { 
-        
+// ============+====================+====================+==================
+// 항목        |  std::vector       |  std::deque        |  devector
+// ------------+--------------------+--------------------+------------------
+// 메모리 구조 | 단일 연속 블록     | 다중 청크(Chunk)   | 단일 연속 블록
+// 양방향 확장 | 뒤쪽만 O(1)        | 앞/뒤 모두 O(1)    | 앞/뒤 모두 O(1) [상환]
+// 캐시 효율성 | 최상 (연속 메모리) | 보통 (간접 참조)   | 최상 (연속 메모리)
+// 포인터 연산 | 단순 포인터 연산   | 복잡한 2중 포인터  | 단순 포인터 연산
+// ------------+--------------------+--------------------+------------------
+// push_back   | O(1) [상환]        | O(1)               | O(1) [상환]
+// push_front  | O(N) (전체 이동)   | O(1)               | O(1) [상환]
+// pop_front   | O(N) (전체 이동)   | O(1)               | O(1)
+// pop_back    | O(1)               | O(1)               | O(1)
+// 임의 접근   | O(1)               | O(1)               | O(1)
+// ------------+--------------------+--------------------+------------------
+// 실무 추천   | 뒤쪽 삽입 위주 작업| 크기가 매우 큰 큐  | 양방향 큐 + 벡터 성능
+//             |                    |                    | (캐시 친화적 고성능)
+// ============+====================+====================+==================
+//
+// devector(Double-Ended Vector)는 단일 연속 메모리 블록 내에서
+// 앞(Front)과 뒤(Back) 양방향 모두 O(1) 상환 삽입/삭제를 지원하는 컨테이너입니다.
+//
+// devector<int> dv;
+// 
+// // [1] 뒤쪽에 추가
+// dv.push_back(10); // [10]
+// dv.push_back(20); // [10, 20]
+// dv.push_back(30); // [10, 20, 30]
+// 
+// // [2] 앞쪽에 추가
+// dv.push_front(5); // [5, 10, 20, 30]
+// dv.push_front(1); // [1, 5, 10, 20, 30]
+// 
+// // [3] 상태 확인
+// std::cout << "Size: " << dv.size() << std::endl;         // 5
+// std::cout << "Front: " << dv.front() << std::endl;       // 1
+// std::cout << "Back: " << dv.back() << std::endl;         // 30
+// std::cout << "Capacity: " << dv.capacity() << std::endl; // 8 (기하급수적 확장)
+// 
+// // [4] 인덱스 접근 (O(1))
+// std::cout << "dv[0]: " << dv[0] << std::endl; // 1
+// std::cout << "dv[2]: " << dv[2] << std::endl; // 10
+// 
+// // [5] 양 끝 데이터 제거
+// dv.pop_back();  // 30 제거 -> [1, 5, 10, 20]
+// dv.pop_front(); // 1 제거  -> [5, 10, 20]
+// 
+// // [6] 빈 공간 확인
+// std::cout << "Free front: " << dv.free_front() << std::endl; // 2 (앞쪽 여유 슬롯)
+// std::cout << "Free back: " << dv.free_back() << std::endl;   // 3 (뒤쪽 여유 슬롯)
+// 
+// // [7] 초기화
+// dv.clear();
+// std::cout << "Is empty: " << dv.empty() << std::endl; // 1 (true)
+// 
+
+namespace mino::core::container {
+
     template <typename T, typename Allocator = std::allocator<T>>
-    class  devector {
+    class devector {
     public:
         using value_type = T;
         using allocator_type = Allocator;
@@ -32,26 +89,22 @@ namespace mino::core::container {
 
         void clear_and_deallocate() {
             if (buffer_start_) {
-                clear();
+                for (pointer p = front_ptr_; p != back_ptr_; ++p) {
+                    std::allocator_traits<allocator_type>::destroy(alloc_, p);
+                }
                 std::allocator_traits<allocator_type>::deallocate(alloc_, buffer_start_, buffer_end_ - buffer_start_);
                 buffer_start_ = buffer_end_ = front_ptr_ = back_ptr_ = nullptr;
             }
         }
 
         void reallocate_and_align(size_type new_capacity, size_type front_free_space) {
-            pointer new_buffer = nullptr;
-            try {
-                new_buffer = std::allocator_traits<allocator_type>::allocate(alloc_, new_capacity);
-            }
-            catch (...) {
-                return;
-            }
+            pointer new_buffer = std::allocator_traits<allocator_type>::allocate(alloc_, new_capacity);
             pointer new_front = new_buffer + front_free_space;
             pointer new_back = new_front;
 
             try {
                 for (auto it = front_ptr_; it != back_ptr_; ++it) {
-                    std::allocator_traits<allocator_type>::construct(alloc_, new_back, std::move(*it));
+                    std::allocator_traits<allocator_type>::construct(alloc_, new_back, std::move_if_noexcept(*it));
                     new_back++;
                 }
             }
@@ -59,8 +112,8 @@ namespace mino::core::container {
                 for (pointer p = new_front; p != new_back; ++p) {
                     std::allocator_traits<allocator_type>::destroy(alloc_, p);
                 }
-                if (new_buffer) std::allocator_traits<allocator_type>::deallocate(alloc_, new_buffer, new_capacity);
-                return;
+                std::allocator_traits<allocator_type>::deallocate(alloc_, new_buffer, new_capacity);
+                throw;
             }
 
             for (pointer p = front_ptr_; p != back_ptr_; ++p) {
@@ -171,7 +224,6 @@ namespace mino::core::container {
         reference operator[](size_type pos) { return front_ptr_[pos]; }
         const_reference operator[](size_type pos) const { return front_ptr_[pos]; }
 
-        // Non-throwing at: returns nullptr when out of range
         pointer at(size_type pos) noexcept {
             if (pos >= size()) return nullptr;
             return front_ptr_ + pos;
@@ -200,18 +252,18 @@ namespace mino::core::container {
         const_iterator cend() const noexcept { return back_ptr_; }
 
         // --- 용량 (Capacity) ---
-        bool empty() const noexcept { return front_ptr_ == back_ptr_; }
-        size_type size() const noexcept { return back_ptr_ - front_ptr_; }
-        size_type capacity() const noexcept { return buffer_end_ - buffer_start_; }
-        size_type free_front() const noexcept { return front_ptr_ - buffer_start_; }
-        size_type free_back() const noexcept { return buffer_end_ - back_ptr_; }
+        [[nodiscard]] bool empty() const noexcept { return front_ptr_ == back_ptr_; }
+        [[nodiscard]] size_type size() const noexcept { return back_ptr_ - front_ptr_; }
+        [[nodiscard]] size_type capacity() const noexcept { return buffer_end_ - buffer_start_; }
+        [[nodiscard]] size_type free_front() const noexcept { return front_ptr_ - buffer_start_; }
+        [[nodiscard]] size_type free_back() const noexcept { return buffer_end_ - back_ptr_; }
 
         // --- 수정자 (Modifiers) ---
         void clear() noexcept {
             for (pointer p = front_ptr_; p != back_ptr_; ++p) {
                 std::allocator_traits<allocator_type>::destroy(alloc_, p);
             }
-            front_ptr_ = back_ptr_ = buffer_start_ + (capacity() / 2); // 중앙 정렬 복구
+            front_ptr_ = back_ptr_ = buffer_start_ + (capacity() / 2);
         }
 
         void push_back(const T& value) {
@@ -268,6 +320,55 @@ namespace mino::core::container {
             std::allocator_traits<allocator_type>::construct(alloc_, front_ptr_, std::forward<Args>(args)...);
             return *front_ptr_;
         }
+
+        // --- 순수 ASCII Buffer Dump ---
+        void dump(const std::string& title = "") const {
+            if (!title.empty()) {
+                std::cout << "=== " << title << " (Size: " << size() << ", Cap: " << capacity() << ") ===\n";
+            }
+            else {
+                std::cout << "=== Devector Dump (Size: " << size() << ", Cap: " << capacity() << ") ===\n";
+            }
+
+            if (capacity() == 0) {
+                std::cout << "  \\-- <Unallocated Buffer>\n\n";
+                return;
+            }
+
+            std::cout << "Logical Elements: ";
+            if (empty()) {
+                std::cout << "<Empty>\n";
+            }
+            else {
+                for (size_type i = 0; i < size(); ++i) {
+                    std::cout << "[" << (*this)[i] << "]" << (i + 1 == size() ? "" : " <-> ");
+                }
+                std::cout << "\n";
+            }
+
+            std::cout << "Memory Layout (Front Free: " << free_front() << ", Back Free: " << free_back() << "):\n";
+            size_type cap = capacity();
+            for (size_type i = 0; i < cap; ++i) {
+                bool is_last = (i == cap - 1);
+                std::string connector = is_last ? "\\-- " : "|-- ";
+                pointer curr = buffer_start_ + i;
+
+                std::cout << connector << "[" << i << "] : ";
+                if (curr >= front_ptr_ && curr < back_ptr_) {
+                    std::cout << *curr;
+                    if (curr == front_ptr_) std::cout << " (FRONT)";
+                    if (curr == back_ptr_ - 1) std::cout << " (BACK)";
+                }
+                else if (curr < front_ptr_) {
+                    std::cout << "<Free Front>";
+                }
+                else {
+                    std::cout << "<Free Back>";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "\n";
+        }
     };
 
-} // namespace mino::core::container 
+} // namespace mino::core::container
