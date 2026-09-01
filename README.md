@@ -116,6 +116,22 @@
 - 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회.
 - `log` : 핫/소프트 로깅 환경 정보 리로딩 기능.
     - 🔀 [manager](example/network/log/manager/main.cpp)
+        - ```
+              +-------------------+               +-------------------+
+              |      manager      |               |       *.ini       |
+              +---------+---------+               +---------+---------+
+                        |             init-only             |
+                        |<----------------------------------|
+                 cycle  |                                   |
+                  --+   |            hard-reload            | 
+                 |  |   |<----------------------------------|
+                 v--+   |                                   |
+                        |                                   |
+                  --+   |            soft-reload            |
+                 |  |   |<----------------------------------|
+                 v--+   |                                   |
+                        |                                   |
+          ```
         - 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
     - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버.
