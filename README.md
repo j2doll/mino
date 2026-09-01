@@ -136,7 +136,7 @@
     - 🔀 [broker](example/network/message_broker/broker) : 브로커 예제.
     - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제.
     - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제.
-    - 🔀 [python](example/network/message_broker/python) : 파이썬 `pub/sub` 예제.
+    - 🔀 `python` : 파이썬 예제. [pub](example/network/message_broker/python/pub/message_publisher.py) [sub](example/network/message_broker/python/sub/message_subscriber.py)
 - `rest` : `REST API` 클라이언트  
     - 🔀 [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트.
     - 🔀 [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트.
