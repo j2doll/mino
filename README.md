@@ -2,7 +2,7 @@
 
 > :kr: **This project and the documentation were written in Korean.**
 
-<p align="center"><picture><img src="docs/images/mino_logo.svg" width="50%" alt="" /></picture></p>
+<p align="center"><picture><img src="docs/images/mino-logo.png" width="50%" alt="" /></picture></p>
 
 ## 개요
 
@@ -89,7 +89,7 @@
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
-    - <sub> Trim, Replace, Case, Contains, Starts/Ends With, Split and Join, Whitespace / Newline Normalization, Padding / Repeat / Quotes / Indent, Prefix/Suffix removal, Safe Substr & Ellipsize, Parsing & Wildcard, Korean numeric formatters, tokenizer, to_string, mutex_string, u8string, encoding_function, to_console_encoding </sub>
+    - <sub> [Trim](example/core/string/main.cpp#L38), Replace, Case, Contains, Starts/Ends With, Split and Join, Whitespace / Newline Normalization, Padding / Repeat / Quotes / Indent, Prefix/Suffix removal, Safe Substr & Ellipsize, Parsing & Wildcard, Korean numeric formatters, tokenizer, to_string, mutex_string, u8string, encoding_function, to_console_encoding </sub>
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
