@@ -120,7 +120,19 @@
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
     - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버.
     - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트.
-- `message_broker` : 분산 메시지 브로커  
+- `message_broker` : 분산 메시지 브로커
+   - ```
+                            +------------+
+              +------------>|   broker   |-------------+
+              |             +------------+             |
+           Publish                                 Subscribe
+            (tcp)                                    (tcp)
+              |                                        |
+              |                                        v
+      +---------------+                        +---------------+
+      |      pub      |                        |      sub      |
+      +---------------+                        +---------------+
+     ```
     - 🔀 [broker](example/network/message_broker/broker) : 브로커 예제.
     - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제.
     - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제.
@@ -141,7 +153,7 @@
     - 🔀 [receiver](example/network/udp/receiver/main.cpp) — UDP 수신.
     - 🔀 [sender](example/network/udp/sender/main.cpp) — UDP 송신.
 - 🔀 [util](example/network/util/main.cpp)
-    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.  
+    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.
 ##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿.
 - 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 기능 예제 템플릿.
