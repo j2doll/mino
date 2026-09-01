@@ -2,17 +2,7 @@
 
 > :kr: **This project and the documentation were written in Korean.**
 
-<p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)"  srcset="https://raw.githubusercontent.com/j2doll/mino/refs/heads/main/docs/images/mino_light.png">
-        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/j2doll/mino/refs/heads/main/docs/images/mino_dark.png">
-        <img alt="Mino Logo" width="50%" src="https://raw.githubusercontent.com/j2doll/mino/refs/heads/main/docs/images/mino_light.png">
-    </picture>
-</p>
-
-
-
-
+<p align="center"><picture><source media="(prefers-color-scheme: dark)"  srcset="docs/images/mino_light.png"><source media="(prefers-color-scheme: light)" srcset="docs/images/mino_dark.png"><img alt="Mino Logo" width="50%" src="docs/images/mino_light.png"></picture></p>
 
 ## 개요
 
