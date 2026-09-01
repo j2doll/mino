@@ -89,7 +89,7 @@
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
-    - <sub> [Trim](example/core/string/main.cpp#L38), Replace, Case, Contains, Starts/Ends With, Split and Join, Whitespace / Newline Normalization, Padding / Repeat / Quotes / Indent, Prefix/Suffix removal, Safe Substr & Ellipsize, Parsing & Wildcard, Korean numeric formatters, tokenizer, to_string, mutex_string, u8string, encoding_function, to_console_encoding </sub>
+    - <sub> [Trim](example/core/string/main.cpp#L38), [Replace](example/core/string/main.cpp#L57), [Case](example/core/string/main.cpp#L77), [Contains](example/core/string/main.cpp#L97), [Starts/Ends With](example/core/string/main.cpp#L117), [Split and Join](example/core/string/main.cpp#L137), [Whitespace / Newline Normalization](example/core/string/main.cpp#L157), [Padding / Repeat / Quotes / Indent](example/core/string/main.cpp#L177), [Prefix/Suffix removal](example/core/string/main.cpp#L197), [Safe Substr & Ellipsize](example/core/string/main.cpp#L217), [Parsing & Wildcard](example/core/string/main.cpp#L237), [Korean numeric formatters](example/core/string/main.cpp#L257), [tokenizer](example/core/string/main.cpp#L277), [to_string](example/core/string/main.cpp#L297), [mutex_string](example/core/string/main.cpp#L317), [u8string](example/core/string/main.cpp#L337), [encoding_function](example/core/string/main.cpp#L357), [to_console_encoding](example/core/string/main.cpp#L377) </sub>
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
