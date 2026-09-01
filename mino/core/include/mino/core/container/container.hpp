@@ -15,6 +15,7 @@
 #include "mino/core/container/multi_index_container.hpp"
 #include "mino/core/container/priority_queue.hpp"
 #include "mino/core/container/pairing_heap.hpp"
+#include "mino/core/container/red_black_tree.hpp"
 #include "mino/core/container/skew_heap.hpp"
 #include "mino/core/container/small_vector.hpp"
 #include "mino/core/container/stable_vector.hpp"
