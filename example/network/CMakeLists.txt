@@ -14,4 +14,4 @@ add_subdirectory(sftp)
 add_subdirectory(tcp)
 add_subdirectory(udp)
 add_subdirectory(util)
-
+add_subdirectory(ws)

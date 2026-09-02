@@ -1,5 +1,9 @@
 #include <system_error>
 
+#ifdef USE_CURL
+    #include <curl/curl.h>
+#endif
+
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network {
@@ -33,6 +37,13 @@ namespace mino::network {
             std::cerr << "Failed: " << ret.value() << std::endl;
             return;
         }
+#ifdef USE_CURL
+        auto curl_ret = curl_global_init(CURL_GLOBAL_ALL);
+        if (curl_ret != CURLE_OK) {
+            std::cerr << "Failed to initialize cURL: " << curl_easy_strerror(curl_ret) << std::endl;
+            return;
+        }
+#endif
     }
 
     sock::~sock() {
@@ -41,6 +52,9 @@ namespace mino::network {
             std::cerr << "Failed: " << ret.value() << std::endl;
             return;
         }
+#ifdef USE_CURL
+        curl_global_cleanup();
+#endif
     }
 
 } // namespace mino::network
