@@ -47,14 +47,14 @@ namespace mino::network {
     }
 
     sock::~sock() {
+#ifdef USE_CURL
+        curl_global_cleanup();
+#endif
         auto ret = close_socket();
         if (ret.has_value()) {
             std::cerr << "Failed: " << ret.value() << std::endl;
             return;
         }
-#ifdef USE_CURL
-        curl_global_cleanup();
-#endif
     }
 
 } // namespace mino::network
