@@ -373,8 +373,8 @@ $ eza --tree mino
 #### 📜 외부 라이브러리 라이선스
 - 📦 `external` 모듈
     - [mino/external/third-party](mino/external/include/mino/external/third-party/)
-        - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
-        - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
+        - [nlohmann/json](https://github.com/nlohmann/json) : MIT License
+        - [spdlog](https://github.com/gabime/spdlog) : MIT License
 - 🔀 `network` 모듈
     - [mino/network/third-party](mino/network/include/mino/network/third-party/)
         - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : MIT License

@@ -37,9 +37,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Gather all .cpp files in the current directory
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
-if(MSVC)
-    target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
-endif()
 
 # Use mino network
 include("${CMAKE_CURRENT_SOURCE_DIR}/UseMinoNetwork.cmake")
