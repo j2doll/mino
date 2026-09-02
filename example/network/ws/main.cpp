@@ -59,30 +59,48 @@ int main() {
     bool testWs  = true;   // ws 연동 테스트 여부
 
     // 1. wss_client + 클래스 리스너 사용 예시
-    if (testWss)
-    {
+    if (testWss) {
         wss_client client;
         client.set_url("wss://127.0.0.1:8766");
 
         ws_connection_config conn_cfg;
-        conn_cfg.connect_timeout_sec = 5;
+        conn_cfg.connect_timeout_sec = 5; // 연결 타임아웃 5초
         client.configure_connection(conn_cfg);
-        client.configure_ssl(true, true);
+
+        bool verify_peer = true; // 서버 인증서 검증 여부
+        //  false 인 경우, 인증서 유효성 검사 무시.
+        //  서버 인증서가 만료되었거나, 신뢰할 수 없는 사설 CA(자체 서명 인증서, Self - signed)에
+        //  의해 발급되었더라도 에러를 내지 않고 통과시킵니다.
+
+        bool verify_host = true; // 서버 호스트명 검증 여부
+        //  false 인 경우, 호스트 이름 일치 검사 무시.
+        //  접속하려는 도메인 주소와 서버 인증서 내부의 도메인 이름(Common Name 또는 SAN)이
+        //  일치하지 않아도 무시합니다.
+
+        std::string ca_path = ""; // CA 인증서 경로를 지정하지 않으면 기본 CA 번들 사용
+
+        client.configure_ssl(verify_peer, verify_host, ca_path); 
 
         custom_event_listener listener;
         client.set_listener(&listener);
 
         if (client.connect()) {
+            namespace dtutil = mino::core::datetime::util;
+            auto current_local = dtutil::current_time_string();
+
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            client.send_text("Hello from mino::network::ws namespace!");
+
+            std::string msg = "Hello via Secure WS!";
+            client.send_text(msg);
+            std::cout << current_local << " send_text() called: '" << msg << "'" << std::endl;
+
             std::this_thread::sleep_for(std::chrono::seconds(2));
             client.disconnect();
         }
-    }
+    } // if (testWss) {
 
     // 2. ws_client + 람다 함수 콜백 사용 예시
-    if (testWs)
-    {
+    if (testWs) {
         ws_client client;
         client.set_url("ws://127.0.0.1:8765");
 
@@ -127,7 +145,7 @@ int main() {
             std::this_thread::sleep_for(std::chrono::seconds(2));
             client.disconnect();
         }
-    }
+    } // if (testWs) {
 
     return 0;
 }
