@@ -272,3 +272,10 @@ dist/
 sftp_host_key
 ftp_root/
 sftp_root/
+
+# socket.io
+example/network/socket-io/node_modules/
+
+
+
+
