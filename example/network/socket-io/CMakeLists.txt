@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(network_ws_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "network_ws_example")
-
+project(network_socketio_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "network_socketio_example")
+ 
 # Set C++ standard to C++17 if not already defined
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)

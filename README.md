@@ -370,12 +370,15 @@ $ eza --tree mino
    - 상세 내용 [LICENSE](LICENSE) 참고
 #### 📜 외부 라이브러리 라이선스
 - 📦 `external` 모듈
-    - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
-    - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
+    - [mino/external/third-party](mino/external/include/mino/external/third-party/)
+        - [nlohmann/json](mino/external/include/mino/external/third-party/nolohmann) : MIT License
+        - [spdlog](mino/external/include/mino/external/third-party/spdlog) : MIT License
 - 🔀 `network` 모듈
+    - [mino/network/third-party](mino/network/include/mino/network/third-party/)
+        - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : MIT License
     - [openssl](https://www.openssl.org/) : Apache License 2.0
     - [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
-    - [brotli](https://github.com/google/brotli) : MIT License- 
+    - [brotli](https://github.com/google/brotli) : MIT License 
     - [libssh2](https://www.libssh2.org/) : BSD-3 License
 
 

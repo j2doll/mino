@@ -1,0 +1,19 @@
+{
+  "name": "socketio-multi-version-test",
+  "version": "1.0.0",
+  "description": "Socket.io v2, v3, v4 multi-version test environment",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io-v2": "npm:socket.io@^2.4.1",
+    "socket.io-v3": "npm:socket.io@^3.1.2",
+    "socket.io-v4": "npm:socket.io@^4.7.5",
+    "socket.io-client-v2": "npm:socket.io-client@^2.4.0",
+    "socket.io-client-v3": "npm:socket.io-client@^3.1.2",
+    "socket.io-client-v4": "npm:socket.io-client@^4.7.5"
+  }
+}

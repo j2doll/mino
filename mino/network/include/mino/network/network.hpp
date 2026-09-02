@@ -11,7 +11,8 @@
 #include "mino/network/rest/rest.hpp"
 #include "mino/network/rpc/rpc.hpp"
 #include "mino/network/sftp/sftp.hpp"
+#include "mino/network/socket-io/socket-io.hpp"
 #include "mino/network/tcp/tcp.hpp"
 #include "mino/network/udp/udp.hpp"
 #include "mino/network/util/util.hpp"
-
+#include "mino/network/ws/ws.hpp"
