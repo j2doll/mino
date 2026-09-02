@@ -11,10 +11,8 @@
 #include "mino/network/ethernet.hpp"
 #include "mino/network/socket-io/socketio_client.hpp"
 
-namespace sio = mino::network::socket_io;
-
 bool g_keep_running = true;
-sio::socketio_client_base* g_active_client = nullptr;
+mino::network::socket_io::socketio_client_base* g_active_client = nullptr;
 
 void handle_signal(int signum) {
     namespace dtutil = mino::core::datetime::util;
@@ -35,6 +33,7 @@ int main() {
     mino::network::sock mnsock;
     std::signal(SIGINT, handle_signal);
 
+    namespace sio = mino::network::socket_io;
     namespace dtutil = mino::core::datetime::util;
 
     // =========================================================================
@@ -64,7 +63,7 @@ int main() {
     // const std::string target_room = "lobby";
     const std::string target_room = "";
 
-    std::unique_ptr<sio::socketio_client_base> client;
+    std::unique_ptr<sio::socketio_client_base> client = nullptr;
     int port = 0;
     std::string version_name;
     std::string ping_event;
