@@ -42,6 +42,9 @@ namespace mino::network::socket_io {
         void set_namespace(std::string ns);
         const std::string& get_namespace() const { return target_namespace; }
 
+        // SSL 인증서 및 호스트 검증 활성화/비활성화 (false: 사설 인증서/호스트 불일치 무시)
+        void set_ssl_verify(bool verify) { ssl_verify_peer_host = verify; }
+
         void on_open(std::function<void()> handler);
         void on_close(std::function<void(const std::string&)> handler);
         void on_event(std::function<void(const std::string&)> handler);
@@ -58,10 +61,12 @@ namespace mino::network::socket_io {
         // 재연결을 위해 소켓 자원을 정리하고 핸들을 새로 발급
         void reset();
 
-        bool connect();
+        // use_ssl: HTTPS/WSS 여부 (기본: false)
+        // verify_ssl: SSL 인증서 및 주소 검증 여부 (기본: false - 사설 인증서 및 호스트 검증 무시)
+        bool connect(bool use_ssl = false, bool verify_ssl = false);
         void emit(const std::string& event_name, const std::string& json_payload);
 
-        // Room 입장 및 퇴장 편의 함수 (빈 문자열 입력 시 자동 무시)
+        // Room 입장 및 퇴장 편의 함수
         void join_room(const std::string& room_name);
         void leave_room(const std::string& room_name);
 
@@ -79,6 +84,7 @@ namespace mino::network::socket_io {
         void notify_error(const std::string& err_msg);
 
         std::string target_namespace{ "/" };
+        bool ssl_verify_peer_host{ false };
 
     private:
         void dispatch_packet(const std::string& packet);

@@ -72,19 +72,35 @@ namespace mino::network::socket_io {
         curl_handle = curl_easy_init();
     }
 
-    bool socketio_client_base::connect() {
+    bool socketio_client_base::connect(bool use_ssl, bool verify_ssl) {
         if (!curl_handle || server_host.empty() || server_port <= 0) {
             notify_error("Server endpoint (host/port) is not configured properly.");
             return false;
         }
 
+        ssl_verify_peer_host = verify_ssl;
+
         std::string eio = get_engine_io_version();
-        std::string handshake_url = "http://" + server_host + ":" + std::to_string(server_port) +
+        std::string scheme = use_ssl ? "https://" : "http://";
+        std::string handshake_url = scheme + server_host + ":" + std::to_string(server_port) +
             "/socket.io/?EIO=" + eio + "&transport=websocket";
 
         curl_easy_setopt(curl_handle, CURLOPT_URL, handshake_url.c_str());
         curl_easy_setopt(curl_handle, CURLOPT_CONNECT_ONLY, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, connect_timeout_seconds);
+
+        // HTTPS 연결 시 인증서(VERIFYPEER) 및 호스트네임(VERIFYHOST) 검증 여부 제어
+        if (use_ssl) {
+            if (ssl_verify_peer_host) {
+                curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1L);
+                curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2L);
+            }
+            else {
+                // 사설 인증서, 자체 서명 인증서, IP 접속 시 인증서/주소 오류 무시
+                curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+                curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0L);
+            }
+        }
 
         if (curl_easy_perform(curl_handle) != CURLE_OK) {
             notify_error("TCP connection failed.");
@@ -96,7 +112,7 @@ namespace mino::network::socket_io {
             "Host: " + server_host + ":" + std::to_string(server_port) + "\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
-            "Origin: http://" + server_host + ":" + std::to_string(server_port) + "\r\n"
+            "Origin: " + scheme + server_host + ":" + std::to_string(server_port) + "\r\n"
             "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
             "Sec-WebSocket-Version: 13\r\n\r\n";
 

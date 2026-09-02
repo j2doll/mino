@@ -28,9 +28,9 @@ void handle_signal(int signum) {
     }
 }
 
-// NOTICE: main 수행 전에 다음을 수행.
-//  (1) install_sio.cmd 로 모듈 설치 (Windows)
-//  (2) node server.js 로 서버 실행 (Node.js)
+// main 실행 전에 다음을 실행한다.
+// (1) install_sio.cmd 또는 install_sio.sh 스크립트를 실행
+// (2) node server.js 를 실행하여 Socket.IO 서버를 구동
 int main() {
     mino::network::sock mnsock;
     std::signal(SIGINT, handle_signal);
@@ -38,19 +38,29 @@ int main() {
     namespace dtutil = mino::core::datetime::util;
 
     // =========================================================================
-    // [버전 및 설정 변수]
+    // [설정 변수]
     // =========================================================================
-    const std::string target_namespace = "/";
-    const int target_version = 2;
-    //
-    // const std::string target_namespace = "/";
-    // const int target_version = 3;
-    // 
-    //const int target_version = 4;
-    //// const std::string target_namespace = "/";
-    // const std::string target_namespace = "/chat";
 
-    // 룸 이름 (룸을 사용하지 않을 때는 "" 로 설정 가능)
+    // socket.io v2
+    const int target_version = 2;
+    const std::string target_namespace = "/";
+
+    // socket.io v3
+    // const int target_version = 3;
+    // const std::string target_namespace = "/";
+
+    // socket.io v4 
+    // const int target_version = 4;
+    // const std::string target_namespace = "/chat";
+    // const std::string target_namespace = "/";
+
+    // SSL 여부 (false: http/ws, true: https/wss)
+    const bool use_ssl = false;
+
+    // SSL 인증서 및 도메인 주소 검증 오류 무시 여부 (true: 사설 인증서/IP 접속 허용)
+    const bool ignore_ssl_errors = true;
+
+    // 룸 이름 (룸을 사용하지 않을 때는 "" 로 설정)
     // const std::string target_room = "lobby";
     const std::string target_room = "";
 
@@ -60,7 +70,6 @@ int main() {
     std::string ping_event;
     std::string pong_event;
 
-    // 각 버전별 설정값 하드코딩
     if (target_version == 2) {
         client = sio::create_socketio_client(sio::socketio_version::v2);
         port = 52000;
@@ -86,7 +95,9 @@ int main() {
     g_active_client = client.get();
 
     std::cout << dtutil::current_time_string() << " [App] Configured Target: "
-        << version_name << " (Port: " << port << "), NS: " << target_namespace << "\n";
+        << version_name << " (Port: " << port << "), SSL: " << (use_ssl ? "true" : "false")
+        << (use_ssl ? (ignore_ssl_errors ? " (Ignore SSL Errors)" : " (Strict SSL Verify)") : "")
+        << ", NS: " << target_namespace << "\n";
 
     client->set_server_endpoint("127.0.0.1", port);
     client->set_connect_timeout_seconds(5);
@@ -134,7 +145,7 @@ int main() {
             << " [App Room Broadcast] Received: " << data << "\n";
         });
 
-    // 5. 모든 이벤트 메시지 수신 모니터링
+    // 5. 전체 이벤트 메시지 수신 모니터링
     client->on([](const std::string& payload) {
         namespace dtutil = mino::core::datetime::util;
         std::cout << dtutil::current_time_string() << " [App All Events] " << payload << "\n";
@@ -160,7 +171,9 @@ int main() {
 
         client->reset();
 
-        if (client->connect()) {
+        // use_ssl 및 verify_ssl (!ignore_ssl_errors) 전달
+        bool verify_ssl = !ignore_ssl_errors;
+        if (client->connect(use_ssl, verify_ssl)) {
             current_local = dtutil::current_time_string();
             std::cout << current_local << " [App] Connected successfully. Entering event loop...\n";
 
@@ -180,8 +193,8 @@ int main() {
         int waited_ms = 0;
         int target_ms = reconnect_interval_seconds * 1000;
         while (g_keep_running && waited_ms < target_ms) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            waited_ms += 100;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            waited_ms += 10;
         }
     }
 
