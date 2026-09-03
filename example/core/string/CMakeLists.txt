@@ -32,3 +32,4 @@ add_executable(${EXE_NAME} ${SRC_FILES})
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 
+target_include_directories(${EXE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -89,7 +89,21 @@
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
-    - <sub> [Trim](example/core/string/main.cpp#L38), [Replace](example/core/string/main.cpp#L57), [Case, Contains, Starts/Ends With](example/core/string/main.cpp#L77), [Split and Join](example/core/string/main.cpp#L114), [Whitespace / Newline Normalization](example/core/string/main.cpp#L158), [Padding / Repeat / Quotes / Indent](example/core/string/main.cpp#L167), [Prefix/Suffix removal](example/core/string/main.cpp#L194), [Safe Substr & Ellipsize](example/core/string/main.cpp#L211), [Parsing & Wildcard](example/core/string/main.cpp#L230), [Korean numeric formatters](example/core/string/main.cpp#L255), [tokenizer](example/core/string/main.cpp#L282), [to_string](example/core/string/main.cpp#L308), [mutex_string](example/core/string/main.cpp#L339), [u8string](example/core/string/main.cpp#L540), [encoding_function, to_console_encoding](example/core/string/main.cpp#L705),  </sub>
+    - [Trim](example/core/string/test_trim.cpp)
+    - [Replace](example/core/string/test_replace.cpp)
+    - [Case, Contains, Starts/Ends With](example/core/string/test_case_contains.cpp)
+    - [Split and Join](example/core/string/test_split_join.cpp)
+    - [Whitespace / Newline Normalization](example/core/string/test_whitespace_normalization.cpp)
+    - [Padding / Repeat / Quotes / Indent](example/core/string/test_padding_quotes.cpp)
+    - [Prefix/Suffix removal](example/core/string/test_affix_removal.cpp)
+    - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp)
+    - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp)
+    - [Korean numeric formatters](example/core/string/test_korean_numeric.cpp)
+    - [tokenizer](example/core/string/test_tokenizer.cpp)
+    - [to_string](example/core/string/test_to_string.cpp)
+    - [mutex_string](example/core/string/test_mutex_string.cpp)
+    - [u8string](example/core/string/test_u8string.cpp)
+    - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp)
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
