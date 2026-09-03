@@ -171,8 +171,8 @@
            +------------+   tcp    +------------+
            |  server    |----------|   client   |
            +------------+          +------------+
-                       <--set value--
-                        --get value-->
+                     <--set key:value--
+                      --get key:value-->
       ```
     - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버
     - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트
