@@ -56,7 +56,7 @@ function(use_mino_network EXE_NAME MINO_DIR)
 
         # 4-5-1. Threads
         find_package(Threads REQUIRED)
-		if(UNIX AND NOT APPLE)
+        if(UNIX AND NOT APPLE)
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
         else()
             target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
