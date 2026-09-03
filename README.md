@@ -226,7 +226,7 @@
     - 🔀 [receiver](example/network/udp/receiver/main.cpp) : UDP 수신.
     - 🔀 [sender](example/network/udp/sender/main.cpp) : UDP 송신.
 - 🔀 [util](example/network/util/main.cpp)
-    - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.
+    - 네트워크 인터페이스 목록 얻기. IP 주소 검증.
 - 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트.
 ##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿.
