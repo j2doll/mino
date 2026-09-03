@@ -165,7 +165,7 @@
                  v--+   |                                   |
                         |                                   |
           ```
-        - 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
+        - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
     - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버.
     - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트.
@@ -211,7 +211,7 @@
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
 - `sftp` : SFTP 클라이언트
     - 🔀 [putty](example/network/sftp/putty/main.cpp) : `psftp` 연동 클라이언트.
-- 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트 예제.
+- 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트.
 - `tcp` : TCP 소켓 예제
     - 🔀 [server](example/network/tcp/server/main.cpp) : TCP 서버.
     - 🔀 [client](example/network/tcp/client/main.cpp) : TCP 클라이언트.
@@ -220,7 +220,7 @@
     - 🔀 [sender](example/network/udp/sender/main.cpp) : UDP 송신.
 - 🔀 [util](example/network/util/main.cpp)
     - 주소 변환, 타임아웃 헬퍼, 재시도/회복 패턴 유틸.
-- 🔀 [ws](example/network/ws/main.cpp) : 웹소켓(`ws:`,`wss:`) 클라이언트 예제.
+- 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트.
 ##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿.
 - 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 기능 예제 템플릿.
