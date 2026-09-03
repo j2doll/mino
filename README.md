@@ -167,6 +167,13 @@
           ```
         - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
+    - ```
+           +------------+   tcp    +------------+
+           |  server    |----------|   client   |
+           +------------+          +------------+
+                       <--set value--
+                        --get value-->
+      ```
     - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버
     - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트
 - `message_broker` : 분산 메시지 브로커
