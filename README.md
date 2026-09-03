@@ -60,6 +60,8 @@
 - `datetime` : 날짜·시간 처리 
     - 🏛️ [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
     - 🏛️ [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
+- 🏛️ [dispatch](example/core/dispatch/main.cpp)
+    - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
     - Base64 인코딩/디코딩.
 - 🏛️ [enum](example/core/enum/main.cpp)
