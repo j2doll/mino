@@ -140,14 +140,14 @@
 - `schedule` : 외부 스케줄러 연동
     - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장.
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
-- `download` : http 다운로드 클라이언트
+- `download` : `http` 다운로드 클라이언트
     - 🔀 [curl](example/network/download/curl/main.cpp) : `libcurl` 기반 다운로드
     - 🔀 [httplib](example/network/download/httplib/main.cpp) : `httplib` 기반 다운로드
 - `ftp` : `ftp` 클라이언트
-    - 🔀 [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트.
-    - 🔀 [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트.
-- 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회.
-- `log` : 핫/소프트 로깅 환경 정보 리로딩 기능.
+    - 🔀 [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
+    - 🔀 [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
+- 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회
+- `log` : 핫/소프트 로깅 환경 정보 리로딩 기능
     - 🔀 [manager](example/network/log/manager/main.cpp)
         - ```
               +-------------------+               +-------------------+
@@ -167,8 +167,8 @@
           ```
         - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
-    - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버.
-    - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트.
+    - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버
+    - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트
 - `message_broker` : 분산 메시지 브로커
     - ```
                             +------------+
