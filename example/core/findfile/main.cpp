@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
         std::filesystem::path search_path = (source_path / "linux");
 #endif 
 
-        println(">> 파일 검색 경로: {}", search_path.string());
+        println("\n>> 파일 검색 경로: {} \n\n", search_path.string());
     }
 
     // ------------------------------------------------------------------------
