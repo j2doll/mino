@@ -46,6 +46,18 @@ int main(int argc, char* argv[]) {
     using file_searcher = mcf::file_searcher;
     using text_encoding = mcf::text_encoding;
 
+    {
+        std::string source_dir = SOURCE_DIR;
+        std::filesystem::path source_path(source_dir);
+#ifdef _WIN32
+        std::filesystem::path search_path = (source_path / "windows");
+#else
+        std::filesystem::path search_path = (source_path / "linux");
+#endif 
+
+        println(">> 파일 검색 경로: {}", search_path.string());
+    }
+
     // ------------------------------------------------------------------------
     // 시나리오 1. 한글 경로 + 한글 본문 검색
     // (Windows : 경로 CP949, 본문 CP949) (Linux : 경로 UTF-8, 본문 UTF-8)
