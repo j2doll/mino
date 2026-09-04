@@ -369,6 +369,17 @@ namespace mino::core::findfile {
         // 1. root_dir을 경로 인코딩 설정에 맞추어 std::filesystem::path로 파싱
         fs::path root_path = encoding_util::string_to_path(root_dir, options_.file_path_encoding);
 
+        // [방어 코드 1] 경로가 존재하지 않거나 디렉터리가 아닌 경우 조기 리턴
+        std::error_code check_ec_1, check_ec_2;
+        auto is_root_path_exists = fs::exists(root_path, check_ec_1);
+        auto is_root_path_directory = fs::is_directory(root_path, check_ec_2);
+        if (!is_root_path_exists || !is_root_path_directory) {
+            std::cerr 
+                << "[Error] Root path does not exist or is not a directory: " 
+                << root_path.string() << " (ec: " << check_ec_1.message() << " / " << check_ec_2.message() << ")\n";
+            return results;
+        }        
+
         // 2. 쿼리를 내부 표준 UTF-8로 정규화
         std::string query_utf8 = (options_.file_content_encoding == text_encoding::cp949)
             ? encoding_util::cp949_to_utf8(query)

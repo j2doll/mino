@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/mino/core/include",
+        "${workspaceFolder}/mino/external/include",        
+        "${workspaceFolder}/mino/network/include"
+      ],
+      "compilerPath": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-x64"
+    }
+  ],
+  "version": 4
+}

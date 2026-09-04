@@ -1,0 +1,7 @@
+{
+    // .vscode/settings.json
+
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.sourceDirectory": "${workspaceFolder}", 
+
+}

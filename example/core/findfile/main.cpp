@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
         std::filesystem::path search_path = (source_path / "linux");
 #endif 
 
-        println("\n>> 파일 검색 경로: {} \n\n", search_path.string());
+        // println("\n>> 파일 검색 경로: {} \n\n", search_path.string()); // debug
     }
 
     // ------------------------------------------------------------------------
@@ -86,6 +86,7 @@ int main(int argc, char* argv[]) {
 #endif 
         std::string han_dir = tce("한글_디렉터리"); // 윈도:CP949, 리눅:UTF8
         std::filesystem::path hangul_path = search_path / han_dir;  // 검색 대상인 경로
+        println(">> 파일 검색 경로: {}", hangul_path.string());
 
         std::string search_string_utf8 = "심각한_오류"; // UTF-8 문자열
         std::string search_string = tce(search_string_utf8); // 윈도:CP949, 리눅:UTF8
@@ -127,6 +128,7 @@ int main(int argc, char* argv[]) {
 #endif 
         std::string han_dir = tce("한글_디렉터리"); // 윈도:CP949, 리눅:UTF8  
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
+        println(">> 파일 검색 경로: {}", hangul_path.string());
 
         // 본문 내 한글이 포함된 형태(예: "에러코드_숫자") 정규식 검색
         std::string korean_regex_utf8 = R"(에러코드_\d{4})"; // UTF-8 문자열
@@ -168,6 +170,7 @@ int main(int argc, char* argv[]) {
 #endif 
         std::string han_dir = tce("한글_디렉터리"); // 윈도:CP949, 리눅:UTF8 
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
+        println(">> 파일 검색 경로: {}", hangul_path.string());
 
         // 검색하려는 문자열
         auto search_string_utf8 = "접속성공"; // UTF-8 문자열
@@ -201,14 +204,14 @@ int main(int argc, char* argv[]) {
 
         // 시간정보 구조체 타입
         std::string date_regex = mcf::build_datetime_range_regex(
-            { {2026, 9, 4}, {10, 0, 0} }, { {2026, 9, 4}, {10, 1, 59} }, "^서버로그_", R"(\.log$)"
+            {{2026, 9, 4},{10, 0, 0}}, {{2026, 9, 4},{10, 1, 59}}, "^서버로그_", R"(\.log$)"
         ); 
 
         opt.include_regex_patterns.push_back(date_regex); // 정규식 검색 패턴 추가
         opt.use_regex = true; // 정규식 검색 활성화
 
         auto combined_regex = opt.get_combined_include_regex();
-        println("정규식 정보: {}", combined_regex); // 정규식 정보 출력
+        println(">> 정규식 정보: {}", combined_regex); // 정규식 정보 출력
 
         file_searcher searcher(opt);
 
@@ -221,6 +224,7 @@ int main(int argc, char* argv[]) {
 #endif 
         std::string han_dir = tce("한글_디렉터리"); // 윈도:CP949, 리눅:UTF8
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
+        println(">> 파일 검색 경로: {}", hangul_path.string());
 
         std::string search_string_utf8 = "FATAL긴급"; // UTF-8 문자열
         std::string search_string = tce(search_string_utf8); // 윈도:CP949, 리눅:UTF8

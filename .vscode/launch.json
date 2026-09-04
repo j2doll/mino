@@ -1,0 +1,50 @@
+{
+    // .vscode/launch.json
+
+    "version": "0.2.0",
+
+    "configurations": [
+        {
+            //////////////////////////////////////////////
+            // {{ Set your own project setting (execute program type)
+
+            "name": "core_filefind_example", 
+            "program": "${workspaceFolder}/build/example/core/findfile/core_filefind_example", 
+            "cwd": "${workspaceFolder}/build/example/core/findfile/", 
+            "args": [ /* "arg1", "arg2", */ ],             
+            "sourceFileMap" : { // TODO: Set source code directory that is used by your program
+                // "/hello/src1" : "${env:HELLO_ROOT}/src2", 
+                // "/hello/src2" : "${env:HELLO_ROOT}/src2",                 
+            },
+            "miDebuggerPath": "/opt/rh/gcc-toolset-15/root/usr/bin/gdb", // TODO: Set gdb path of your Linux 
+
+            // }} 
+            //////////////////////////////////////////////
+            
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "CMake Build", // see tasks.json for more information
+            "stopAtEntry": false,
+            "environment": [],
+            "externalConsole": false, // show in integrated vscode console
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "pretty printing gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true,
+                }
+            ],    
+            "logging": {
+                "exceptions": true,
+                "moduleLoad": true,
+                "programOutput": true,
+                // "engineLogging": true,
+                // "trace": true, // default value is false
+                // "traceResponse": true, // default value is false
+            },
+
+        }
+    ]
+
+}
