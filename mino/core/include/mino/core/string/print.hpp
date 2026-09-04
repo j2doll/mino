@@ -4,6 +4,8 @@
 #include <string_view>
 #include <sstream>
 
+#include "mino/core/string/to_console_encoding.hpp"
+
 // NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
 // 
 // namespace mcsp = ::mino::core::string::print;
@@ -19,10 +21,22 @@
 
 namespace mino::core::string::print {
 
-    // 1. 단일 인자를 출력 스트림으로 보내는 헬퍼
+    // 1. 단일 인자를 출력 스트림으로 보내는 헬퍼 (인코딩 적용)
     template <typename T>
     void write_arg(std::ostream& os, const T& arg) {
         os << arg;
+    }
+
+    // 문자열 특화: 콘솔 인코딩 변환 적용
+    template <>
+    inline void write_arg<std::string>(std::ostream& os, const std::string& arg) {
+        os << to_console_encoding(arg);
+    }
+
+    // std::string_view 특화: 콘솔 인코딩 변환 적용
+    template <>
+    inline void write_arg<std::string_view>(std::ostream& os, const std::string_view& arg) {
+        os << to_console_encoding(std::string(arg));
     }
 
     // 2. 가변 인자를 순차적으로 포맷 스트링에 대입하는 헬퍼
@@ -34,40 +48,38 @@ namespace mino::core::string::print {
             if (pos != std::string_view::npos) {
                 os << fmt.substr(last_pos, pos - last_pos);
                 write_arg(os, arg);
-                last_pos = pos + 2; // "{}" 길이만큼 건너뜀
+                last_pos = pos + 2;
             }
         };
 
-        // C++17 폴드 표현식으로 각 인자 순차 처리
         (replace_next(args), ...);
 
-        // 마지막 남은 포맷 문자열 출력
         if (last_pos < fmt.size()) {
             os << fmt.substr(last_pos);
         }
     }
 
-    // 3. std::print 와 std::println 구현
+    // 3. 포맷 스트링도 인코딩 변환
     template <typename... Args>
     void print(std::string_view fmt, const Args&... args) {
-        format_to(std::cout, fmt, args...);
+        format_to(std::cout, to_console_encoding(std::string(fmt)), args...);
     }
 
     template <typename... Args>
     void println(std::string_view fmt, const Args&... args) {
-        format_to(std::cout, fmt, args...);
+        format_to(std::cout, to_console_encoding(std::string(fmt)), args...);
         std::cout << '\n';
     }
 
     template <typename... Args>
     void eprint(std::string_view fmt, const Args&... args) {
-        format_to(std::cerr, fmt, args...);
+        format_to(std::cerr, to_console_encoding(std::string(fmt)), args...);
     }
 
     template <typename... Args>
     void eprintln(std::string_view fmt, const Args&... args) {
-        format_to(std::cerr, fmt, args...);
+        format_to(std::cerr, to_console_encoding(std::string(fmt)), args...);
         std::cerr << '\n';
     }
 
-} 
+}
