@@ -129,12 +129,18 @@
     - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp)
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
-- 🏛️ [thread](example/core/thread/main.cpp) : 동적 스레드·동시성  
-- 🏛️ [tpm](example/core/tpm/main.cpp) : 인메모리 TP 모니터
-- 🏛️ [uuid](example/core/uuid/main.cpp) : 고유 ID 생성·파싱  
-- 🏛️ [validation](example/core/validation/main.cpp) : 이메일, 전화번호, URL, IP, Base64, HEX 색, JSON, 주민번호 검증
-- 🏛️ [xml](example/core/xml/main.cpp) : `.xml` 파싱·직렬화
-- 🏛️ [yaml](example/core/yaml/main.cpp) : `.yaml` 파싱·직렬화
+- 🏛️ [thread](example/core/thread/main.cpp)
+    - 동적 스레드·동시성  
+- 🏛️ [tpm](example/core/tpm/main.cpp)
+    - 인메모리 TP 모니터
+- 🏛️ [uuid](example/core/uuid/main.cpp)
+    - 고유 ID 생성·파싱  
+- 🏛️ [validation](example/core/validation/main.cpp)
+    - 이메일, 전화번호, URL, IP, Base64, HEX 색, JSON, 주민번호 검증
+- 🏛️ [xml](example/core/xml/main.cpp)
+    - `.xml` 파싱·직렬화
+- 🏛️ [yaml](example/core/yaml/main.cpp)
+    - `.yaml` 파싱·직렬화
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
 - 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능.
 - `log` : 외부 로깅 어댑터/팩토리
