@@ -5,6 +5,7 @@
 #include <cctype>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include "mino/core/crypt/keyless_cipher.hpp"
 #include "mino/network/memory_store/server.hpp"
@@ -53,11 +54,17 @@ namespace mino::network::memory_store {
             this->handle_on_receive(fd, data);
             });
 
+        // 클라이언트 연결 종료 시 수신 버퍼 정리
+        server_.set_on_close_callback([this](socket_t fd, const std::string& /*reason*/) {
+            std::lock_guard<std::mutex> lock(client_buffers_mutex_);
+            client_buffers_.erase(fd);
+            });
+
         if (logger_) logger_->info("[memory_store_server] Starting server at {}:{}", bind_ip_, bind_port_);
 
         auto ret_tcp = server_.start(bind_ip_, bind_port_);
         if (ret_tcp != mino::network::tcp::tcp_server::start_result::success) {
-            if (logger_) logger_->info("[memory_store_server] Failed to start TCP server. Error code: {}", static_cast<int>(ret_tcp));
+            if (logger_) logger_->error("[memory_store_server] Failed to start TCP server. Error code: {}", static_cast<int>(ret_tcp));
             return false;
         }
 
@@ -85,30 +92,16 @@ namespace mino::network::memory_store {
         }
 
         server_.quit();
+
+        std::lock_guard<std::mutex> lock(client_buffers_mutex_);
+        client_buffers_.clear();
     }
 
     bool memory_store_server::save_to_file(const std::string& filename) {
         namespace fs = std::filesystem;
+        fs::path out_path = fs::path(filename).is_absolute() ? fs::path(filename) : (fs::current_path() / filename);
 
-        fs::path input_path(filename);
-        fs::path out_path;
-
-        if (input_path.is_absolute()) {
-            out_path = input_path;
-        }
-        else {
-            out_path = fs::current_path() / input_path;
-        }
-
-        std::error_code ec;
-        if (out_path.has_parent_path()) {
-            fs::create_directories(out_path.parent_path(), ec);
-            if (ec) {
-                if (logger_) logger_->error("[memory_store_server] Failed to create directories for {}: {}", out_path.string(), ec.message());
-                return false;
-            }
-        }
-
+        // 1. 메모리 스냅샷 복사 (storage_mutex_ 최소 점유)
         std::string plain;
         {
             std::shared_lock<std::shared_mutex> lock(storage_mutex_);
@@ -123,6 +116,7 @@ namespace mino::network::memory_store {
             }
         }
 
+        // 2. 암호화 (락 해제 상태에서 수행)
         std::string cipher_text;
         try {
             cipher_text = mino::core::crypt::keyless_cipher::encrypt(plain);
@@ -130,6 +124,17 @@ namespace mino::network::memory_store {
         catch (const std::exception& ex) {
             if (logger_) logger_->error("[memory_store_server] Encryption failed for {}: {}", out_path.string(), ex.what());
             return false;
+        }
+
+        // 3. 파일 쓰기 동기화 (file_mutex_ 사용)
+        std::lock_guard<std::mutex> f_lock(file_mutex_);
+        std::error_code ec;
+        if (out_path.has_parent_path()) {
+            fs::create_directories(out_path.parent_path(), ec);
+            if (ec) {
+                if (logger_) logger_->error("[memory_store_server] Failed to create directories for {}: {}", out_path.string(), ec.message());
+                return false;
+            }
         }
 
         std::ofstream file(out_path.string(), std::ios::binary | std::ios::trunc);
@@ -157,40 +162,32 @@ namespace mino::network::memory_store {
         }
 
         namespace fs = std::filesystem;
-
-        fs::path input_path(filename);
-        fs::path in_path;
-
-        if (input_path.is_absolute()) {
-            in_path = input_path;
-        }
-        else {
-            in_path = fs::current_path() / input_path;
-        }
-
-        std::unique_lock<std::shared_mutex> lock(storage_mutex_);
-
-        if (logger_) logger_->warn("[memory_store_server] Start loading file. Client requests will block until finished. File: {}", in_path.string());
-
-        std::ifstream file(in_path.string(), std::ios::binary);
-        if (!file.is_open()) {
-            if (logger_) logger_->error("[memory_store_server] Failed to open file for read: {}", in_path.string());
-            return false;
-        }
+        fs::path in_path = fs::path(filename).is_absolute() ? fs::path(filename) : (fs::current_path() / filename);
 
         std::string cipher_text;
-        file.seekg(0, std::ios::end);
-        std::streamsize fsize = file.tellg();
-        file.seekg(0, std::ios::beg);
-        if (fsize > 0) {
-            cipher_text.resize(static_cast<size_t>(fsize));
-            file.read(&cipher_text[0], fsize);
-            if (!file) {
-                if (logger_) logger_->error("[memory_store_server] Failed reading file contents from {}", in_path.string());
+        {
+            // 1. 파일 읽기 (storage_mutex_를 잡지 않고 file_mutex_만 점유)
+            std::lock_guard<std::mutex> f_lock(file_mutex_);
+            std::ifstream file(in_path.string(), std::ios::binary);
+            if (!file.is_open()) {
+                if (logger_) logger_->error("[memory_store_server] Failed to open file for read: {}", in_path.string());
                 return false;
+            }
+
+            file.seekg(0, std::ios::end);
+            std::streamsize fsize = file.tellg();
+            file.seekg(0, std::ios::beg);
+            if (fsize > 0) {
+                cipher_text.resize(static_cast<size_t>(fsize));
+                file.read(&cipher_text[0], fsize);
+                if (!file) {
+                    if (logger_) logger_->error("[memory_store_server] Failed reading file contents from {}", in_path.string());
+                    return false;
+                }
             }
         }
 
+        // 2. 복호화
         std::string plain;
         try {
             plain = mino::core::crypt::keyless_cipher::decrypt(cipher_text);
@@ -200,8 +197,8 @@ namespace mino::network::memory_store {
             return false;
         }
 
-        storage_.clear();
-
+        // 3. 임시 맵에 파싱
+        std::unordered_map<std::string, std::string> new_storage;
         const char* buf = plain.data();
         size_t pos = 0;
         size_t len = plain.size();
@@ -217,6 +214,7 @@ namespace mino::network::memory_store {
             size_t start = pos;
             while (pos < len && std::isdigit(static_cast<unsigned char>(buf[pos]))) ++pos;
             if (start == pos) break;
+
             size_t klen = 0;
             try {
                 klen = static_cast<size_t>(std::stoull(std::string(&buf[start], pos - start)));
@@ -226,15 +224,13 @@ namespace mino::network::memory_store {
                 return false;
             }
 
-            if (pos >= len || buf[pos] != ' ') {
-                if (logger_) logger_->error("[memory_store_server] Malformed decrypted data (missing space after klen)");
-                return false;
-            }
+            if (pos >= len || buf[pos] != ' ') return false;
             ++pos;
 
             start = pos;
             while (pos < len && std::isdigit(static_cast<unsigned char>(buf[pos]))) ++pos;
             if (start == pos) break;
+
             size_t vlen = 0;
             try {
                 vlen = static_cast<size_t>(std::stoull(std::string(&buf[start], pos - start)));
@@ -244,26 +240,17 @@ namespace mino::network::memory_store {
                 return false;
             }
 
-            if (pos >= len || buf[pos] != ' ') {
-                if (logger_) logger_->error("[memory_store_server] Malformed decrypted data (missing separator before key bytes)");
-                return false;
-            }
+            if (pos >= len || buf[pos] != ' ') return false;
             ++pos;
 
-            if (pos + klen > len) {
-                if (logger_) logger_->error("[memory_store_server] Unexpected end while reading key bytes");
-                return false;
-            }
+            if (pos + klen > len) return false;
             std::string key;
             if (klen > 0) {
                 key.assign(&buf[pos], klen);
                 pos += klen;
             }
 
-            if (pos + vlen > len) {
-                if (logger_) logger_->error("[memory_store_server] Unexpected end while reading value bytes");
-                return false;
-            }
+            if (pos + vlen > len) return false;
             std::string val;
             if (vlen > 0) {
                 val.assign(&buf[pos], vlen);
@@ -272,10 +259,16 @@ namespace mino::network::memory_store {
 
             if (pos < len && buf[pos] == '\n') ++pos;
 
-            storage_[key] = val;
+            new_storage[std::move(key)] = std::move(val);
         }
 
-        if (logger_) logger_->info("[memory_store_server] Load complete. Resuming client requests.");
+        // 4. 파싱 완료 후 한 번에 스왑 (락 점유 극소화)
+        {
+            std::unique_lock<std::shared_mutex> lock(storage_mutex_);
+            storage_ = std::move(new_storage);
+        }
+
+        if (logger_) logger_->info("[memory_store_server] Load complete. Restored {} entries.", storage_.size());
         return true;
     }
 
@@ -283,7 +276,6 @@ namespace mino::network::memory_store {
         std::unique_lock<std::mutex> lock(auto_save_mutex_);
         while (is_auto_save_running_) {
             auto_save_cv_.wait_for(lock, auto_save_interval_, [this] { return !is_auto_save_running_; });
-
             if (!is_auto_save_running_) break;
 
             if (logger_) logger_->info("[memory_store_server] Triggering periodic auto-save...");
@@ -292,10 +284,36 @@ namespace mino::network::memory_store {
     }
 
     void memory_store_server::handle_on_receive(socket_t client_socket, const std::string& data) {
-        auto tokens = parse_command(data);
+        std::vector<std::string> complete_commands;
+
+        // 스트림 버퍼링 처리: 개행('\n') 단위로 명령어 분리
+        {
+            std::lock_guard<std::mutex> lock(client_buffers_mutex_);
+            std::string& buf = client_buffers_[client_socket];
+            buf.append(data);
+
+            size_t pos = 0;
+            while ((pos = buf.find('\n')) != std::string::npos) {
+                std::string line = buf.substr(0, pos);
+                if (!line.empty() && line.back() == '\r') {
+                    line.pop_back();
+                }
+                complete_commands.push_back(std::move(line));
+                buf.erase(0, pos + 1);
+            }
+        }
+
+        for (const auto& cmd_line : complete_commands) {
+            if (!cmd_line.empty()) {
+                process_command(client_socket, cmd_line);
+            }
+        }
+    }
+
+    void memory_store_server::process_command(socket_t client_socket, const std::string& command_line) {
+        auto tokens = parse_command(command_line);
         if (tokens.empty()) {
             server_.send_to_client(client_socket, "-ERR empty command\n");
-            if (logger_) logger_->error("[memory_store_server] Received empty command from client {}", client_socket);
             return;
         }
 
@@ -304,9 +322,14 @@ namespace mino::network::memory_store {
 
         if (cmd == "SET") {
             if (tokens.size() < 3) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "-ERR wrong number of arguments for 'set'\n");
-                if (logger_) logger_->error("[memory_store_server] SET command failed for client {}: Missing key or value argument", client_socket);
+                return;
+            }
+
+            if (!is_valid_key(tokens[1])) {
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
+                server_.send_to_client(client_socket, "-ERR invalid key format\n");
                 return;
             }
 
@@ -315,20 +338,19 @@ namespace mino::network::memory_store {
                 storage_[tokens[1]] = tokens[2];
             }
 
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
             server_.send_to_client(client_socket, "+OK\n");
-            if (logger_) logger_->info("[memory_store_server] SET command executed for client {}: Key '{}' set with value '{}'", client_socket, tokens[1], tokens[2]);
+            if (logger_) logger_->info("[memory_store_server] SET key '{}' for client {}", tokens[1], client_socket);
         }
         else if (cmd == "GET") {
             if (tokens.size() < 2) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "-ERR wrong number of arguments for 'get'\n");
-                if (logger_) logger_->error("[memory_store_server] GET command failed for client {}: Missing key argument", client_socket);
                 return;
             }
 
             std::string val;
             bool found = false;
-
             {
                 std::shared_lock<std::shared_mutex> lock(storage_mutex_);
                 auto it = storage_.find(tokens[1]);
@@ -338,77 +360,66 @@ namespace mino::network::memory_store {
                 }
             }
 
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
             if (found) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "+" + val + "\n");
-                if (logger_) logger_->info("[memory_store_server] GET command executed for client {}: Key '{}' found with value '{}'", client_socket, tokens[1], val);
             }
             else {
-                std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "$-1\n");
-                if (logger_) logger_->info("[memory_store_server] GET command executed for client {}: Key '{}' not found", client_socket, tokens[1]);
             }
         }
         else if (cmd == "DEL") {
             if (tokens.size() < 2) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "-ERR wrong number of arguments for 'del'\n");
-                if (logger_) logger_->error("[memory_store_server] DEL command failed for client {}: Missing key argument", client_socket);
                 return;
             }
+
             size_t erased_count = 0;
             {
                 std::unique_lock<std::shared_mutex> lock(storage_mutex_);
                 erased_count = storage_.erase(tokens[1]);
             }
 
-            std::this_thread::sleep_for(sleep_for_transmission_);
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
             server_.send_to_client(client_socket, ":" + std::to_string(erased_count) + "\n");
-            if (logger_) logger_->info("[memory_store_server] DEL command executed for client {}: Key '{}' erased count = {}", client_socket, tokens[1], erased_count);
         }
         else if (cmd == "SAVE") {
             std::string target_file = (tokens.size() >= 2) ? tokens[1] : db_filepath_;
-            if (save_to_file(target_file)) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
-                server_.send_to_client(client_socket, "+OK\n");
-                if (logger_) logger_->info("[memory_store_server] SAVE completed for client {}: Storage saved to {}", client_socket, target_file);
-            }
-            else {
-                std::this_thread::sleep_for(sleep_for_transmission_);
-                server_.send_to_client(client_socket, "-ERR failed to save file\n");
-                if (logger_) logger_->error("[memory_store_server] SAVE failed for client {}: Could not save to {}", client_socket, target_file);
-            }
+            bool success = save_to_file(target_file);
+
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
+            server_.send_to_client(client_socket, success ? "+OK\n" : "-ERR failed to save file\n");
         }
         else if (cmd == "LOAD") {
             std::string target_file = (tokens.size() >= 2) ? tokens[1] : db_filepath_;
-            if (load_from_file(target_file)) {
-                std::this_thread::sleep_for(sleep_for_transmission_);
-                server_.send_to_client(client_socket, "+OK\n");
-                if (logger_) logger_->info("[memory_store_server] LOAD completed for client {}: Storage restored from {}", client_socket, target_file);
-            }
-            else {
-                std::this_thread::sleep_for(sleep_for_transmission_);
-                server_.send_to_client(client_socket, "-ERR failed to load file\n");
-                if (logger_) logger_->error("[memory_store_server] LOAD failed for client {}: Could not restore from {}", client_socket, target_file);
-            }
+            bool success = load_from_file(target_file);
+
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
+            server_.send_to_client(client_socket, success ? "+OK\n" : "-ERR failed to load file\n");
         }
         else if (cmd == "DUMP") {
-            std::shared_lock<std::shared_mutex> lock(storage_mutex_);
+            // 스냅샷을 생성하여 락을 빠르게 해제 (다른 클라이언트의 Write 블로킹 방지)
+            std::vector<std::pair<std::string, std::string>> snapshot;
+            {
+                std::shared_lock<std::shared_mutex> lock(storage_mutex_);
+                snapshot.reserve(storage_.size());
+                for (const auto& kv : storage_) {
+                    snapshot.push_back(kv);
+                }
+            }
 
-            if (storage_.empty()) {
+            if (snapshot.empty()) {
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "+EMPTY\n");
-                if (logger_) logger_->info("[memory_store_server] DUMP sent to client {}: Storage is empty", client_socket);
             }
             else {
-                for (const auto& [key, val] : storage_) {
-                    std::this_thread::sleep_for(sleep_for_transmission_);
+                for (const auto& [key, val] : snapshot) {
+                    if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                     server_.send_to_client(client_socket, "+" + key + " " + val + "\n");
-                    if (logger_) logger_->info("[memory_store_server] DUMP sent to client {}: {} => {}", client_socket, key, val);
                 }
-
-                std::this_thread::sleep_for(sleep_for_transmission_);
+                if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
                 server_.send_to_client(client_socket, "+END\n");
-                if (logger_) logger_->info("[memory_store_server] DUMP completed for client {}", client_socket);
             }
         }
         else if (cmd == "LATENCY") {
@@ -420,17 +431,14 @@ namespace mino::network::memory_store {
 
             long long total_ms = static_cast<long long>(key_count) * static_cast<long long>(sleep_for_transmission_.count());
             server_.send_to_client(client_socket, ":" + std::to_string(total_ms) + "\n");
-            if (logger_) logger_->info("[memory_store_server] LATENCY requested by client {}: keys={}, sleep_ms={}, total_ms={}", client_socket, key_count, sleep_for_transmission_.count(), total_ms);
         }
         else if (cmd == "SLEEP_MS") {
             long long sleep_ms = static_cast<long long>(sleep_for_transmission_.count());
             server_.send_to_client(client_socket, ":" + std::to_string(sleep_ms) + "\n");
-            if (logger_) logger_->info("[memory_store_server] SLEEP_MS requested by client {}: sleep_ms={}", client_socket, sleep_ms);
         }
         else {
-            std::this_thread::sleep_for(sleep_for_transmission_);
+            if (sleep_for_transmission_.count() > 0) std::this_thread::sleep_for(sleep_for_transmission_);
             server_.send_to_client(client_socket, "-ERR unknown command\n");
-            if (logger_) logger_->error("[memory_store_server] Unknown command '{}' received from client {}", cmd, client_socket);
         }
     }
 
@@ -440,7 +448,6 @@ namespace mino::network::memory_store {
 
     void memory_store_server::print_all() const {
         std::shared_lock<std::shared_mutex> lock(storage_mutex_);
-
         if (logger_) {
             if (storage_.empty()) {
                 logger_->info("[memory_store_server] Storage is empty.");
@@ -451,16 +458,16 @@ namespace mino::network::memory_store {
                     logger_->info("[memory_store_server] {} => {}", key, val);
                 }
             }
-            return;
-        }
-
-        if (storage_.empty()) {
-            std::cout << "[memory_store_server] Storage is empty.\n";
         }
         else {
-            std::cout << "[memory_store_server] Listing all key/value pairs:\n";
-            for (const auto& [key, val] : storage_) {
-                std::cout << key << " => " << val << '\n';
+            if (storage_.empty()) {
+                std::cout << "[memory_store_server] Storage is empty.\n";
+            }
+            else {
+                std::cout << "[memory_store_server] Listing all key/value pairs:\n";
+                for (const auto& [key, val] : storage_) {
+                    std::cout << key << " => " << val << '\n';
+                }
             }
         }
     }

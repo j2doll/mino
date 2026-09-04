@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include <chrono>
+#include <queue>
 
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
@@ -19,8 +20,14 @@ namespace mino::network::memory_store {
         mino::network::tcp::tcp_client client_;
         std::mutex response_mutex_;
         std::condition_variable response_cv_;
-        std::string current_response_;
-        bool has_response_;
+
+        // 스트림 수신 버퍼 및 큐
+        std::string rx_buffer_;
+        std::queue<std::string> response_queue_;
+
+        // 다중 스레드 동시 요청을 직렬화하는 트랜잭션 락
+        std::recursive_mutex request_mutex_;
+
         std::string remote_ip_;
         unsigned short remote_port_;
         std::shared_ptr<mino::core::log::tinylog::logger> logger_;
@@ -28,6 +35,8 @@ namespace mino::network::memory_store {
 
     protected:
         std::optional<std::string> send_and_wait(const std::string& command, std::chrono::seconds timeout);
+        std::optional<std::string> send_and_wait_locked(const std::string& command, std::chrono::seconds timeout);
+        int del_locked(const std::string& key);
 
     public:
         memory_store_client();
@@ -49,13 +58,7 @@ namespace mino::network::memory_store {
         bool request_server_load();
 
         std::vector<std::pair<std::string, std::string>> request_server_dump(std::chrono::seconds timeout);
-
-        // 서버의 sleep_for_transmission_ 값을 밀리초 단위로 요청하여 반환합니다.
-        // 성공 시 0 이상의 밀리초 값을 반환, 실패 시 -1 반환.
         long request_server_sleep_ms();
-
-        // 서버가 현재 키 수와 sleep_for_transmission_을 곱한 값을 밀리초 단위 정수로 반환합니다.
-        // 성공 시 0 이상의 밀리초 값을 반환, 실패 시 -1 반환.
         long request_server_latency_ms();
     };
 

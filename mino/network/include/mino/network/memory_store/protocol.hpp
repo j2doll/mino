@@ -13,6 +13,27 @@ namespace mino::network::memory_store {
 
         for (size_t i = 0; i < raw_cmd.size(); ++i) {
             char ch = raw_cmd[i];
+
+            // 따옴표 내부의 이스케이프 시퀀스 처리 (\", \\, \n, \r)
+            if (in_quotes && ch == '\\' && i + 1 < raw_cmd.size()) {
+                char next = raw_cmd[i + 1];
+                if (next == '"' || next == '\\') {
+                    token += next;
+                    ++i;
+                    continue;
+                }
+                else if (next == 'n') {
+                    token += '\n';
+                    ++i;
+                    continue;
+                }
+                else if (next == 'r') {
+                    token += '\r';
+                    ++i;
+                    continue;
+                }
+            }
+
             if (ch == '"') {
                 in_quotes = !in_quotes;
                 continue;
@@ -33,16 +54,16 @@ namespace mino::network::memory_store {
         return tokens;
     }
 
-    // 간단한 키 유효성 검사: 비어있지 않고 공백, 큰따옴표, 제어문자가 없어야 함
+    // 키 유효성 검사: 비어있지 않고 공백, 큰따옴표, 제어문자가 없어야 함
     inline bool is_valid_key(const std::string& key) {
         if (key.empty()) return false;
         for (unsigned char ch : key) {
-            if (std::isspace(ch)) return false; // 스페이스, 탭, 개행 등 모두 금지
-            if (ch == '"') return false;       // 따옴표는 프로토콜에서 특별 처리
+            if (std::isspace(ch)) return false;
+            if (ch == '"') return false;
             if (ch == '\0') return false;
-            if (ch < 0x20) return false;      // 기타 제어문자 금지
+            if (ch < 0x20) return false;
         }
         return true;
     }
 
-} 
+}

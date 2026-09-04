@@ -8,6 +8,7 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
+#include <mutex>
 
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_server.hpp"
@@ -27,11 +28,17 @@ namespace mino::network::memory_store {
         int bind_port_;
         std::string db_filepath_;
         std::atomic<bool> is_auto_save_running_;
-        std::chrono::seconds auto_save_interval_{ 0 }; // 0 이면 비활성화
-        std::chrono::milliseconds sleep_for_transmission_;
+        std::chrono::seconds auto_save_interval_{ 0 };
+        std::chrono::milliseconds sleep_for_transmission_{ 50 };
+
+        // TCP 스트림 프레이밍 및 파일 I/O 동기화 멤버
+        std::mutex client_buffers_mutex_;
+        std::unordered_map<socket_t, std::string> client_buffers_;
+        std::mutex file_mutex_;
 
     protected:
         void handle_on_receive(socket_t client_socket, const std::string& data);
+        void process_command(socket_t client_socket, const std::string& command_line);
         bool save_to_file(const std::string& filename);
         bool load_from_file(const std::string& filename);
         void auto_save_loop();
@@ -51,7 +58,6 @@ namespace mino::network::memory_store {
 
         bool load();
         void print_all() const;
-
     };
 
 }
