@@ -277,7 +277,9 @@ sftp_root/
 example/network/socket-io/node_modules/
 
 # filefinder test files
+!example/core/findfile/windows/
 !example/core/findfile/windows/*
+!example/core/findfile/linux/
 !example/core/findfile/linux/*
 
 
