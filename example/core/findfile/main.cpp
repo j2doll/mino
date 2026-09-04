@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
     using search_options = mcf::search_options;
     using file_searcher = mcf::file_searcher;
     using text_encoding = mcf::text_encoding;
+    using search_match = mcf::search_match;
 
     {
         std::string source_dir = SOURCE_DIR;
@@ -54,7 +55,6 @@ int main(int argc, char* argv[]) {
 #else
         std::filesystem::path search_path = (source_path / "linux");
 #endif 
-
         // println("\n>> 파일 검색 경로: {} \n\n", search_path.string()); // debug
     }
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // (Windows : 경로 CP949, 본문 CP949) (Linux : 경로 UTF-8, 본문 UTF-8)
     // ------------------------------------------------------------------------
     {
-        search_options opt;
+        search_options opt; // 검색 옵션
 #ifdef _WIN32
         opt.file_path_encoding    = text_encoding::cp949; 
         opt.file_content_encoding = text_encoding::cp949; 
@@ -71,12 +71,15 @@ int main(int argc, char* argv[]) {
         opt.file_path_encoding    = text_encoding::utf8;
         opt.file_content_encoding = text_encoding::utf8; 
 #endif
-        opt.include_wildcards = { "로그_*.txt", "사용자_*.log" }; // UTF-8 문자열 
-        opt.exclude_wildcards = { "임시_폴더" }; // UTF-8 문자열
+        opt.include_wildcards = { "로그_*.txt", "사용자_*.log" }; // 검색 대상인 파일명의 와일드 카드 [UTF-8 문자열]
+        opt.exclude_wildcards = { "임시_폴더" }; // 검색 대상에서 제외되는 파일명 와일드 카드 [UTF-8 문자열]
         opt.case_sensitive = false; // 대소문자 구분 없이 검색
+        // opt.include_regex_patterns = { R"(로그_\d{8}\.txt$)", R"(사용자_\w+\.log$)" }; // UTF-8 문자열, 정규식 검색
+        // opt.exclude_regex_patterns = { R"(.*임시_폴더.*)" }; // UTF-8 문자열, 정규식 검색
 
-        file_searcher searcher(opt);
+        file_searcher searcher(opt); // 검색 객체 
 
+        // [1] 검색 대상인 디렉토리 경로 설정
         std::string source_dir = SOURCE_DIR; // 현재 소스 코드 경로
         std::filesystem::path source_path(source_dir);
 #ifdef _WIN32
@@ -88,10 +91,12 @@ int main(int argc, char* argv[]) {
         std::filesystem::path hangul_path = search_path / han_dir;  // 검색 대상인 경로
         println(">> 파일 검색 경로: {}", hangul_path.string());
 
+        // [2] 검색하려는 문자열
         std::string search_string_utf8 = "심각한_오류"; // UTF-8 문자열
         std::string search_string = tce(search_string_utf8); // 윈도:CP949, 리눅:UTF8
 
-        auto results = searcher.search(hangul_path.string(), search_string); // 검색 수행
+        // [3] 검색 수행: results의 갯수가 1이상이면 검색 성공, 0이면 검색 실패
+        std::vector<search_match> results = searcher.search(hangul_path.string(), search_string);
 
 #ifdef _WIN32
         print_matches("1. Windows 레거시 환경 (경로: CP949 + 본문: CP949)", search_string_utf8, results);
@@ -119,6 +124,7 @@ int main(int argc, char* argv[]) {
 
         file_searcher searcher(opt);
 
+        // [1] 검색 대상인 디렉토리 경로 설정
         std::string source_dir = SOURCE_DIR; // 현재 소스 코드 경로
         std::filesystem::path source_path(source_dir);
 #ifdef _WIN32
@@ -130,11 +136,13 @@ int main(int argc, char* argv[]) {
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
         println(">> 파일 검색 경로: {}", hangul_path.string());
 
+        // [2] 검색하려는 문자열
         // 본문 내 한글이 포함된 형태(예: "에러코드_숫자") 정규식 검색
         std::string korean_regex_utf8 = R"(에러코드_\d{4})"; // UTF-8 문자열
         std::string korean_regex = tce(korean_regex_utf8); // 윈도:CP949, 리눅:UTF8
 
-        auto results = searcher.search(hangul_path.string(), korean_regex); // 정규식 검색 수행
+        // [3] 검색 수행: results의 갯수가 1이상이면 검색 성공, 0이면 검색 실패
+        auto results = searcher.search(hangul_path.string(), korean_regex);  
 
 #ifdef _WIN32
         print_matches("2. Windows / 표준 환경 (경로: CP949 + 본문: CP949 정규식)", korean_regex_utf8, results);
@@ -161,6 +169,7 @@ int main(int argc, char* argv[]) {
 
         file_searcher searcher(opt);
 
+        // [1] 검색 대상인 디렉토리 경로 설정
         std::string source_dir = SOURCE_DIR; // 현재 소스 코드 경로
         std::filesystem::path source_path(source_dir);
 #ifdef _WIN32
@@ -172,9 +181,10 @@ int main(int argc, char* argv[]) {
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
         println(">> 파일 검색 경로: {}", hangul_path.string());
 
-        // 검색하려는 문자열
+        // [2] 검색하려는 문자열
         auto search_string_utf8 = "접속성공"; // UTF-8 문자열
 
+        // [3] 검색 수행: results의 갯수가 1이상이면 검색 성공, 0이면 검색 실패
         auto results = searcher.search(hangul_path.string(), search_string_utf8);
 
         print_matches("3. 혼합 환경 (경로: 네이티브 + 본문: UTF-8)", search_string_utf8, results);
@@ -184,8 +194,7 @@ int main(int argc, char* argv[]) {
         // 시나리오 4. 한글 접두어 + 날짜/시간 구간 정규식 결합 검색
         // ------------------------------------------------------------------------
     {
-        search_options opt;
-
+        search_options opt; // 검색 옵션
 #ifdef _WIN32
         opt.file_path_encoding = text_encoding::cp949;
         opt.file_content_encoding = text_encoding::cp949;
@@ -193,16 +202,15 @@ int main(int argc, char* argv[]) {
         opt.file_path_encoding = text_encoding::utf8;
         opt.file_content_encoding = text_encoding::utf8;
 #endif
-
         // 파일명 정규식 생성 (UTF-8 문자열)
-        // => "서버로그_" 로 시작하고, 년월일시분초 정보가 오고, ".log" 로 끝나는 파일.
-
-        // 문자열 타입
+        //  => "서버로그_" 로 시작하고, 년월일시분초 정보가 오고, ".log" 로 끝나는 파일.
+        // 
+        // (A) 문자열 타입
         //std::string date_regex = mcf::build_datetime_range_regex(
         //    "20260904100000", "20260904100159", "^서버로그_", R"(\.log$)"
         // );
-
-        // 시간정보 구조체 타입
+        //
+        // (B) 시간정보 구조체 타입
         std::string date_regex = mcf::build_datetime_range_regex(
             {{2026, 9, 4},{10, 0, 0}}, {{2026, 9, 4},{10, 1, 59}}, "^서버로그_", R"(\.log$)"
         ); 
@@ -215,6 +223,7 @@ int main(int argc, char* argv[]) {
 
         file_searcher searcher(opt);
 
+        // [1] 검색 대상인 디렉토리 경로 설정
         std::string source_dir = SOURCE_DIR;
         std::filesystem::path source_path(source_dir);
 #ifdef _WIN32
@@ -226,9 +235,11 @@ int main(int argc, char* argv[]) {
         std::filesystem::path hangul_path = search_path / han_dir; // 검색 대상인 경로
         println(">> 파일 검색 경로: {}", hangul_path.string());
 
+        // [2] 검색하려는 문자열
         std::string search_string_utf8 = "FATAL긴급"; // UTF-8 문자열
         std::string search_string = tce(search_string_utf8); // 윈도:CP949, 리눅:UTF8
 
+        // [3] 검색 수행: results의 갯수가 1이상이면 검색 성공, 0이면 검색 실패
         auto results = searcher.search(hangul_path.string(), search_string);
 
         print_matches("4. 한글 파일명 + 날짜 범위 정규식 검색", search_string_utf8, results);

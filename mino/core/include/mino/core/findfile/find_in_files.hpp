@@ -32,17 +32,17 @@ namespace mino::core::findfile {
         text_encoding file_content_encoding = text_encoding::utf8; // 파일 본문 인코딩 (Windows 텍스트 기본: cp949)
 
         // 2. 파일/디렉터리 필터링 (UTF-8 문자열 기준)
-        std::vector<std::string> include_wildcards;
-        std::vector<std::string> include_regex_patterns;
-        std::vector<std::string> exclude_wildcards;
-        std::vector<std::string> exclude_regex_patterns;
+        std::vector<std::string> include_wildcards;// 검색 대상 파일명 와일드카드 패턴 (예: "*.txt", "log_*.log")
+        std::vector<std::string> include_regex_patterns; // 검색 대상 파일명 정규식 패턴 (예: R"(log_\d{8}\.txt$)")
+        std::vector<std::string> exclude_wildcards; // 검색 제외 파일명 와일드카드 패턴 (예: "temp_*", "*.bak")
+        std::vector<std::string> exclude_regex_patterns; // 검색 제외 파일명 정규식 패턴 (예: R"(.*temp_.*)", R"(.*\.bak$)")
 
         // 3. 파일 크기 제한
         std::optional<uintmax_t> max_file_size_bytes = std::nullopt;
 
         // 4. 본문 검색 옵션
-        bool case_sensitive = true;
-        bool use_regex = false;
+        bool case_sensitive = true; // 대소문자 구분 여부
+        bool use_regex = false; // 본문 검색 시 정규식 사용 여부
 
         // 11. 등록된 포함 정규식 중 첫 번째(혹은 생성된 정규식) 원본 문자열 반환
         std::string get_first_include_regex() const {
