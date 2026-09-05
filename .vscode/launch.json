@@ -16,7 +16,7 @@
                 // "/hello/src1" : "${env:HELLO_ROOT}/src2", 
                 // "/hello/src2" : "${env:HELLO_ROOT}/src2",                 
             },
-            "miDebuggerPath": "/opt/rh/gcc-toolset-15/root/usr/bin/gdb", // TODO: Set gdb path of your Linux 
+            // "miDebuggerPath": "/opt/rh/gcc-toolset-15/root/usr/bin/gdb", // TODO: Set gdb path of your Linux 
 
             // }} 
             //////////////////////////////////////////////
@@ -27,7 +27,7 @@
             "stopAtEntry": false,
             "environment": [],
             "externalConsole": false, // show in integrated vscode console
-            "MIMode": "gdb",
+            // "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "pretty printing gdb",
