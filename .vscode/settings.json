@@ -1,6 +1,7 @@
 {
   "cmake.buildDirectory": "${workspaceFolder}/build",
   "cmake.sourceDirectory": "${workspaceFolder}",
+  // TODO: include 경로 설정
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/mino/core/include/mino/core",
     "${workspaceFolder}/mino/external/include/mino/external",

@@ -5,8 +5,7 @@
       "name": "C/C++: Build and Debug",
       "type": "cppdbg",
       "request": "launch",
-      // 최상위 검사 통과용 기본 경로 (OS 블록에 의해 오버라이드됨)
-      "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
+      "program": "${workspaceFolder}/program_name",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -15,6 +14,7 @@
 
       "windows": {
         "type": "cppvsdbg",
+        // TODO: VSCode 윈도(Visual Studio 컴파일러) 환경에서 디버깅할 때 사용할 프로그램 경로를 지정.
         "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe",
         "console": "integratedTerminal"
       },
@@ -22,7 +22,8 @@
       "linux": {
         "type": "cppdbg",
         "MIMode": "gdb",
-        "miDebuggerPath": "/usr/bin/gdb",
+        "miDebuggerPath": "/usr/bin/gdb", // TODO: gdb 경로 지정
+        // TODO: VSCode 리눅스(gcc 컴파일러) 환경에서 디버깅할 때 사용할 프로그램 경로를 지정.
         "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
         "externalConsole": false,
         "setupCommands": [

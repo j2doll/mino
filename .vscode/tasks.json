@@ -16,8 +16,8 @@
             "type": "shell",
             "command": "cmake",
             "args": ["--build", "--preset", "${input:selectedPreset}" ], // 전체 빌드
-            // "args": [ "--build", "--preset", "${input:selectedPreset}",
-            //   "--target", "core_bit_example" ], // 특정 타겟만 빌드하려면 주석 해제 후 사용. 빌드 속도 빠름.
+            // "args": [ "--build", "--preset", "${input:selectedPreset}", "--target", "core_bit_example" ], 
+            // TODO: 특정 타겟(예: core_bit_example)만 빌드하려면 주석 해제 후 사용. 빌드 속도가 빨라짐.
             "group": {
                 "kind": "build",
                 "isDefault": true
