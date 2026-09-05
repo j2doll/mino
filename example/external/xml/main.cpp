@@ -24,7 +24,8 @@ int main() {
 
     // 2. 역직렬화 및 예외 처리 검증
     try {
-        catalog.deserialize(doc.child("catalog"));
+        auto catalog_child = doc.child("catalog"); // catalog 루트 노드 조회
+        catalog.deserialize(catalog_child); // catalog 객체를 XML로부터 역직렬화
         std::cout << "[Success] Deserialization completed.\n";
 
         // 파싱된 데이터 조회
@@ -45,6 +46,8 @@ int main() {
         return -1;
     }
 
+    std::cout << std::endl;
+
     // 3. 수정된 객체를 새 XML 파일로 직렬화 (Export)
     try {
         pugi::xml_document out_doc;
@@ -55,7 +58,7 @@ int main() {
         decl.append_attribute("encoding") = "UTF-8";
 
         auto root = out_doc.append_child("catalog");
-        catalog.serialize(root);
+        catalog.serialize(root); // catalog 객체를 XML로 직렬화
 
         if (out_doc.save_file("catalog_updated.xml", "    ")) {
             std::cout << "[Success] Saved updated data to catalog_updated.xml\n";
