@@ -2,71 +2,49 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Visual Studio (MSVC) Debug",
-      "type": "cppvsdbg",
-      "request": "launch",
-      // 테스트할 프로그램 경로
-      "program": "${workspaceFolder}/out/build/${input:vsPreset}/example/core/bit/Debug/core_bit_example.exe",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "console": "integratedTerminal",
-      "preLaunchTask": "CMake Build Preset"
-    },
-    {
-      "name": "Linux (GCC/GDB) Debug",
+      "name": "C/C++: Build and Debug",
       "type": "cppdbg",
       "request": "launch",
-      // 테스트할 프로그램 경로
-      "program": "${workspaceFolder}/build/example/core/bit/core_bit_example",
+      // 최상위 검사 통과용 기본 경로 (OS 블록에 의해 오버라이드됨)
+      "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "miDebuggerPath": "/usr/bin/gdb",
-      "setupCommands": [
-        {
-          "description": "gdb pretty-printing 활성화",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ],
-      "preLaunchTask": "CMake Build Preset"
+      "preLaunchTask": "CMake Build Preset",
+
+      "windows": {
+        "type": "cppvsdbg",
+        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe",
+        "console": "integratedTerminal"
+      },
+
+      "linux": {
+        "type": "cppdbg",
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
+        "externalConsole": false,
+        "setupCommands": [
+          {
+            "description": "gdb pretty-printing 활성화",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ]
+      }
     }
   ],
   "inputs": [
     {
       "id": "selectedPreset",
       "type": "pickString",
-      "description": "빌드에 사용할 CMake Preset을 선택하세요",
+      "description": "사용할 CMake Preset을 선택하세요",
       "options": [
         "linux-gcc-debug",
         "linux-gcc-release",
         "vs-debug",
         "vs-release"
-      ],
-      "default": "linux-gcc-debug"
-    },
-    {
-      "id": "vsPreset",
-      "type": "pickString",
-      "description": "실행할 MSVC 빌드 프리셋 디렉터리를 선택하세요",
-      "options": [
-        "vs-debug",
-        "vs-release"
-      ],
-      "default": "vs-debug"
-    },
-    {
-      "id": "linuxPreset",
-      "type": "pickString",
-      "description": "실행할 Linux 빌드 프리셋 디렉터리를 선택하세요",
-      "options": [
-        "linux-gcc-debug",
-        "linux-gcc-release"
       ],
       "default": "linux-gcc-debug"
     }
