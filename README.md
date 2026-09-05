@@ -152,7 +152,7 @@
 - `schedule` : 외부 스케줄러 연동
     - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
 - `xml` : `.xml` => `C++` 구조체 변환
-    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
+    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [C++ 구조체](example/external/xml/catalog.hpp) 변환
     - 📦 [example](example/external/xml/main.cpp) : 구조체 사용 예제
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
 - `download` : `http` 다운로드 클라이언트
