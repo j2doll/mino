@@ -74,7 +74,7 @@
 - 🏛️ [findfile](example/core/findfile/main.cpp)
     - 파일에서 찾기 (`Find in files`)
 - 🏛️ [hash](example/core/hash/main.cpp) 
-    - MD5, SHA-256, HMAC-SHA256, KDF(PBKDF2)
+    - `MD5`, `SHA-256`, `HMAC-SHA256`, `KDF(PBKDF2)`
 - 🏛️ [ini](example/core/ini/main.cpp)
     - [`.ini`](example/core/ini/sample.ini) 파일 파서
 - 🏛️ [json](example/core/json/main.cpp)
