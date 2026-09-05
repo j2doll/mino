@@ -136,7 +136,7 @@
 - 🏛️ [uuid](example/core/uuid/main.cpp)
     - 고유 ID 생성·파싱  
 - 🏛️ [validation](example/core/validation/main.cpp)
-    - 이메일, 전화번호, URL, IP, Base64, HEX 색, JSON, 주민번호 검증
+    - 이메일, 전화번호, `URL`, `IP`, `Base64`, `HEX` 색, `JSON`, 주민번호 검증
 - 🏛️ [xml](example/core/xml/main.cpp)
     - `.xml` 파싱·직렬화
 - 🏛️ [yaml](example/core/yaml/main.cpp)
@@ -147,12 +147,12 @@
     - 📦 [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
 - `log` : 외부 로깅 어댑터/팩토리
     - 📦 [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결
-    - 📦 [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 
+    - 📦 [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴
     - 📦 [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능
 - `schedule` : 외부 스케줄러 연동
-    - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장.
+    - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
 - `xml` : `.xml` => `C++` 구조체 변환
-    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : `.xml` => `C++` 구조체 변환
+    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
     - 📦 [example](example/external/xml/main.cpp) : 구조체 사용 예제
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
 - `download` : `http` 다운로드 클라이언트
@@ -204,13 +204,13 @@
        |      pub      |                      |      sub      |
        +---------------+                      +---------------+
       ```
-    - 🔀 [broker](example/network/message_broker/broker) : 브로커 예제.
-    - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제.
-    - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제.
+    - 🔀 [broker](example/network/message_broker/broker) : 브로커 예제
+    - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제
+    - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제
     - 🔀 `python` : 파이썬 예제. [pub](example/network/message_broker/python/pub/message_publisher.py) [sub](example/network/message_broker/python/sub/message_subscriber.py)
-- `rest` : `REST API` 클라이언트  
-    - 🔀 [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트.
-    - 🔀 [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트.
+- `rest` : `REST API` 클라이언트
+    - 🔀 [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트
+    - 🔀 [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트
 - `rpc` : `RPC` 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
