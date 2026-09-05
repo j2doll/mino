@@ -142,11 +142,13 @@
 - 🏛️ [yaml](example/core/yaml/main.cpp)
     - `.yaml` 파싱·직렬화
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
-- 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능.
+- `json`
+    - 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능
+    - 📦 [json2cpp.py](example/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
 - `log` : 외부 로깅 어댑터/팩토리
-    - 📦 [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결.  
-    - 📦 [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴.  
-    - 📦 [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능.
+    - 📦 [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결
+    - 📦 [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 
+    - 📦 [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능
 - `schedule` : 외부 스케줄러 연동
     - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장.
 ##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
