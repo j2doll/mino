@@ -71,8 +71,8 @@
 - 🏛️ [file](example/core/file/main.cpp)
     - 실행 프로그램 경로/파일명 얻기. UTF-8 한글 경로.
     - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
-- 🏛️ [findfiles](example/core/findfile/main.cpp)
-    - 파일 내용 검색 (`Find in files`)
+- 🏛️ [findfile](example/core/findfile/main.cpp)
+    - 파일에서 찾기 (`Find in files`)
 - 🏛️ [hash](example/core/hash/main.cpp) 
     - MD5, SHA-256, HMAC-SHA256, KDF(PBKDF2)
 - 🏛️ [ini](example/core/ini/main.cpp)
