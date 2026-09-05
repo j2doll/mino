@@ -427,6 +427,7 @@ $ eza --tree mino
         - [nlohmann/json](https://github.com/nlohmann/json) : MIT License
         - [spdlog](https://github.com/gabime/spdlog) : MIT License
         - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : MIT License
+        - [pugixml](https://github.com/zeux/pugixml) : MIT License
     - 🔀 `network` 모듈
         - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : MIT License
         - [openssl](https://www.openssl.org/) : Apache License 2.0

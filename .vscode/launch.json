@@ -16,7 +16,9 @@
         "type": "cppvsdbg",
         // TODO: VSCode 윈도(Visual Studio 컴파일러) 환경에서 디버깅할 때 사용할 프로그램 경로를 지정.
         "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe",
-        "console": "integratedTerminal"
+        "console": "integratedTerminal",
+        // "nativeDebugging": false,
+        // "launchBrowser": false
       },
 
       "linux": {

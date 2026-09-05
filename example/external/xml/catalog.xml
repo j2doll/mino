@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Catalog Sample Data -->
+<catalog>
+    <book id="bk101" category="fiction">
+        <title>XML Guide</title>
+        <price unit="KRW">25000</price>
+        <description>
+            <![CDATA[Special characters (<, >, &) preserved]]>
+        </description>
+    </book>
+</catalog>
