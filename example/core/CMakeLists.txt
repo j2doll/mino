@@ -44,3 +44,5 @@ add_subdirectory(uuid)
 add_subdirectory(validation)
 add_subdirectory(xml)
 add_subdirectory(yaml)
+add_subdirectory(zip)
+

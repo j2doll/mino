@@ -78,7 +78,7 @@
 - 🏛️ [ini](example/core/ini/main.cpp)
     - [`.ini`](example/core/ini/sample.ini) 파일 파서
 - 🏛️ [json](example/core/json/main.cpp)
-    - `.json` 직렬화/역직렬화  
+    - `.json` 직렬화/역직렬화
 - 🏛️ [log](example/core/log/main.cpp)
     - 콘솔 로깅 싱크, 파일 로깅 싱크, 싱크 통합 로거
 - 🏛️ [macro](example/core/macro/main.cpp)
