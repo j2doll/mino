@@ -427,6 +427,7 @@ $ eza --tree mino
     - [mino/external/third-party](mino/external/include/mino/external/third-party/)
         - [nlohmann/json](https://github.com/nlohmann/json) : MIT License
         - [spdlog](https://github.com/gabime/spdlog) : MIT License
+        - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : MIT License
 - 🔀 `network` 모듈
     - [mino/network/third-party](mino/network/include/mino/network/third-party/)
         - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : MIT License
