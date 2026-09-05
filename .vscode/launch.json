@@ -1,50 +1,74 @@
 {
-    // .vscode/launch.json
-
-    "version": "0.2.0",
-
-    "configurations": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Visual Studio (MSVC) Debug",
+      "type": "cppvsdbg",
+      "request": "launch",
+      // 테스트할 프로그램 경로
+      "program": "${workspaceFolder}/out/build/${input:vsPreset}/example/core/bit/Debug/core_bit_example.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "console": "integratedTerminal",
+      "preLaunchTask": "CMake Build Preset"
+    },
+    {
+      "name": "Linux (GCC/GDB) Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      // 테스트할 프로그램 경로
+      "program": "${workspaceFolder}/build/example/core/bit/core_bit_example",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
         {
-            //////////////////////////////////////////////
-            // {{ Set your own project setting (execute program type)
-
-            "name": "core_filefind_example", 
-            "program": "${workspaceFolder}/build/example/core/findfile/core_filefind_example", 
-            "cwd": "${workspaceFolder}/build/example/core/findfile/", 
-            "args": [ /* "arg1", "arg2", */ ],             
-            "sourceFileMap" : { // TODO: Set source code directory that is used by your program
-                // "/hello/src1" : "${env:HELLO_ROOT}/src2", 
-                // "/hello/src2" : "${env:HELLO_ROOT}/src2",                 
-            },
-            // "miDebuggerPath": "/opt/rh/gcc-toolset-15/root/usr/bin/gdb", // TODO: Set gdb path of your Linux 
-
-            // }} 
-            //////////////////////////////////////////////
-            
-            "type": "cppdbg",
-            "request": "launch",
-            "preLaunchTask": "CMake Build", // see tasks.json for more information
-            "stopAtEntry": false,
-            "environment": [],
-            "externalConsole": false, // show in integrated vscode console
-            // "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "pretty printing gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true,
-                }
-            ],    
-            "logging": {
-                "exceptions": true,
-                "moduleLoad": true,
-                "programOutput": true,
-                // "engineLogging": true,
-                // "trace": true, // default value is false
-                // "traceResponse": true, // default value is false
-            },
-
+          "description": "gdb pretty-printing 활성화",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
-    ]
-
+      ],
+      "preLaunchTask": "CMake Build Preset"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "selectedPreset",
+      "type": "pickString",
+      "description": "빌드에 사용할 CMake Preset을 선택하세요",
+      "options": [
+        "linux-gcc-debug",
+        "linux-gcc-release",
+        "vs-debug",
+        "vs-release"
+      ],
+      "default": "linux-gcc-debug"
+    },
+    {
+      "id": "vsPreset",
+      "type": "pickString",
+      "description": "실행할 MSVC 빌드 프리셋 디렉터리를 선택하세요",
+      "options": [
+        "vs-debug",
+        "vs-release"
+      ],
+      "default": "vs-debug"
+    },
+    {
+      "id": "linuxPreset",
+      "type": "pickString",
+      "description": "실행할 Linux 빌드 프리셋 디렉터리를 선택하세요",
+      "options": [
+        "linux-gcc-debug",
+        "linux-gcc-release"
+      ],
+      "default": "linux-gcc-debug"
+    }
+  ]
 }

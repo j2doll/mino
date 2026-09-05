@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
     std::cout << "========================================" << std::endl;
     std::cout << " Starting bit_array Unit Tests          " << std::endl;
     std::cout << "========================================" << std::endl;
-
+ 
     test_constructors_and_basic_methods();
     test_set_bytes_and_bits();
     test_to_array();

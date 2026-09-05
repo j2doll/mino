@@ -1,9 +1,11 @@
 {
-    // .vscode/settings.json
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.sourceDirectory": "${workspaceFolder}",
 
-    "cmake.buildDirectory": "${workspaceFolder}/build",
-    "cmake.sourceDirectory": "${workspaceFolder}", 
-
-      
-    
+  // C/C++ 구성 전체에 적용되는 공통 includePath
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/mino/core/include/mino/core",
+    "${workspaceFolder}/mino/external/include/mino/external",
+    "${workspaceFolder}/mino/network/include/mino/network"
+  ]
 }

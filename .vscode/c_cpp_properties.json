@@ -3,9 +3,7 @@
     {
       "name": "Linux-GCC",
       "includePath": [
-        "${workspaceFolder}/mino/core/include",
-        "${workspaceFolder}/mino/external/include",
-        "${workspaceFolder}/mino/network/include"
+        "${default}"
       ],
       "defines": [
         "__linux__"
@@ -18,9 +16,7 @@
     {
       "name": "Win32-MSVC",
       "includePath": [
-        "${workspaceFolder}/mino/core/include",
-        "${workspaceFolder}/mino/external/include",
-        "${workspaceFolder}/mino/network/include"
+        "${default}"
       ],
       "defines": [
         "_DEBUG",
@@ -32,22 +28,6 @@
       "windowsSdkVersion": "10.0.22621.0",
       "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
       "intelliSenseMode": "windows-msvc-x64",
-      "cStandard": "c17",
-      "cppStandard": "c++17"
-    },
-    {
-      "name": "Win32-GCC",
-      "includePath": [
-        "${workspaceFolder}/mino/core/include",
-        "${workspaceFolder}/mino/external/include",
-        "${workspaceFolder}/mino/network/include"
-      ],
-      "defines": [
-        "WIN32",
-        "_WINDOWS"
-      ],
-      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
-      "intelliSenseMode": "windows-gcc-x64",
       "cStandard": "c17",
       "cppStandard": "c++17"
     }
