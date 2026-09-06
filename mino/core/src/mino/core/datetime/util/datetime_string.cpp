@@ -1,3 +1,8 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <cctype>
+
 #include "mino/core/datetime/util/datetime_string.hpp"
 #include "mino/core/datetime/util/datetime_util.hpp"
 #include "mino/core/datetime/util/datetime_convert.hpp"
@@ -370,12 +375,24 @@ namespace mino::core::datetime {
             return parse_iso8601_strict(iso8601, fallback_tzmode);
         }
 
-        date_time_parse_result parse_datetime_auto(const std::string& text,
+        date_time_parse_result parse_datetime_auto(
+            const std::string& text,
             const std::string& format_or_literal,
-            time_zone_mode tzmode) {
-            if (format_or_literal == "ISO8601") {
+            time_zone_mode tzmode)
+        {
+            auto lower_format = format_or_literal;
+            std::transform(lower_format.begin(), lower_format.end(), lower_format.begin(), [](unsigned char c) {
+                return std::tolower(c);
+                });
+
+            if (lower_format == "iso8601" || lower_format == "iso-8601") {
                 return parse_iso8601_datetime(text, tzmode);
             }
+
+            if (lower_format == "rfc3339" || lower_format == "rfc-3339") {
+                return parse_rfc3339_datetime(text, tzmode);
+            }
+
             return parse_strict_datetime(text, format_or_literal, tzmode);
         }
 
@@ -388,6 +405,174 @@ namespace mino::core::datetime {
             if (!r.ok) return std::nullopt;
             return r.timepoint;
         }
+
+        // ---------------- (C) RFC-3339 파서 ----------------
+        // RFC 3339 오프셋 파싱: "Z" | "z" | (+|-)HH:MM
+        // RFC 3339에서는 분(MM) 생략 및 콜론(:) 생략이 허용되지 않음 (ISO-8601과 차이점)
+        date_time_parse_result parse_rfc3339_datetime(const std::string& rfc3339, time_zone_mode fallback_tzmode) {
+            return parse_rfc3339_strict(rfc3339, fallback_tzmode);
+        }
+
+        bool parse_rfc3339_tz_offset(const std::string& s, size_t& pos, int& offset_sec) {
+            if (pos >= s.size()) return false;
+
+            if (s[pos] == 'Z' || s[pos] == 'z') {
+                offset_sec = 0;
+                ++pos;
+                return true;
+            }
+
+            char sign = s[pos];
+            if (sign != '+' && sign != '-') return false;
+            ++pos;
+
+            int HH = 0;
+            if (!read_ndigits(s, pos, 2, HH)) return false;
+            if (HH < 0 || HH > 23) return false;
+
+            if (pos >= s.size() || s[pos] != ':') return false;
+            ++pos;
+
+            int MM = 0;
+            if (!read_ndigits(s, pos, 2, MM)) return false;
+            if (MM < 0 || MM > 59) return false;
+
+            // RFC 3339 Section 4.3: "-00:00"은 현지 시간대 미상을 의미하며 시간은 UTC 기준
+            int sec = HH * 3600 + MM * 60;
+            if (sign == '-') sec = -sec;
+            offset_sec = sec;
+            return true;
+        }
+
+        date_time_parse_result parse_rfc3339_strict(const std::string& str, time_zone_mode fallback_tzmode) {
+            date_time_parse_result r;
+            size_t p = 0;
+
+            // 1. 날짜 파싱: Full-Date (YYYY-MM-DD)
+            int Y = 0, M = 0, D = 0;
+            if (!read_ndigits(str, p, 4, Y)) { r.error = "Invalid RFC3339 year"; return r; }
+            if (p >= str.size() || str[p] != '-') { r.error = "Missing '-' after year"; return r; }
+            ++p;
+            if (!read_ndigits(str, p, 2, M)) { r.error = "Invalid RFC3339 month"; return r; }
+            if (p >= str.size() || str[p] != '-') { r.error = "Missing '-' after month"; return r; }
+            ++p;
+            if (!read_ndigits(str, p, 2, D)) { r.error = "Invalid RFC3339 day"; return r; }
+
+            if (!valid_ymd(Y, M, D)) {
+                r.error = "Date validation error";
+                return r;
+            }
+
+            // 2. 구분자 검사: 'T', 't', 또는 ' ' (공백)
+            if (p >= str.size() || (str[p] != 'T' && str[p] != 't' && str[p] != ' ')) {
+                r.error = "Missing 'T' or space separator between date and time";
+                return r;
+            }
+            ++p;
+
+            // 3. 시간 파싱: Full-Time (HH:MM:SS)
+            int hh = 0, mm = 0, ss = 0;
+            if (!read_ndigits(str, p, 2, hh)) { r.error = "Invalid RFC3339 hour"; return r; }
+            if (p >= str.size() || str[p] != ':') { r.error = "Missing ':' after hour"; return r; }
+            ++p;
+            if (!read_ndigits(str, p, 2, mm)) { r.error = "Invalid RFC3339 minute"; return r; }
+            if (p >= str.size() || str[p] != ':') { r.error = "Missing ':' after minute"; return r; }
+            ++p;
+            if (!read_ndigits(str, p, 2, ss)) { r.error = "Invalid RFC3339 second"; return r; }
+
+            if (hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+                r.error = "Time range error";
+                return r;
+            }
+            // 윤초(Leap second, 60) 입력 시 표준 59초로 클램핑 처리
+            if (ss == 60) ss = 59;
+            if (ss < 0 || ss > 59) {
+                r.error = "Second range error";
+                return r;
+            }
+
+            // 4. 소수점 분수초 파싱 (.secfrac)
+            int ms = 0;
+            if (p < str.size() && str[p] == '.') {
+                if (!parse_fraction_ms(str, p, ms)) {
+                    r.error = "Fractional seconds format error";
+                    return r;
+                }
+            }
+
+            // 5. 타임존 오프셋 파싱 (Z 또는 ±HH:MM)
+            bool has_tz = false;
+            int tz_offset_sec = 0;
+            if (p < str.size()) {
+                size_t tzp = p;
+                if (parse_rfc3339_tz_offset(str, tzp, tz_offset_sec)) {
+                    has_tz = true;
+                    p = tzp;
+                }
+            }
+
+            // 후행 불필요 문자열 검사
+            if (p != str.size()) {
+                r.error = "Extra input characters exist in RFC3339 string";
+                return r;
+            }
+
+            // 6. std::tm 구성 및 epoch 계산
+            std::tm tmv{};
+            tmv.tm_year = Y - 1900;
+            tmv.tm_mon = M - 1;
+            tmv.tm_mday = D;
+            tmv.tm_hour = hh;
+            tmv.tm_min = mm;
+            tmv.tm_sec = ss;
+            tmv.tm_isdst = -1;
+
+            std::optional<std::time_t> t;
+            if (has_tz) {
+                auto t_as_utc = to_time_t(tmv, time_zone_mode::utc);
+                if (!t_as_utc) {
+                    r.error = "UTC conversion failed";
+                    return r;
+                }
+                // UTC 기준 시각으로 환산 (UTC = Local - Offset)
+                t = t_as_utc.value() - tz_offset_sec;
+            }
+            else {
+                // 오프셋이 생략된 경우 fallback 타임존 모드 사용
+                t = (fallback_tzmode == time_zone_mode::utc)
+                    ? to_time_t(tmv, time_zone_mode::utc)
+                    : to_time_t(tmv, time_zone_mode::local_time);
+            }
+
+            if (!t) {
+                r.error = "Time conversion failure";
+                return r;
+            }
+
+            // 결과 채우기
+            r.ok = true;
+            r.epoch = *t;
+            r.millisecond = ms;
+            r.epoch_ms = static_cast<std::int64_t>(r.epoch) * 1000 + r.millisecond;
+            r.broken = tmv;
+            r.timepoint = std::chrono::system_clock::time_point{
+                std::chrono::milliseconds{r.epoch_ms}
+            };
+            r.present.has_year = true;
+            r.present.has_month = true;
+            r.present.has_day = true;
+            r.present.has_hour = true;
+            r.present.has_minute = true;
+            r.present.has_second = true;
+            r.present.has_millisecond = (ms > 0);
+
+            return r;
+        }
+
+
+
+
+        //------------------------------------------------------------
 
         std::string current_time_string(time_zone_mode tzmode, const std::string& format)
         {

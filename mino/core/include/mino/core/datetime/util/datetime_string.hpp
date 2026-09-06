@@ -146,7 +146,8 @@ namespace mino::core::datetime {
         // 시간 문자열 자동 판별 파싱
         // 인자:
         //  text: 파싱할 문자열
-        //  format_or_literal: "ISO8601" 이면 ISO-8601 파싱 시도,
+        //  format_or_literal: "ISO8601", "ISO-8601" 이면 ISO-8601 파싱 시도,
+        //                     "RFC3339", "RFC-3339" 이면 RFC-3339 파싱 시도,
         //                     아니면 형식 파서로 처리
         //  tzmode: 형식에 없는 토큰을 보정할 때 사용할 기준 시각의 타임존 모드.
         //          UTC 또는 local_time
@@ -168,6 +169,25 @@ namespace mino::core::datetime {
             const std::string& text,
             const std::string& format_or_literal,
             time_zone_mode tzmode = time_zone_mode::local_time);
+
+        // RFC-3339 시간 문자열 파싱
+        // 형식: YYYY-MM-DDTHH:MM:SS[.frac](Z|±HH:MM) (T 대신 공백 허용, -00:00은 미상의 UTC)
+        // 인자:
+        //  rfc3339: 파싱할 RFC-3339 형식 문자열
+        //  fallback_tzmode: 문자열에 타임존 오프셋이 생략되었을 때 사용할 기준 타임존 모드
+        // 반환: date_time_parse_result 구조체
+        date_time_parse_result parse_rfc3339_datetime(
+            const std::string& rfc3339,
+            time_zone_mode fallback_tzmode = time_zone_mode::local_time);
+
+        bool parse_rfc3339_tz_offset(
+            const std::string& s,
+            size_t& pos,
+            int& offset_sec);
+
+        date_time_parse_result parse_rfc3339_strict(
+            const std::string& str,
+            time_zone_mode fallback_tzmode);
 
         // ---------------------------------------------------------------------
         // 현재 시간 문자열 생성 유틸리티 (선언)

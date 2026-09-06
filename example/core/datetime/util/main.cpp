@@ -121,7 +121,7 @@ void test_formatting_functions() {
     std::cout << "  - format_datetime (overloads): PASSED" << std::endl;
 }
 
-// 4. 시간 문자열 파싱 함수 검증 (Strict & ISO-8601)
+// 4. 시간 문자열 파싱 함수 검증 (Strict, ISO-8601 & RFC-3339)
 void test_parsing_functions() {
     namespace dtutil = mino::core::datetime::util;
     using time_zone_mode = mino::core::datetime::util::time_zone_mode;
@@ -130,7 +130,7 @@ void test_parsing_functions() {
 
     // (1) 엄격한 포맷 파싱
     std::string dt_str = "2026-08-08 12:34:56.789";
-    std::string fmt = "YYYY-MM-DD hh:mm:ss.SSS"; 
+    std::string fmt = "YYYY-MM-DD hh:mm:ss.SSS";
 
     auto res_strict = dtutil::parse_strict_datetime(dt_str, fmt, time_zone_mode::utc);
     assert(res_strict.ok == true); // 파싱 성공 
@@ -151,13 +151,49 @@ void test_parsing_functions() {
     auto res_auto = dtutil::parse_datetime_auto(iso_str, "ISO8601", time_zone_mode::utc);
     assert(res_auto.ok == true); // 자동 판별 파싱 성공
     assert(res_auto.epoch == res_strict.epoch); // 자동 판별 파싱 결과와 엄격한 포맷 파싱 결과의 epoch 값이 동일해야 함
-    std::cout << "  - parse_datetime_auto: PASSED" << std::endl;
+    std::cout << "  - parse_datetime_auto (ISO8601): PASSED" << std::endl;
 
-    // (4) 실패 케이스 검증
+    // (4) RFC-3339 전용 함수 파싱 (밀리초 생략 형태: 2026-08-08T12:34:56Z)
+    std::string rfc_no_ms = "2026-08-08T12:34:56Z";
+    auto res_rfc_no_ms = dtutil::parse_rfc3339_datetime(rfc_no_ms, time_zone_mode::utc);
+    assert(res_rfc_no_ms.ok == true);
+    assert(res_rfc_no_ms.epoch == res_strict.epoch); // 초 단위 epoch가 일치해야 함
+    assert(res_rfc_no_ms.millisecond == 0);          // 밀리초가 생략되었으므로 0
+    std::cout << "  - parse_rfc3339_datetime (without ms): PASSED" << std::endl;
+
+    // (5) RFC-3339 양수 오프셋 (+09:00, 한국 표준시 KST) & 공백 구분자 허용 검증
+    // 2026-08-08 21:34:56.789+09:00 == 2026-08-08 12:34:56.789 UTC
+    std::string rfc_kst = "2026-08-08 21:34:56.789+09:00"; // T 대신 공백(' ') 구분자 사용
+    auto res_rfc_kst = dtutil::parse_rfc3339_datetime(rfc_kst, time_zone_mode::utc);
+    assert(res_rfc_kst.ok == true);
+    assert(res_rfc_kst.epoch == res_strict.epoch); // UTC 기준 epoch가 일치해야 함
+    assert(res_rfc_kst.millisecond == 789);
+    std::cout << "  - parse_rfc3339_datetime (+09:00 & space separator): PASSED" << std::endl;
+
+    // (6) RFC-3339 음수 오프셋 (-04:00, EDT 등)
+    // 2026-08-08 08:34:56.789-04:00 == 2026-08-08 12:34:56.789 UTC
+    std::string rfc_neg = "2026-08-08T08:34:56.789-04:00";
+    auto res_rfc_neg = dtutil::parse_rfc3339_datetime(rfc_neg, time_zone_mode::utc);
+    assert(res_rfc_neg.ok == true);
+    assert(res_rfc_neg.epoch == res_strict.epoch); // UTC 기준 epoch가 일치해야 함
+    assert(res_rfc_neg.millisecond == 789);
+    std::cout << "  - parse_rfc3339_datetime (-04:00): PASSED" << std::endl;
+
+    // (7) 자동 판별 파싱 (RFC3339 토큰 사용)
+    auto res_auto_rfc = dtutil::parse_datetime_auto(rfc_kst, "RFC3339", time_zone_mode::utc);
+    assert(res_auto_rfc.ok == true);
+    assert(res_auto_rfc.epoch == res_strict.epoch);
+    std::cout << "  - parse_datetime_auto (RFC3339): PASSED" << std::endl;
+
+    // (8) 실패 케이스 검증
     auto res_fail = dtutil::parse_strict_datetime("2026-02-29 10:00:00", "YYYY-MM-DD hh:mm:ss", time_zone_mode::utc);
     assert(res_fail.ok == false); // 파싱 실패. 2026년은 평년이므로 2월 29일은 유효하지 않음.
     assert(!res_fail.error.empty()); // 실패 사유(res_fail.error): "Date Validation Error"
-    std::cout << "  - Invalid date parse error handling: PASSED" << std::endl;
+
+    // RFC 3339 규격 위반 (분(MM) 오프셋 누락은 ISO-8601에선 허용되나 RFC-3339에선 불허)
+    auto res_rfc_invalid_offset = dtutil::parse_rfc3339_datetime("2026-08-08T12:34:56+09", time_zone_mode::utc);
+    assert(res_rfc_invalid_offset.ok == false);
+    std::cout << "  - Parse error handling: PASSED" << std::endl;
 }
 
 // 5. 현재 시간 문자열 생성 유틸리티 검증
