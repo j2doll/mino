@@ -119,13 +119,20 @@ function(use_mino_network EXE_NAME MINO_DIR)
         endif()
 
         # 4-5-5. libssh2
+        # 대소문자 구분 없이 vcpkg 설정 파일 검색
         find_package(Libssh2 CONFIG QUIET)
+        if(NOT TARGET Libssh2::libssh2)
+            find_package(libssh2 CONFIG QUIET)
+        endif()
+
         if(TARGET Libssh2::libssh2)
             message(STATUS "Found libssh2 via CMake Config (Libssh2::libssh2)")
+        elseif(TARGET libssh2::libssh2)
+            add_library(Libssh2::libssh2 ALIAS libssh2::libssh2)
+            message(STATUS "Found libssh2 via CMake Config (libssh2::libssh2)")
         else()
-            find_package(PkgConfig REQUIRED)
-            pkg_check_modules(LIBSSH2 REQUIRED IMPORTED_TARGET libssh2)
-            message(STATUS "Found libssh2 via PkgConfig (${LIBSSH2_VERSION})")
+            # Windows에서는 pkg-config가 없는 경우가 대부분이므로 vcpkg 안내 출력
+            message(FATAL_ERROR "libssh2 not found. Please install it via: vcpkg install libssh2:x64-windows")
         endif()
 
         if(TARGET Libssh2::libssh2)
