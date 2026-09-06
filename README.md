@@ -130,7 +130,9 @@
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp)
-    - 동적 스레드·동시성  
+    - 동적 스레드·동시성
+- 🏛️ [toml](example/core/toml/main.cpp)
+    - `.toml` 파싱·직렬화
 - 🏛️ [tpm](example/core/tpm/main.cpp)
     - 인메모리 TP 모니터
 - 🏛️ [uuid](example/core/uuid/main.cpp)
@@ -141,6 +143,8 @@
     - `.xml` 파싱·직렬화
 - 🏛️ [yaml](example/core/yaml/main.cpp)
     - `.yaml` 파싱·직렬화
+- 🏛️ [zip](example/core/zip/main.cpp)
+    - `.zip` 압축
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
 - `json`
     - 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능
