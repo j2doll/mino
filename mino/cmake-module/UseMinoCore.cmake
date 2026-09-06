@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 function(use_mino_core EXE_NAME MINO_DIR)
     if(MSVC)
         target_compile_options(${EXE_NAME} PRIVATE "/utf-8")

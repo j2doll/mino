@@ -9,21 +9,26 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MINO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../mino/core" )
+set(MINO_DIR "${CMAKE_SOURCE_DIR}/mino")
 # set(MINO_DIR "C:/opt/mino") 
-# NOTE: Set the path to the installation path with the following directory structure.
-# MINO_DIR
-#   ├── include
-#   │   └── mino
-#   └── lib
-#       ├── cmake
-#       └── *.lib (or *.a)
-
-# Gather all .cpp files in the current directory
+  
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES})
 
-# Use mino core
-include("${CMAKE_CURRENT_SOURCE_DIR}/../../template/mino_core_example/UseMinoCore.cmake")
+if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake-module")
+	file(GLOB MINO_CMAKE_FILES "${CMAKE_SOURCE_DIR}/mino/cmake-module/*.cmake")
+	foreach(FILE ${MINO_CMAKE_FILES})
+		include(${FILE})
+	endforeach()	
+else()
+	if(EXISTS "${MINO_DIR}/lib/cmake/mino")
+		file(GLOB MINO_CMAKE_FILES "${CMAKE_SOURCE_DIR}/lib/cmake/mino/*.cmake")
+		foreach(FILE ${MINO_CMAKE_FILES})
+			include(${FILE})
+		endforeach()	
+	else()
+	  message(FATAL_ERROR "UseMinoNetwork.cmake not found. Please check MINO_DIR path.")
+	endif()
+endif()
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 

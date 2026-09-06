@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 function(use_mino_network EXE_NAME MINO_DIR)
     # 1. Set C++ standard to C++17 if not already defined
     if(MSVC)
