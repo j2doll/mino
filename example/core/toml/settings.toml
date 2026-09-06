@@ -1,0 +1,68 @@
+# ==============================================================================
+# Full Spec Settings for Mino Engine
+# ==============================================================================
+
+# 1. Bare Keys & Dotted Keys
+app_name = "MinoEngine"
+version = 2
+engine.render.backend = "Vulkan"
+engine.render.vsync = true
+
+# 2. Integers, Different Radices, Underscores
+max_entities = 1_000_000
+hex_mask = 0xDEADBEEF
+oct_perms = 0o777
+bin_flags = 0b101010
+
+# 3. Floats and Special Values
+delta_time = 0.016667
+scale_factor = 2.5e-3
+pos_infinity = inf
+neg_infinity = -inf
+
+# 4. Strings (Basic, Literal, Multiline)
+window_title = "Mino Engine Window\t(Debug)"
+escaped_str = "Unicode: \u0042 and quote: \"ok\""
+shader_path = 'C:\Shaders\Standard\Fragment.glsl'
+multiline_basic = """
+Line 1: No break needed \
+Line 2: Joined seamlessly."""
+multiline_literal = '''
+'Literal' strings ignore \n escapes.
+Path preserved as is.'''
+
+# 5. Booleans
+is_editor = true
+is_headless = false
+
+# 6. Date and Time (RFC 3339)
+build_date = 2026-09-06
+work_time = 09:30:00
+last_updated = 2026-09-06T18:00:00Z
+
+# 7. Arrays (Homogeneous & Heterogeneous)
+supported_refresh_rates = [ 60, 120, 144, 240 ]
+mixed_payload = [ 42, "string_element", true, 3.14159 ]
+
+# 8. Inline Tables
+audio_settings = { master_volume = 80, mute = false, output = "speakers" }
+
+# 9. Standard Tables
+[physics]
+gravity = -9.81
+solver_iterations = 10
+
+[physics.collision]
+layer_count = 32
+enable_ccd = true
+
+# 10. Array of Tables
+[[plugins]]
+name = "오픈에이엘"
+enabled = true
+priority = 1
+
+[[plugins]]
+name = "VulkanRenderer"
+enabled = true
+priority = 2
