@@ -217,7 +217,7 @@
 - `rest` : `REST API` 클라이언트
     - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
     - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
-- `rpc` : `RPC` 클라이언트/서버
+- `rpc` : `RPC`,`Remote Procedure Call` 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
         |    Server    |           |    broker    |          |    Client    |
@@ -234,18 +234,18 @@
                 |                          |    Return RPC (tcp)     |
                 |                          |------------------------>|
       ```
-    - 🔀 [server](example/network/rpc/server/main.cpp) : `RPC` 서버.
-    - 🔀 [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트.
+    - 🔀 [server](example/network/rpc/server/main.cpp) : `RPC` 서버
+    - 🔀 [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- `sftp` : SFTP 클라이언트
-    - 🔀 [putty](example/network/sftp/putty/main.cpp) : `psftp` 연동 클라이언트.
-- 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트.
-- `tcp` : TCP 소켓 예제
-    - 🔀 [server](example/network/tcp/server/main.cpp) : TCP 서버.
-    - 🔀 [client](example/network/tcp/client/main.cpp) : TCP 클라이언트.
-- `udp` : UDP 통신 예제  
-    - 🔀 [receiver](example/network/udp/receiver/main.cpp) : UDP 수신.
-    - 🔀 [sender](example/network/udp/sender/main.cpp) : UDP 송신.
+- `sftp` : `sftp` 클라이언트
+    - 🔀 [putty](example/network/sftp/putty/main.cpp) : `psftp` 연동 클라이언트
+- 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트
+- `tcp` : `tcp` 소켓 예제
+    - 🔀 [server](example/network/tcp/server/main.cpp) : `tcp` 서버
+    - 🔀 [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
+- `udp` : `udp` 통신 예제  
+    - 🔀 [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
+    - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기. IP 주소 검증.
 - 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트.
