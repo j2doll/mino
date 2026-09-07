@@ -208,13 +208,15 @@
        |      pub      |                      |      sub      |
        +---------------+                      +---------------+
       ```
-    - 🔀 [broker](example/network/message_broker/broker) : 브로커 예제
-    - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) 예제
-    - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) 예제
+    - 🔀 [broker](example/network/message_broker/broker) : 브로커
+    - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`)
+    - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`)
     - 🔀 `python` : 파이썬 예제. [pub](example/network/message_broker/python/pub/message_publisher.py) [sub](example/network/message_broker/python/sub/message_subscriber.py)
+    - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
+    - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
 - `rest` : `REST API` 클라이언트
-    - 🔀 [curl](example/network/rest/curl/main.cpp) : libcurl 기반 REST 클라이언트
-    - 🔀 [httplib](example/network/rest/httplib/main.cpp) : httplib 기반 REST 클라이언트
+    - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
+    - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
 - `rpc` : `RPC` 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
