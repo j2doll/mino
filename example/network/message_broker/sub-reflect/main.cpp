@@ -79,11 +79,14 @@ int main(int argc, char* argv[]) {
 
             namespace mce = mino::core::encoding;
             std::vector<uint8_t> out;
+
+            // body 문자열 -> base64 디코딩
             if (mce::base64_decode(arg3, out)) {
                 namespace mcr = mino::core::reflect;
                 using binary_reader = mcr::binary_reader;
                 binary_reader reader(out.data(), out.size());
 
+                // base64 디코딩 -> point 구조체로 역직렬화  
                 point pt;
                 reader(pt);
                 if (reader.has_error()) {
