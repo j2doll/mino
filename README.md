@@ -19,8 +19,8 @@
    - 네트워크 기능 모듈.
 
 ### 예제
-#### 💡 [example](example/) <sub> 예제 루트 경로 </sub>
-##### 🏛️ [core](example/core) <sub> 코어 라이브러리 예제 </sub>
+#### 💡 [example](example/) : 예제 루트 경로
+##### 🏛️ [core](example/core) : 코어 라이브러리 예제
 - 🏛️ [bit](example/core/bit/main.cpp)
    - 비트 단위 연산
 - 🏛️ [broker](example/core/broker/main.cpp)
@@ -145,7 +145,7 @@
     - `.yaml` 파싱·직렬화
 - 🏛️ [zip](example/core/zip/main.cpp)
     - `.zip` 압축
-##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 예제 </sub>
+##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - `json`
     - 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능
     - 📦 [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
@@ -247,13 +247,13 @@
     - 🔀 [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
-    - 네트워크 인터페이스 목록 얻기. IP 주소 검증.
-- 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트.
-##### 🧱 [template](example/template) <sub> 템플릿 예제 프로젝트 </sub> 
-- 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿.
-- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 기능 예제 템플릿.
-- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : 외부 기능 예제 템플릿.
-- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : 네트워크 기능 예제 템플릿.
+    - 네트워크 인터페이스 목록 얻기. IP 주소 검증
+- 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트
+##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
+- 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿
+- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 템플릿
+- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : 외부 템플릿
+- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : 네트워크 템플릿
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
