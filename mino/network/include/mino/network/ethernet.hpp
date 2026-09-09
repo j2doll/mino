@@ -133,6 +133,18 @@ namespace mino::network {
         ~sock();
     };
 
+    // 프로토콜 지정 열거형
+    enum class transport_protocol {
+        tcp,
+        udp
+    };
+
+    // 포트 사용 여부 확인 함수
+    // 포트가 이미 점유 중(EADDRINUSE)이거나 권한 부족(EACCES)이면 true 반환
+    bool is_port_in_use(uint16_t port,
+        transport_protocol proto = transport_protocol::tcp,
+        const std::string& ip = "0.0.0.0");
+
 } // namespace mino::network
 
 

@@ -18,6 +18,7 @@ void clean_up_resources(mino::network::message_broker::broker* broker)
 }
 
 int main(int argc, char* argv[]) {
+    namespace mn = mino::network;
     mino::network::sock mnsock;
 
     // 크래시 핸들러 초기화 및 사용자 정의 콜백 등록
@@ -107,6 +108,12 @@ int main(int argc, char* argv[]) {
     }
     catch (const std::exception& ex) {
         std::cerr << "Invalid port: " << port_str << "\n\n" << cmd.usage() << std::endl;
+        return 1;
+    }
+
+    if ( mn::is_port_in_use(port, mn::transport_protocol::tcp, ip) ) {
+        std::cerr << "Port " << port
+            << " is already in use. Please choose a different port." << std::endl;
         return 1;
     }
 
