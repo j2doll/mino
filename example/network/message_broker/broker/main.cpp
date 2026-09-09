@@ -97,10 +97,10 @@ int main(int argc, char* argv[]) {
     }
 
     std::string ip = cmd.get("ip", "127.0.0.1");
-    std::string port_str = cmd.get("port", "54321");
-    int port = 54321;
+    std::string port_str = cmd.get("port", "24321");
+    unsigned short port = 24321;
     try {
-        port = std::stoi(port_str);
+        port = static_cast<unsigned short>(std::stoi(port_str));
         if (port < 1 || port > 65535) {
             throw std::out_of_range("Port number must be between 1 and 65535");
         }

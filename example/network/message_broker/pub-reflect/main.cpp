@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     });
 
     // broker에 연결 시도
-    pub.set_broker("127.0.0.1", 54321); 
+    pub.set_broker("127.0.0.1", 24321); 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!pub.connect(tcp_sleep_time)) { 
         pub_logger->critical("{}", "메시지 브로커에 연결 실패");

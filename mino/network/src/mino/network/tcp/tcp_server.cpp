@@ -4,6 +4,12 @@
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_server.hpp"
 
+namespace {
+    std::string GetWsaErrorString(int errorCode) {
+        return std::system_category().message(errorCode);
+    }
+}
+
 namespace mino::network::tcp {
 
     static void close_socket_without_timewait(socket_t fd) {
@@ -45,7 +51,7 @@ namespace mino::network::tcp {
         quit();
     }
 
-    tcp_server::start_result tcp_server::start(const std::string& ip, int port) {
+    tcp_server::start_result tcp_server::start(const std::string& ip, unsigned short port) {
         struct addrinfo hints {}, * res = nullptr;
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
@@ -54,7 +60,8 @@ namespace mino::network::tcp {
         std::string port_str = std::to_string(port);
         if (getaddrinfo(ip.empty() ? nullptr : ip.c_str(), port_str.c_str(), &hints, &res) != 0 || !res)
         {
-            if (logger) logger->error(
+            if (logger)
+                logger->error(
                 "[tcp_server] getaddrinfo failed for {}:{}",
                 ip.empty() ? "<all interfaces>" : ip, port);
 
@@ -65,37 +72,60 @@ namespace mino::network::tcp {
         for (p = res; p != nullptr; p = p->ai_next) {
             server_socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 #ifdef _WIN32
-            if (server_socket == INVALID_SOCKET) continue;
+            if (server_socket == INVALID_SOCKET)
+                continue;
 #else
-            if (server_socket < 0) continue;
+            if (server_socket < 0)
+                continue;
 #endif
 
             int opt = 1;
             setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt));
 
-            if (bind(server_socket, p->ai_addr, static_cast<int>(p->ai_addrlen)) == 0) {
+            auto ret_bind = bind(server_socket, p->ai_addr, static_cast<int>(p->ai_addrlen));
+            if (ret_bind != 0) {
+#ifdef _WIN32
+                int err = WSAGetLastError();
+                std::string err_str = GetWsaErrorString(err);
+                std::cerr
+                    << "bind failed with WSA error: " << err
+                    << " (" << err_str << ")" << std::endl;
+#else
+                std::cerr
+                    << "bind failed with errno: " << errno << " ("
+                    << strerror(errno) << ")" << std::endl;
+#endif
+            }
+
+            if (ret_bind == 0) {
                 address_family = p->ai_family;
                 break;
             }
 #ifdef _WIN32
-            closesocket(server_socket); server_socket = INVALID_SOCKET;
+            closesocket(server_socket);
+            server_socket = INVALID_SOCKET;
 #else
-            close(server_socket); server_socket = -1;
+            close(server_socket);
+            server_socket = -1;
 #endif
         }
         freeaddrinfo(res);
 
 #ifdef _WIN32
-        if (server_socket == INVALID_SOCKET) return start_result::bind_failed;
+        if (server_socket == INVALID_SOCKET)
+            return start_result::bind_failed;
 #else
-        if (server_socket < 0) return start_result::bind_failed;
+        if (server_socket < 0)
+            return start_result::bind_failed;
 #endif
 
         if (listen(server_socket, SOMAXCONN) == -1) {
 #ifdef _WIN32
-            closesocket(server_socket); server_socket = INVALID_SOCKET;
+            closesocket(server_socket);
+            server_socket = INVALID_SOCKET;
 #else
-            close(server_socket); server_socket = -1;
+            close(server_socket);
+            server_socket = -1;
 #endif
             return start_result::listen_failed;
         }

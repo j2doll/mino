@@ -151,7 +151,7 @@ class MessageBrokerPublisher:
 if __name__ == "__main__":
     # 브로커 IP 및 포트 지정 (C++ 환경 및 파이썬 서브스크라이버 환경과 일치)
     BROKER_IP = "127.0.0.1"
-    BROKER_PORT = 54321
+    BROKER_PORT = 24321
     
     # C++ main.cpp 예제에서 서브스크라이버가 대기 중인 토픽 명칭 지정
     TARGET_TOPIC = "sports"

@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
             }
         });
 
-    sub.set_broker("127.0.0.1", 54321); // broker IP와 포트 설정
+    sub.set_broker("127.0.0.1", 24321); // broker IP와 포트 설정
     sub.set_topic({ "sports" }); // 구독할 토픽 설정. 토픽은 복수 개를 등록도 가능.
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);

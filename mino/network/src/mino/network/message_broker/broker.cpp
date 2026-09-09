@@ -9,11 +9,13 @@ namespace mino::network::message_broker {
     broker::broker(std::shared_ptr<mino::core::log::tinylog::logger> custom_logger) {
         set_logger(custom_logger);
 
-        if (logger) logger->info("[Broker] Broker instance created.");
+        if (logger)
+            logger->info("[Broker] Broker instance created.");
 
         // 복사 캡처([=]) 또는 주입 상태 변화 대응을 위해 인스턴스 포인터 참조 가동
         server.set_on_connect_callback([this](socket_t client_socket, const std::string& client_ip) {
-            if (logger) logger->info("[Broker] Client connected: {} (Socket: {})", client_ip, client_socket);
+            if (logger)
+                logger->info("[Broker] Client connected: {} (Socket: {})", client_ip, client_socket);
             });
 
         server.set_on_close_callback([this](socket_t client_socket, const std::string& reason) {
@@ -22,7 +24,8 @@ namespace mino::network::message_broker {
                 sockets.erase(std::remove(sockets.begin(), sockets.end(), client_socket), sockets.end());
             }
             stream_buffers.erase(client_socket);
-            if (logger) logger->warn("[Broker] Client disconnected (Socket: {}). Registry cleaned. Reason: {}", client_socket, reason);
+            if (logger)
+                logger->warn("[Broker] Client disconnected (Socket: {}). Registry cleaned. Reason: {}", client_socket, reason);
             });
 
         server.set_on_receive_callback([this](socket_t client_socket, const std::string& data) {
@@ -84,38 +87,45 @@ namespace mino::network::message_broker {
         }
     }
 
-    bool broker::start_broker(const std::string& ip, int port) {
-        if (logger) logger->info("[Broker] Attempting to start broker on {}:{}", ip, port);
+    bool broker::start_broker(const std::string& ip, unsigned short port) {
+        if (logger)
+            logger->info("[Broker] Attempting to start broker on {}:{}", ip, port);
 
         auto ret = server.start(ip, port);
         if (ret == mino::network::tcp::tcp_server::start_result::success) {
-            if (logger) logger->info("[Broker] Central Message Broker started on {}:{}", ip, port);
+            if (logger)
+                logger->info("[Broker] Central Message Broker started on {}:{}", ip, port);
             return true;
         }
 
-        if (logger) logger->error("[Broker] Failed to start broker on {}:{}", ip, port);
+        if (logger)
+            logger->error("[Broker] Failed to start broker on {}:{}", ip, port);
         return false;
     }
 
     void broker::quit() {
-        if (logger) logger->info("[Broker] Shutting down broker.");
+        if (logger)
+            logger->info("[Broker] Shutting down broker.");
 
         server.quit();
     }
 
     bool broker::shutdown_by_force() {
-        if (logger) logger->warn("[Broker] Forcefully shutting down broker.");
+        if (logger)
+            logger->warn("[Broker] Forcefully shutting down broker.");
 
         try {
             server.shutdown_by_force();
             return true;
         }
         catch (const std::exception& ex) {
-            if (logger) logger->error("[Broker] Exception during forced shutdown: {}", ex.what());
+            if (logger)
+                logger->error("[Broker] Exception during forced shutdown: {}", ex.what());
             return false;
         }
         catch (...) {
-            if (logger) logger->error("[Broker] Unknown exception during forced shutdown.");
+            if (logger)
+                logger->error("[Broker] Unknown exception during forced shutdown.");
             return false;
         }
         return false;

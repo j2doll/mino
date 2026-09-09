@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         std::exit(0);
     });
 
-    pub.set_broker("127.0.0.1", 54321); // broker IP와 포트 설정
+    pub.set_broker("127.0.0.1", 24321); // broker IP와 포트 설정
 
     std::chrono::seconds tcp_sleep_time = std::chrono::seconds(60);
     if (!pub.connect(tcp_sleep_time)) { // broker 와 연결 시도

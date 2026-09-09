@@ -45,7 +45,7 @@ namespace mino::network::tcp {
             listen_failed
         };
 
-        start_result start(const std::string& ip, int port);
+        start_result start(const std::string& ip, unsigned short port);
 
         void set_on_connect_callback(callback cb);
         void set_on_receive_callback(callback cb);

@@ -225,7 +225,7 @@ def on_message_received(topic: str, msg_kind: str, body: str, timestamp: int):
 if __name__ == "__main__":
     # 연결할 broker의 IP와 포트 설정
     BROKER_IP = "127.0.0.1"
-    BROKER_PORT = 54321
+    BROKER_PORT = 24321
     # 구독 대상인 토픽. 복수 개 설정 가능.
     TARGET_TOPICS = ["sports"] 
 
