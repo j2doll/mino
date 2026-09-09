@@ -68,6 +68,8 @@
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
     - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
+- 🏛️ [exception](example/core/exception/main.cpp)
+    - `C++17` 예외 처리 보완 기능 : <sub> `c++20` `std::source_location`, `c++23` `std::stacktrace` </sub>
 - 🏛️ [file](example/core/file/main.cpp)
     - 실행 프로그램 경로/파일명 얻기. UTF-8 한글 경로.
     - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
