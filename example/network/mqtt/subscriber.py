@@ -16,6 +16,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 print("Connecting to broker at 127.0.0.1:1883...")
+# client.username_pw_set("admin_user", "secret_pass_1234")
 client.connect("127.0.0.1", 1883)
 
 try:

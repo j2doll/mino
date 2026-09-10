@@ -52,6 +52,26 @@ namespace mino::network::mqtt {
         return *this;
     }
 
+    mqtt_client& mqtt_client::set_credentials(std::string_view username, std::string_view password) noexcept {
+        try {
+            username_ = username;
+            password_ = password;
+            has_credentials_ = !username_.empty();
+        }
+        catch (...) {}
+        return *this;
+    }
+
+    mqtt_client& mqtt_client::clear_credentials() noexcept {
+        try {
+            username_.clear();
+            password_.clear();
+            has_credentials_ = false;
+        }
+        catch (...) {}
+        return *this;
+    }
+
     mqtt_client& mqtt_client::set_reconnect_backoff(
         std::chrono::seconds initial_interval,
         std::chrono::seconds max_interval,
@@ -221,7 +241,6 @@ namespace mino::network::mqtt {
 
     void mqtt_client::supervisor_loop() noexcept {
         while (worker_running_) {
-            // 1. 정상 연결 및 핸드셰이크 유지 상태
             if (is_mqtt_connected_ && tcp_client_.is_connected()) {
                 auto now = std::chrono::steady_clock::now();
                 long long elapsed_sec = 0;
@@ -243,21 +262,19 @@ namespace mino::network::mqtt {
 
             if (!worker_running_) break;
 
-            // 2. 끊김 감지 및 재연결 타이머 시작
             if (!is_reconnecting_) {
                 is_reconnecting_ = true;
                 reconnect_start_time_ = std::chrono::steady_clock::now();
                 current_backoff_ = initial_backoff_;
             }
 
-            // 3. 최대 재연결 시도 시간 검사 (0초가 아닌 경우에만 만료 체크)
             if (max_reconnect_duration_ > std::chrono::seconds(0)) {
                 auto total_elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::steady_clock::now() - reconnect_start_time_);
 
                 if (total_elapsed >= max_reconnect_duration_) {
                     if (logger_) {
-                        logger_->error("[mqtt_client] Reconnection failed: exceeded max allowed duration of {}s. Stopping retry.",
+                        logger_->error("[mqtt_client] Reconnection failed: exceeded max duration of {}s. Stopping retry.",
                             max_reconnect_duration_.count());
                     }
                     tcp_client_.stop();
@@ -271,17 +288,14 @@ namespace mino::network::mqtt {
                 logger_->warn("[mqtt_client] Reconnecting in {}s (Exponential Backoff)...", current_backoff_.count());
             }
 
-            // 백오프 간격만큼 대기 (stop() 호출 시 즉시 탈출)
             if (!interruptible_sleep(current_backoff_)) {
                 break;
             }
 
-            // 4. 소켓 연결 시도
             tcp_client_.stop();
             tcp_client_.set_server(host_, static_cast<unsigned short>(port_), address_family_);
             tcp_client_.start(std::chrono::seconds(1));
 
-            // 핸드셰이크(CONNACK) 완료 대기 (최대 3초)
             auto connect_wait_start = std::chrono::steady_clock::now();
             bool connected = false;
             while (worker_running_) {
@@ -297,7 +311,6 @@ namespace mino::network::mqtt {
                 interruptible_sleep(std::chrono::milliseconds(100));
             }
 
-            // 5. 연결 결과에 따른 백오프 갱신
             if (connected) {
                 if (logger_) {
                     logger_->info("[mqtt_client] Reconnected successfully. Resetting backoff interval to {}s",
@@ -307,7 +320,6 @@ namespace mino::network::mqtt {
                 current_backoff_ = initial_backoff_;
             }
             else {
-                // 실패: tcp_client 닫고 백오프 시간 지수적 증가 (initial -> x2 -> x4 ... -> max)
                 tcp_client_.stop();
                 if (backoff_enabled_) {
                     long long next_sec = static_cast<long long>(current_backoff_.count() * backoff_multiplier_);
@@ -391,7 +403,18 @@ namespace mino::network::mqtt {
                     resubscribe_all();
                 }
                 else {
-                    if (logger_) logger_->error("[mqtt_client] Handshake rejected with code: {}", return_code);
+                    if (logger_) {
+                        std::string_view reason = "unknown error";
+                        switch (return_code) {
+                        case 0x01: reason = "unacceptable protocol version"; break;
+                        case 0x02: reason = "identifier rejected"; break;
+                        case 0x03: reason = "server unavailable"; break;
+                        case 0x04: reason = "bad user name or password"; break;
+                        case 0x05: reason = "not authorized"; break;
+                        default: break;
+                        }
+                        logger_->error("[mqtt_client] Handshake rejected with code: 0x{:02X} ({})", return_code, reason);
+                    }
                 }
             }
             // PINGRESP (0xD0)
@@ -491,18 +514,42 @@ namespace mino::network::mqtt {
 
     bool mqtt_client::build_connect_packet(std::string_view client_id, uint16_t keep_alive, std::vector<uint8_t>& packet) noexcept {
         try {
-            std::vector<uint8_t> payload;
-            if (!append_string(payload, "MQTT")) return false;
-            payload.push_back(0x04);
-            payload.push_back(0x02);
-            payload.push_back(static_cast<uint8_t>((keep_alive >> 8) & 0xFF));
-            payload.push_back(static_cast<uint8_t>(keep_alive & 0xFF));
-            if (!append_string(payload, client_id)) return false;
+            std::vector<uint8_t> variable_header_and_payload;
+            if (!append_string(variable_header_and_payload, "MQTT")) return false;
+            variable_header_and_payload.push_back(0x04); // Protocol Level (3.1.1)
+
+            // Connect Flags 설정
+            // Bit 1: Clean Session (0x02)
+            // Bit 7: Username Flag (0x80), Bit 6: Password Flag (0x40)
+            uint8_t connect_flags = 0x02;
+            if (has_credentials_) {
+                connect_flags |= 0x80;
+                if (!password_.empty()) {
+                    connect_flags |= 0x40;
+                }
+            }
+            variable_header_and_payload.push_back(connect_flags);
+
+            variable_header_and_payload.push_back(static_cast<uint8_t>((keep_alive >> 8) & 0xFF));
+            variable_header_and_payload.push_back(static_cast<uint8_t>(keep_alive & 0xFF));
+
+            // 1. Client Identifier (필수)
+            if (!append_string(variable_header_and_payload, client_id)) return false;
+
+            // 2. User Name (Username Flag가 활성화된 경우)
+            if (connect_flags & 0x80) {
+                if (!append_string(variable_header_and_payload, username_)) return false;
+            }
+
+            // 3. Password (Password Flag가 활성화된 경우)
+            if (connect_flags & 0x40) {
+                if (!append_string(variable_header_and_payload, password_)) return false;
+            }
 
             packet.clear();
             packet.push_back(0x10);
-            if (!encode_remaining_length(packet, payload.size())) return false;
-            packet.insert(packet.end(), payload.begin(), payload.end());
+            if (!encode_remaining_length(packet, variable_header_and_payload.size())) return false;
+            packet.insert(packet.end(), variable_header_and_payload.begin(), variable_header_and_payload.end());
             return true;
         }
         catch (...) {

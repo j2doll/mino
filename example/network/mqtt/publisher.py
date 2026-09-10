@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt # pip install amqtt paho-mqtt
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
 print("Connecting to broker at 127.0.0.1:1883...")
+# client.username_pw_set("admin_user", "secret_pass_1234")
 client.connect("127.0.0.1", 1883)
 
 # 백그라운드 네트워크 수발신 루프 시작

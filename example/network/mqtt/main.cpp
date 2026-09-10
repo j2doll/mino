@@ -38,6 +38,9 @@ int main(int argc, char* argv[]) {
         .set_reconnect_backoff(std::chrono::seconds(1), std::chrono::seconds(10), 2.0) // 재연결 지수 백오프: 1초부터 시작하여 2배씩 증가, 최대 10초 상한
         .set_max_reconnect_duration(mnm::mqtt_client::infinite_reconnect); // 최대 재연결 시도 시간: 무한대 재시도 (또는 std::chrono::seconds(60) 처럼 지정 가능)
 
+    // MQTT 계정 인증 설정 (사용자명, 비밀번호)
+    // client.set_credentials("admin_user", "secret_pass_1234") 
+
     client.start(std::chrono::seconds(1));
 
     // 브로커 핸드셰이크(CONNACK) 완료 대기

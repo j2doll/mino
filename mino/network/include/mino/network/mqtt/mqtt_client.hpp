@@ -37,7 +37,6 @@ namespace mino::network::mqtt {
 
     class mqtt_client {
     public:
-        // 무한대 재연결을 나타내는 상수 (0초)
         static constexpr std::chrono::seconds infinite_reconnect{ 0 };
 
         mqtt_client() noexcept;
@@ -57,13 +56,17 @@ namespace mino::network::mqtt {
         mqtt_client& on_message(message_callback cb) noexcept;
         mqtt_client& set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger_ptr = nullptr) noexcept;
 
-        // 지수 백오프(Exponential Backoff) 재연결 간격 설정
+        // 사용자 인증 정보 설정 (사용자명, 비밀번호)
+        mqtt_client& set_credentials(std::string_view username, std::string_view password = "") noexcept;
+        mqtt_client& clear_credentials() noexcept;
+
+        // 지수 백오프(Exponential Backoff) 재연결 설정
         mqtt_client& set_reconnect_backoff(
             std::chrono::seconds initial_interval,
             std::chrono::seconds max_interval,
             double multiplier = 2.0) noexcept;
 
-        // 최대 재연결 시도 시간 설정 (0초 또는 infinite_reconnect 전달 시 무한대 재시도)
+        // 최대 재연결 시도 시간 설정 (0초 또는 infinite_reconnect 전달 시 무한 재시도)
         mqtt_client& set_max_reconnect_duration(std::chrono::seconds max_duration) noexcept;
 
         // -------------------------------------------------------------
@@ -92,13 +95,18 @@ namespace mino::network::mqtt {
         std::string client_id_;
         uint16_t keep_alive_seconds_;
 
+        // 사용자 계정 인증 필드
+        std::string username_{};
+        std::string password_{};
+        bool has_credentials_{ false };
+
         // 재연결 및 백오프 파라미터
         bool backoff_enabled_{ true };
         std::chrono::seconds initial_backoff_{ 1 };
         std::chrono::seconds max_backoff_{ 30 };
         double backoff_multiplier_{ 2.0 };
         std::chrono::seconds current_backoff_{ 1 };
-        std::chrono::seconds max_reconnect_duration_{ 0 }; // 0: 무한대 (기본값)
+        std::chrono::seconds max_reconnect_duration_{ 0 };
         std::atomic<bool> is_reconnecting_{ false };
         std::chrono::steady_clock::time_point reconnect_start_time_{};
 

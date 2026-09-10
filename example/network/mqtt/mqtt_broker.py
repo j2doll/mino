@@ -11,8 +11,15 @@ config = {
     },
     "sys_interval": 10,
     "auth": {
-        "allow-anonymous": True,
+        "allow-anonymous": True, # 익명 접속
     },
+    # "auth": {
+    #     "allow-anonymous": False,       # 익명 접속 차단
+    #     "password-file": "passwd.txt",  # 계정 정보 파일
+    # },
+    # "plugins": [
+    #     "auth_file"          # 파일 인증 플러그인 활성화
+    # ]
 }
 
 async def start_broker():
