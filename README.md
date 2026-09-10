@@ -245,6 +245,8 @@
 - `tcp` : `tcp` 소켓 예제
     - 🔀 [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - 🔀 [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
+- `tls` : `tls` 서버 및 클라이언트 
+    - 🔀 [tls](example/network/tls/main.cpp) : `tls` 연동 예제
 - `udp` : `udp` 통신 예제  
     - 🔀 [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
