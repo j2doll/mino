@@ -121,7 +121,7 @@
     - [Whitespace / Newline Normalization](example/core/string/test_whitespace_normalization.cpp) : 공백 및 줄바꿈 정규화
     - [Padding / Repeat / Quotes / Indent](example/core/string/test_padding_quotes.cpp) : 채워넣기, 반복, 따옴표 처리, 들여쓰기
     - [Prefix/Suffix removal](example/core/string/test_affix_removal.cpp) : 접두어. 접미어 제거
-    - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp) : 안전 문자열 추출
+    - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp) : 안전한 문자열 추출
     - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp) : 슷자 여부, 정수/실수 파싱, 와일드카드 패턴
     - [Korean numeric formatters](example/core/string/test_korean_numeric.cpp) : 한글 숫자로 변환
     - [tokenizer](example/core/string/test_tokenizer.cpp) : 다중 토큰 기반 문자열 분할
