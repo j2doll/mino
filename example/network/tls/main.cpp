@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
         });
 
     server.set_on_receive_callback([&server, &logger_instance](socket_t fd, const std::string& data) {
+        // 클라이이언트에서 메시지 수신 시, 에코로 응답
         logger_instance->info("[Server Callback] Echoing back: <bright_green>{}</bright_green>", data);
         server.send_to_client(fd, "ACK: " + data);
         });
@@ -161,6 +162,10 @@ int main(int argc, char* argv[]) {
     if (client.is_connected()) {
         auto payload = std::string("Hello Secure Tinylog TLS World!");
         client.send_data(payload);
+    }
+    else {
+        std::cerr << "Client failed to connect to server. Exiting demo." << std::endl;
+        return -1;
     }
 
     // 응답 수신 대기
