@@ -1,0 +1,2 @@
+admin_user:secret_pass_1234
+test_user:1234
