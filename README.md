@@ -28,27 +28,27 @@
 - 🏛️ [config](example/core/config/main.cpp)
    - [설정 파일(`.config`)](example/core/config/app_config.conf) 읽기 기능
 - 🏛️ [container](example/core/container/main.cpp) : 표준 확장 컨테이너들
-    - [bimap](mino/core/include/mino/core/container/bimap.hpp)
-    - [binomial_heap](mino/core/include/mino/core/container/binomial_heap.hpp)
-    - [circular_buffer](mino/core/include/mino/core/container/circular_buffer.hpp)
-    - [concurrent_queue](mino/core/include/mino/core/container/concurrent_queue.hpp)
-    - [devector](mino/core/include/mino/core/container/devector.hpp)
-    - [d_ary_heap](mino/core/include/mino/core/container/d_ary_heap.hpp)
-    - [fibonacci_heap](mino/core/include/mino/core/container/fibonacci_heap.hpp)
-    - [flat_map](mino/core/include/mino/core/container/flat_map.hpp)
-    - [flat_multimap](mino/core/include/mino/core/container/flat_multimap.hpp)
-    - [flat_multiset](mino/core/include/mino/core/container/flat_multiset.hpp)
-    - [flat_set](mino/core/include/mino/core/container/flat_set.hpp)
-    - [multi_array](mino/core/include/mino/core/container/multi_array.hpp)
-    - [multi_index_container](mino/core/include/mino/core/container/multi_index_container.hpp)
-    - [pairing_heap](mino/core/include/mino/core/container/pairing_heap.hpp)
-    - [priority_queue](mino/core/include/mino/core/container/priority_queue.hpp)
-    - [skew_heap](mino/core/include/mino/core/container/skew_heap.hpp)
-    - [small_vector](mino/core/include/mino/core/container/small_vector.hpp)
-    - [stable_vector](mino/core/include/mino/core/container/stable_vector.hpp)
-    - [static_vector](mino/core/include/mino/core/container/static_vector.hpp)
-    - [topic_queue](mino/core/include/mino/core/container/topic_queue.hpp)
-    - [red_black_tree](mino/core/include/mino/core/container/red_black_tree.hpp)
+    - [bimap](mino/core/include/mino/core/container/bimap.hpp) : 양방향 맵
+    - [binomial_heap](mino/core/include/mino/core/container/binomial_heap.hpp) : 이항 힙
+    - [circular_buffer](mino/core/include/mino/core/container/circular_buffer.hpp) : 원형 버퍼
+    - [concurrent_queue](mino/core/include/mino/core/container/concurrent_queue.hpp) : 동시성 큐
+    - [devector](mino/core/include/mino/core/container/devector.hpp) : 양방향 벡터
+    - [d_ary_heap](mino/core/include/mino/core/container/d_ary_heap.hpp) : `D`진 힙
+    - [fibonacci_heap](mino/core/include/mino/core/container/fibonacci_heap.hpp) : 피보나치 힙
+    - [flat_map](mino/core/include/mino/core/container/flat_map.hpp) : 정렬 맵
+    - [flat_multimap](mino/core/include/mino/core/container/flat_multimap.hpp) : 정령 다중키 맵
+    - [flat_multiset](mino/core/include/mino/core/container/flat_multiset.hpp) : 정렬 다중키 셋
+    - [flat_set](mino/core/include/mino/core/container/flat_set.hpp) : 정렬 셋
+    - [multi_array](mino/core/include/mino/core/container/multi_array.hpp) : `N`차원 배열
+    - [multi_index_container](mino/core/include/mino/core/container/multi_index_container.hpp) : 2중 인덱스 컨테이너
+    - [pairing_heap](mino/core/include/mino/core/container/pairing_heap.hpp) : `N`진 트리 구조
+    - [priority_queue](mino/core/include/mino/core/container/priority_queue.hpp) : 완전 이진 트리 큐
+    - [skew_heap](mino/core/include/mino/core/container/skew_heap.hpp) : 비균형 이진 트리 힙
+    - [small_vector](mino/core/include/mino/core/container/small_vector.hpp) : 고성능 연속 메모리 벡터
+    - [stable_vector](mino/core/include/mino/core/container/stable_vector.hpp) : 참조 비무효 벡터
+    - [static_vector](mino/core/include/mino/core/container/static_vector.hpp) : 스택 크기 고정 벡터
+    - [topic_queue](mino/core/include/mino/core/container/topic_queue.hpp) : `1:N` 메시지 발행/구독 큐
+    - [red_black_tree](mino/core/include/mino/core/container/red_black_tree.hpp) : 레드/블랙 노드 균형 트리
 - 🏛️ [convert](example/core/convert/main.cpp)
     - 문자열 ↔ 숫자(정수,실수) 변환
 - 🏛️ [crypt](example/core/crypt/main.cpp)
@@ -114,21 +114,21 @@
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
-    - [Trim](example/core/string/test_trim.cpp)
-    - [Replace](example/core/string/test_replace.cpp)
-    - [Case, Contains, Starts/Ends With](example/core/string/test_case_contains.cpp)
-    - [Split and Join](example/core/string/test_split_join.cpp)
-    - [Whitespace / Newline Normalization](example/core/string/test_whitespace_normalization.cpp)
-    - [Padding / Repeat / Quotes / Indent](example/core/string/test_padding_quotes.cpp)
-    - [Prefix/Suffix removal](example/core/string/test_affix_removal.cpp)
-    - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp)
-    - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp)
-    - [Korean numeric formatters](example/core/string/test_korean_numeric.cpp)
-    - [tokenizer](example/core/string/test_tokenizer.cpp)
-    - [to_string](example/core/string/test_to_string.cpp)
-    - [mutex_string](example/core/string/test_mutex_string.cpp)
-    - [u8string](example/core/string/test_u8string.cpp)
-    - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp)
+    - [Trim](example/core/string/test_trim.cpp) : 문자열 정리
+    - [Replace](example/core/string/test_replace.cpp) : 문자열 치환
+    - [Case, Contains, Starts/Ends With](example/core/string/test_case_contains.cpp) : 대소문자 변환, 포함 여부, 접두/접미사 확인
+    - [Split and Join](example/core/string/test_split_join.cpp) : 문자열 분리 및 합치기
+    - [Whitespace / Newline Normalization](example/core/string/test_whitespace_normalization.cpp) : 공백 및 줄바꿈 정규화
+    - [Padding / Repeat / Quotes / Indent](example/core/string/test_padding_quotes.cpp) : 채워넣기, 반복, 따옴표 처리, 들여쓰기
+    - [Prefix/Suffix removal](example/core/string/test_affix_removal.cpp) : 접두어. 접미어 제거
+    - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp) : 안전 문자열 추출
+    - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp) : 슷자 여부, 정수/실수 파싱, 와일드카드 패턴
+    - [Korean numeric formatters](example/core/string/test_korean_numeric.cpp) : 한글 숫자로 변환
+    - [tokenizer](example/core/string/test_tokenizer.cpp) : 다중 토큰 기반 문자열 분할
+    - [to_string](example/core/string/test_to_string.cpp) : 실수 정밀도 적용 문자열 변환
+    - [mutex_string](example/core/string/test_mutex_string.cpp) : 스레드 안전 문자열
+    - [u8string](example/core/string/test_u8string.cpp) : UTF-8 문자열 처리
+    - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp) : 한글 인코딩간 변환 <sub> (UTF-8/16/32, wstring, CP949/EUC-KR, ISO-2022-KR, JOHAB, MacKorean) </sub> , 콘솔 출력용 인코딩 변환
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp)
