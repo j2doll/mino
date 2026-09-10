@@ -59,7 +59,20 @@ int main(int argc, char* argv[]) {
     // openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -days 365 -nodes -subj "/CN=localhost"
     // 
     // openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -days 365 -nodes -subj "/CN=localhost" -config "D:\vcpkg\installed\x64-windows\Program Files\Common Files\SSL\openssl.cnf"
-    // 
+    //
+
+    ////////////////////////////////////////////////
+    // 1) 루트 CA 생성
+    // openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.crt -days 365 -subj "/CN=MyRootCA"
+    ////////////////////////////////////////////////
+    // 2) 서버 개인키 및 CSR 생성
+    // openssl req -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/CN=localhost"
+    ////////////////////////////////////////////////
+    // 3) SAN 확장 설정을 포함하여 CA로 서명 (server.crt 생성)
+    // openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 \
+    //   -extfile <(printf "subjectAltName=DNS:localhost,IP:127.0.0.1")
+    ////////////////////////////////////////////////
+
 
     // ----------------------------------------------------
     // TLS 서버 초기화 및 구동
@@ -99,6 +112,27 @@ int main(int argc, char* argv[]) {
     client.set_logger(logger_instance);
     client.set_server(server_ip, server_port);
     client.set_verify_peer(false); // 자체 서명 인증서 테스트용
+
+    ////////////////////////////////////////////////
+    // 클라이언트에서 인증서 검증 
+    // ////////////////////////////////////////////////
+    // // (1) 사설 CA 또는 자체 생성 CA를 사용할 때
+    // client.set_verify_peer(true); // 1. 피어 검증 활성화
+    // client.set_ca_cert("ca.crt"); // 2. 서버 인증서를 서명한 루트/중간 CA 인증서(PEM) 경로 지정
+    // client.set_sni_hostname("myserver.local"); // 3. 서버 인증서의 CN/SAN에 등록된 호스트명 지정 (호스트명 불일치 방지)
+    // client.set_server("127.0.0.1", 9443);
+    // client.start();
+    // 
+    ////////////////////////////////////////////////
+    // // (2) Let's Encrypt 등 공인 CA 인증서를 사용할 때
+    // client.set_verify_peer(true);
+    // // ca_file을 지정하지 않으면 OS의 시스템 기본 신뢰 저장소(Default Verify Paths)를 조회합니다.
+    // // (Linux의 /etc/ssl/certs, Windows의 기본 CA 등)
+    // client.set_ca_cert(""); 
+    // client.set_sni_hostname("api.example.com");
+    // client.set_server("api.example.com", 443);
+    // client.start();
+    ////////////////////////////////////////////////
 
     client.set_on_connect([&logger_instance]() {
         logger_instance->info("<bright_green>[Client Callback] Connected securely via TLS!</bright_green>");
