@@ -168,25 +168,8 @@
     - 🔀 [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
     - 🔀 [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
 - 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회
-- `log` : 핫/소프트 로깅 환경 정보 리로딩 기능
-    - 🔀 [manager](example/network/log/manager/main.cpp)
-        - ```
-              +-------------------+               +-------------------+
-              |      manager      |               |       *.ini       |
-              +---------+---------+               +---------+---------+
-                        |             init-only             |
-                        |<----------------------------------|
-                 cycle  |                                   |
-                  --+   |            hard-reload            | 
-                 |  |   |<----------------------------------|
-                 v--+   |                                   |
-                        |                                   |
-                  --+   |            soft-reload            |
-                 |  |   |<----------------------------------|
-                 v--+   |                                   |
-                        |                                   |
-          ```
-        - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
+- 🔀 [manager](example/network/log/manager/main.cpp) : `logging` 환경 정보 `hard/soft/hot reloading` 기능
+   - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - `memory_store` : 네트워크 기반 정보(메모리) 저장소
     - ```
            +------------+   tcp    +------------+
@@ -199,16 +182,16 @@
     - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트
 - `message_broker` : 분산 메시지 브로커
     - ```
-                            +------------+
-               +----------->|   broker   |------------+
-               |            +------------+            |
-            Publish                                Subscribe
-             (tcp)                                  (tcp)
-               |                                      |
-               |                                      v
-       +---------------+                      +---------------+
-       |      pub      |                      |      sub      |
-       +---------------+                      +---------------+
+                          +------------+
+               +--------->|   broker   |----------+
+               |          +------------+          |
+            Publish                            Subscribe
+             (tcp)                              (tcp)
+               |                                  |
+               |                                  v
+       +---------------+                  +---------------+
+       |      pub      |                  |      sub      |
+       +---------------+                  +---------------+
       ```
     - 🔀 [broker](example/network/message_broker/broker) : 브로커
     - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`)
@@ -216,6 +199,7 @@
     - 🔀 `python` : 파이썬 예제. [pub](example/network/message_broker/python/pub/message_publisher.py) [sub](example/network/message_broker/python/sub/message_subscriber.py)
     - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
     - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
+- 🔀 [`mqtt`](example/network/mqtt/main.cpp) : `MQTT` 클라이언트
 - `rest` : `REST API` 클라이언트
     - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
     - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
@@ -225,13 +209,11 @@
         |    Server    |           |    broker    |          |    Client    |
         +-------+------+           +-------+------+          +-------+------+
                 |                          |     Call RPC (tcp)      |
-                |                          |<------------------------|
-                |      Call RPC (tcp)      |                         |
+                |       Call RPC (tcp)     |<------------------------|
                 |<-------------------------|                         |
               --+                          |                         |
              |  | (Self/Processing)        |                         |
-             v--+                          |                         |
-                |      Return RPC (tcp)    |                         |
+             v--+     Return RPC (tcp)     |                         |
                 |------------------------->|                         |
                 |                          |    Return RPC (tcp)     |
                 |                          |------------------------>|
