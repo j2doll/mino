@@ -10,6 +10,10 @@
 #include "mino/network/ethernet.hpp"
 #include "mino/network/tls/tls_server.hpp"
 
+// main()을 구동하기 전에 openssl로 사설 인증서 파일을 생성하여야 함.
+// openssl req -x509 -newkey rsa:2048 \
+//  -keyout server.key -out server.crt \
+//  -days 365 -nodes -subj "/CN=localhost"
 int main(int argc, char* argv[]) {
     namespace mn = mino::network;
     namespace mnt = mino::network::tls;
