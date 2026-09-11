@@ -200,10 +200,10 @@
     - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
     - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
 - 🔀 [`mqtt`](example/network/mqtt/main.cpp) : `MQTT` 클라이언트
-- `rest` : `REST API` 클라이언트
+- `REST API` 클라이언트
     - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
     - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
-- `rpc` : `RPC`,`Remote Procedure Call` 클라이언트/서버
+- `rpc`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
         |    Server    |           |    broker    |          |    Client    |
@@ -221,15 +221,16 @@
     - 🔀 [server](example/network/rpc/server/main.cpp) : `RPC` 서버
     - 🔀 [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- `sftp` : `sftp` 클라이언트
+- `sftp` 클라이언트
     - 🔀 [putty](example/network/sftp/putty/main.cpp) : `psftp` 연동 클라이언트
 - 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트
-- `tcp` : `tcp` 소켓 예제
+- `tcp` 소켓 예제
     - 🔀 [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - 🔀 [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
-- `tls` : `tls` 서버 및 클라이언트 
-    - 🔀 [tls](example/network/tls/main.cpp) : `tls` 연동 예제
-- `udp` : `udp` 통신 예제  
+- `tls` 서버 및 클라이언트
+    - 🔀 [server](example/network/tls/server/main.cpp) : `tls` 서버
+    - 🔀 [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
+- `udp` 소켓 예제
     - 🔀 [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
