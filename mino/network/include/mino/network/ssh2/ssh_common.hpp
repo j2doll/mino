@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include <libssh2.h>
+
 #include "mino/network/ethernet.hpp"
 
 namespace mino::network::ssh2 {

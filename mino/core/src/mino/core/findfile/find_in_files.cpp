@@ -29,6 +29,16 @@ namespace mino::core::findfile {
     // ----------------------------------------------------------------------------
     namespace encoding_util {
 
+        // C++20(char8_t 지원 환경)과 C++17(MSVC 기본값) 분기 처리
+        inline fs::path u8_to_path(std::string_view utf8_str) {
+#if defined(__cpp_char8_t)
+            const auto* data = reinterpret_cast<const char8_t*>(utf8_str.data());
+            return fs::path(data, data + utf8_str.size());
+#else
+            return fs::u8path(utf8_str.begin(), utf8_str.end());
+#endif
+        }
+
 #if defined(_WIN32)
 
         std::string cp949_to_utf8(std::string_view cp949_str) {
@@ -69,7 +79,7 @@ namespace mino::core::findfile {
 
         fs::path string_to_path(const std::string& raw_path, text_encoding enc) {
             if (enc == text_encoding::utf8) {
-                return fs::u8path(raw_path);
+                return u8_to_path(raw_path);
             }
             // CP949인 경우 MultiByteToWideChar로 변환 후 fs::path 생성
             int wlen = MultiByteToWideChar(949, 0, raw_path.data(), static_cast<int>(raw_path.size()), nullptr, 0);
@@ -122,9 +132,9 @@ namespace mino::core::findfile {
 
         fs::path string_to_path(const std::string& raw_path, text_encoding enc) {
             if (enc == text_encoding::cp949) {
-                return fs::u8path(cp949_to_utf8(raw_path));
+                return u8_to_path(cp949_to_utf8(raw_path));
             }
-            return fs::u8path(raw_path);
+            return u8_to_path(raw_path);
         }
 
         std::string path_to_utf8_string(const fs::path& p) {
@@ -218,18 +228,18 @@ namespace mino::core::findfile {
         std::ostringstream start_ss, end_ss;
 
         start_ss << std::setw(4) << std::setfill('0') << start.date.year
-                 << std::setw(2) << std::setfill('0') << start.date.month
-                 << std::setw(2) << std::setfill('0') << start.date.day
-                 << std::setw(2) << std::setfill('0') << start.time.hour
-                 << std::setw(2) << std::setfill('0') << start.time.minute
-                 << std::setw(2) << std::setfill('0') << start.time.second;
+            << std::setw(2) << std::setfill('0') << start.date.month
+            << std::setw(2) << std::setfill('0') << start.date.day
+            << std::setw(2) << std::setfill('0') << start.time.hour
+            << std::setw(2) << std::setfill('0') << start.time.minute
+            << std::setw(2) << std::setfill('0') << start.time.second;
 
         end_ss << std::setw(4) << std::setfill('0') << end.date.year
-               << std::setw(2) << std::setfill('0') << end.date.month
-               << std::setw(2) << std::setfill('0') << end.date.day
-               << std::setw(2) << std::setfill('0') << end.time.hour
-               << std::setw(2) << std::setfill('0') << end.time.minute
-               << std::setw(2) << std::setfill('0') << end.time.second;
+            << std::setw(2) << std::setfill('0') << end.date.month
+            << std::setw(2) << std::setfill('0') << end.date.day
+            << std::setw(2) << std::setfill('0') << end.time.hour
+            << std::setw(2) << std::setfill('0') << end.time.minute
+            << std::setw(2) << std::setfill('0') << end.time.second;
 
         return build_datetime_range_regex(start_ss.str(), end_ss.str(), prefix_pattern, suffix_pattern);
     }
@@ -374,11 +384,11 @@ namespace mino::core::findfile {
         auto is_root_path_exists = fs::exists(root_path, check_ec_1);
         auto is_root_path_directory = fs::is_directory(root_path, check_ec_2);
         if (!is_root_path_exists || !is_root_path_directory) {
-            std::cerr 
-                << "[Error] Root path does not exist or is not a directory: " 
+            std::cerr
+                << "[Error] Root path does not exist or is not a directory: "
                 << root_path.string() << " (ec: " << check_ec_1.message() << " / " << check_ec_2.message() << ")\n";
             return results;
-        }        
+        }
 
         // 2. 쿼리를 내부 표준 UTF-8로 정규화
         std::string query_utf8 = (options_.file_content_encoding == text_encoding::cp949)

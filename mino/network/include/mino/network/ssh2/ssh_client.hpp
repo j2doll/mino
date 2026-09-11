@@ -8,10 +8,11 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+
 #include <libssh2.h>
 
 #include "mino/network/tcp/tcp_client.hpp"
-#include "ssh_common.hpp"
+#include "mino/network/ssh2/ssh_common.hpp"
 
 namespace mino::network::ssh2 {
 

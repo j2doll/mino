@@ -1,4 +1,6 @@
-#include "mino/network/ssh/ssh_client.hpp"
+
+#include "mino/network/ssh2/ssh_client.hpp"
+
 #include <algorithm>
 #include <sstream>
 
