@@ -1,4 +1,3 @@
-
 #include "mino/network/ssh2/ssh_client.hpp"
 
 #include <algorithm>
@@ -126,6 +125,13 @@ namespace mino::network::ssh2 {
             notify_error(-20, "Failed to open SSH channel");
             return false;
         }
+
+        // 서버 측 shell 요청 처리를 위한 shell 개설
+        if (libssh2_channel_shell(channel_) != 0) {
+            notify_error(-21, "Failed to request shell on channel");
+            return false;
+        }
+
         return true;
     }
 
@@ -272,7 +278,7 @@ namespace mino::network::ssh2 {
             {
                 std::lock_guard<std::mutex> lock(ssh_mutex_);
                 if (channel_) {
-                    libssh2_session_set_timeout(session_, 200); // 200ms 타임아웃
+                    libssh2_session_set_timeout(session_, 200); // 200ms 블로킹 대기
                     bytes_read = libssh2_channel_read(channel_, chunk, sizeof(chunk));
                 }
             }
@@ -291,10 +297,12 @@ namespace mino::network::ssh2 {
                     }
                 }
             }
-            else if (bytes_read == LIBSSH2_ERROR_EAGAIN) {
+            // 200ms 동안 읽을 데이터가 없는 경우(EAGAIN 또는 TIMEOUT) 루프 유지
+            else if (bytes_read == LIBSSH2_ERROR_EAGAIN || bytes_read == LIBSSH2_ERROR_TIMEOUT) {
                 continue;
             }
             else {
+                // 피어가 연결을 정상 종료(0)했거나 통신 에러 음수값 발생 시 단절 처리
                 notify_disconnect("Connection closed by peer or network error");
                 {
                     std::lock_guard<std::mutex> lock(ssh_mutex_);
@@ -374,4 +382,4 @@ namespace mino::network::ssh2 {
         cleanup_ssh_session();
     }
 
-} // namespace mino::network::ssh
+} // namespace mino::network::ssh2

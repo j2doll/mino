@@ -23,10 +23,9 @@ int main(int argc, char* argv[]) {
     using encoding_type = mclt::encoding_type;
     using eol_type = mclt::eol_type;
 
-    mnsock sock_initializer; // 소켓 포기화
+    mnsock sock_initializer; // 소켓 초기화
 
     // 콘솔 싱크 및 로거 인스턴스 구성
-console_cfg_init:
     console_sink_config console_cfg;
 #ifdef _WIN32
     console_cfg.encoding = encoding_type::cp949;
