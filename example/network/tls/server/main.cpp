@@ -10,7 +10,11 @@
 #include "mino/network/ethernet.hpp"
 #include "mino/network/tls/tls_server.hpp"
 
-// main()을 구동하기 전에 openssl로 사설 인증서 파일을 생성하여야 함.
+//
+// main()을 구동하기 전,
+// 현재 소스코드가 있는 경로에 openssl로
+// 사설 인증서 파일을 생성하여야 함.
+// 
 // openssl req -x509 -newkey rsa:2048 \
 //  -keyout server.key -out server.crt \
 //  -days 365 -nodes -subj "/CN=localhost"
