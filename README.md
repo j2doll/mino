@@ -250,10 +250,10 @@
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
-- `Visual Studio` (2022 이상)
-- `cmake` (3.24 이상)
-- `ninja` (1.12.1 이상)
-- `vcpkg` (2023.06 이상)
+- 🛠️ `Visual Studio` (2022 이상)
+- 🔨 `cmake` (3.24 이상)
+- 🥷 `ninja` (1.12.1 이상)
+- 📦 `vcpkg` (2023.06 이상)
     - `Visual Studio` : `vcpkg integrate install` 명령 실행
     - `VS Code` : `settings.json` 
     ```json
@@ -276,12 +276,11 @@
      }
     ```
 #### 🐧 Linux 환경 
-- `gcc` (8.5 이상)
-- `cmake` (3.24 이상)
-- `ninja` (1.8.2 이상)
-
+- 🦬 `gcc` (8.5 이상)
+- 🔨 `cmake` (3.24 이상)
+- 🥷 `ninja` (1.8.2 이상)
 #### 🧩 외부 라이브러리 설치
-- `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
+- 🎩 `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
 # Rocky 8
 sudo dnf install -y epel-release dnf-plugins-core
@@ -313,7 +312,7 @@ cmake -S . -B build -G "Ninja" \
 cmake --build build -j
 
 ``` 
-- `Debian` 계열 (`Ubuntu`/`Debian`)
+- 🌀 `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
 # Ubuntu 22.04 LTS
 sudo add-apt-repository universe
@@ -338,7 +337,7 @@ sudo apt install -y libbrotli-dev
 ##### 📦 라이브러리 설치 
 - 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
 - 라이브러리 경로 설정 (`C:\opt\mino` 등)
-###### (1) `Visual Studio` + `vcpkg` 환경
+###### :one: 🛠️ `Visual Studio` + 📦 `vcpkg` 환경
 ```bat
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 기존 작업 경로 삭제 (Windows)
@@ -366,7 +365,7 @@ cmake --build build -j
 :: 설치
 cmake --install build
 ```
-###### (2) `Linux` 환경
+###### :two: 🐧 `Linux` 환경
 ```bash
 #############################################
 # 작업 경로 삭제 (Linux)
@@ -389,7 +388,6 @@ cmake --build build -j "$(nproc)"
 # 설치
 cmake --install build
 ```
-
 - 🏛️ 설치 후 디렉토리 구조 확인
 ```
 C:\opt>eza --tree mino
@@ -422,19 +420,18 @@ $ eza --tree mino
 ---
 
 ### ©️ 라이선스
-- MIT License
+- `MIT License`
    - 상세 내용 [LICENSE](LICENSE) 참고
 - 📜 외부 라이브러리 
     - 📦 `external` 모듈
-        - [nlohmann/json](https://github.com/nlohmann/json) : MIT License
-        - [spdlog](https://github.com/gabime/spdlog) : MIT License
-        - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : MIT License
-        - [pugixml](https://github.com/zeux/pugixml) : MIT License
+        - [nlohmann/json](https://github.com/nlohmann/json) : `MIT License`
+        - [spdlog](https://github.com/gabime/spdlog) : `MIT License`
+        - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
+        - [pugixml](https://github.com/zeux/pugixml) : `MIT License`
     - 🔀 `network` 모듈
-        - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : MIT License
-        - [openssl](https://www.openssl.org/) : Apache License 2.0
-        - [libcurl](https://curl.se/) : [Curl License](https://curl.se/docs/copyright.html)
-        - [brotli](https://github.com/google/brotli) : MIT License 
-        - [libssh2](https://www.libssh2.org/) : BSD-3 License
-
+        - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
+        - [openssl](https://www.openssl.org/) : `Apache License 2.0`
+        - [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
+        - [brotli](https://github.com/google/brotli) : `MIT License`
+        - [libssh2](https://www.libssh2.org/) : `BSD-3 License`
 
