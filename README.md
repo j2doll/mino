@@ -7,16 +7,16 @@
 ## 개요
 
 ### 프로젝트 개요
-- `mino`는 `C++` 기반의 범용 라이브러리 입니다.
+- `mino`는 **`C++` 기반의 범용 라이브러리** 입니다.
 - 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공이 목표입니다.
 
 ### 아키텍처 요약
 - 🏛️ [**core**](mino/core/include/mino/core)
-   - 코어 기능. 외부 종속성이 없는 모듈.
+   - 코어 기능. 외부 종속성이 없는 모듈
 - 📦 [**external**](mino/external/include/mino/external)
-   - 외부 라이브러리 종속성이 있는 모듈.
+   - 외부 라이브러리 종속성이 있는 모듈
 - 🔀 [**network**](mino/network/include/mino/network)
-   - 네트워크 기능 모듈.
+   - 네트워크 기능 모듈
 
 ### 예제
 #### 💡 [example](example/) : 예제 루트 경로
@@ -158,13 +158,13 @@
 - `schedule` : 외부 스케줄러 연동
     - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
 - `xml` : `.xml` => `C++` 구조체 변환
-    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [C++ 구조체](example/external/xml/catalog.hpp) 변환
+    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
     - 📦 [example](example/external/xml/main.cpp) : 구조체 사용 예제
-##### 🔀 [network](example/network) <sub> 네트워크 관련 예제 </sub>
-- `download` : `http` 다운로드 클라이언트
+##### 🔀 [network](example/network) : 네트워크 관련 예제
+- `http` 다운로드 클라이언트
     - 🔀 [curl](example/network/download/curl/main.cpp) : `libcurl` 기반 다운로드
     - 🔀 [httplib](example/network/download/httplib/main.cpp) : `httplib` 기반 다운로드
-- `ftp` : `ftp` 클라이언트
+- `ftp` 클라이언트
     - 🔀 [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
     - 🔀 [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
 - 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회
@@ -185,7 +185,7 @@
                           +------------+
                +--------->|   broker   |----------+
                |          +------------+          |
-            Publish                            Subscribe
+            Publish                           Subscribe
              (tcp)                              (tcp)
                |                                  |
                |                                  v
@@ -196,10 +196,14 @@
     - 🔀 [broker](example/network/message_broker/broker) : 브로커
     - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`)
     - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`)
-    - 🔀 `python` : 파이썬 예제. [pub](example/network/message_broker/python/pub/message_publisher.py) [sub](example/network/message_broker/python/sub/message_subscriber.py)
-    - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
-    - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
-- 🔀 [`mqtt`](example/network/mqtt/main.cpp) : `MQTT` 클라이언트
+    - 🔀 `python` 파이썬 코드
+        - [pub](example/network/message_broker/python/pub/message_publisher.py)
+        - [sub](example/network/message_broker/python/sub/message_subscriber.py)
+    - 구조체 직렬화/역직렬화 예제
+        - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
+        - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
+- 🔀 [`mqtt`](example/network/mqtt/main.cpp)
+    - `MQTT`(`Message Queuing Telemetry Transport`) 클라이언트
 - `REST API` 클라이언트
     - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
     - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
@@ -221,9 +225,10 @@
     - 🔀 [server](example/network/rpc/server/main.cpp) : `RPC` 서버
     - 🔀 [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- `sftp` 클라이언트
-    - 🔀 [putty](example/network/sftp/putty/main.cpp) : `psftp` 연동 클라이언트
-- 🔀 [socket-io](example/network/socket-io/main.cpp) : `socket.io` 클라이언트
+- 🔀 [sftp](example/network/sftp/putty/main.cpp)
+    - `psftp` 연동 클라이언트
+- 🔀 [socket-io](example/network/socket-io/main.cpp)
+    - `socket.io` 클라이언트
 - `tcp` 소켓 예제
     - 🔀 [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - 🔀 [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
@@ -235,7 +240,8 @@
     - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기. IP 주소 검증
-- 🔀 [ws](example/network/ws/main.cpp) : `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트
+- 🔀 [ws](example/network/ws/main.cpp)
+    - `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿
 - 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 템플릿
