@@ -11,9 +11,9 @@
 
 //
 // main() 을 실행하기 전에 다음을 수행한다.
+// 
 // pip install paramiko
-// ssh-keygen -t rsa -b 2048 -f server_key -N ""
-// python ssh_server.py
+// python ssh_server_gui.py
 //
 int main(int argc, char* argv[]) {
     namespace mn = mino::network;
@@ -61,19 +61,19 @@ int main(int argc, char* argv[]) {
 
     // 5. 콜백 등록 (연결, 수신, 단절, 에러)
     client.set_on_connect([&logger_instance, &client]() {
-        logger_instance->info("[callback] SSH Server connection established!");
+        logger_instance->info("[callback] SSH Server <gray>connection</gray> <green>established!</green>");
 
         // 서버 핑거프린트 확인
         std::string fp = client.get_server_fingerprint_base64(mns2::fingerprint_type::sha256);
-        logger_instance->info("[callback] Verified Host Fingerprint: SHA256:{}", fp);
+        logger_instance->info("[callback] Verified Host Fingerprint: SHA256:<yellow>{}</yellow>", fp);
         });
 
     client.set_on_receive([&logger_instance](const std::string& data) {
-        logger_instance->info("[callback] Received payload from server: {}", data);
+        logger_instance->info("[callback] Received payload from server: <yellow>{}</yellow>", data);
         });
 
     client.set_on_disconnect([&logger_instance](const std::string& reason) {
-        logger_instance->warn("[callback] SSH Server disconnected. Reason: {}", reason);
+        logger_instance->warn("[callback] SSH Server <gray>disconnected</gray>. Reason: <yellow>{}</yellow>", reason);
         });
 
     client.set_on_error([&logger_instance](int error_code, const std::string& message) {
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     const std::string target_ip = "127.0.0.1";
     const unsigned short target_port = 2222;
 
-    logger_instance->info("Starting auto-reconnect worker targeting {}:{}", target_ip, target_port);
+    logger_instance->info("Starting <gray>auto-reconnect</gray> worker targeting <yellow>{}</yellow>:<yellow>{}</yellow>", target_ip, target_port);
     client.start_auto_reconnect(target_ip, target_port, r_cfg);
 
     // 8. 주기적 JSON 전송 및 통신 루프
@@ -100,18 +100,20 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
         if (client.is_connected()) {
-            std::string json_payload = "{\"seq\":" + std::to_string(++sequence_id) +
-                ",\"status\":\"active\",\"data\":\"sample_telemetry\"}";
+            // std::string payload_string = "{\"seq\":" + std::to_string(++sequence_id) + ",\"status\":\"active\",\"data\":\"sample_telemetry\"}"; // json payload
+            // std::string payload_string = "cd"; // Windows
+            // std::string payload_string = "pwd"; // Linux
+            std::string payload_string = "echo 'hi'"; // cross-platform command
 
-            logger_instance->debug("Sending JSON message: {}", json_payload);
-            if (!client.send_json(json_payload)) {
-                logger_instance->error("Failed to send JSON message");
+            logger_instance->debug("Sending message: <magenta>{}</magenta>", payload_string);
+            if (!client.send_json(payload_string)) {
+                logger_instance->error("Failed to send message");
             }
         }
     }
 
     // 9. 종료 처리
-    logger_instance->info("Shutting down SSH client...");
+    logger_instance->info("<red>Shutting down</red> SSH client...");
     client.stop_auto_reconnect();
 
     return 0;
