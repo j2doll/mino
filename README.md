@@ -157,7 +157,7 @@
     - [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능
 - 📦 `schedule` : 외부 스케줄러 연동
     - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
-- `xml` : `.xml` => `C++` 구조체 변환
+- 📦 `xml` : `.xml` => `C++` 구조체 변환
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
     - [example](example/external/xml/main.cpp) : 구조체 사용 예제
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
@@ -179,8 +179,8 @@
                     <-- set key:value --
                     -- get key:value -->
       ```
-    - [server](example/network/memory_store/server/main.cpp) : 서버
-    - [client](example/network/memory_store/client/main.cpp) : 클라이언트
+        - [server](example/network/memory_store/server/main.cpp) : 서버
+        - [client](example/network/memory_store/client/main.cpp) : 클라이언트
 - 🔀 `message_broker` : 분산 메시지 브로커
     - ```
                           +------------+
@@ -223,8 +223,8 @@
                 |                          |    Return RPC (tcp)     |
                 |                          |------------------------>|
       ```
-    - [server](example/network/rpc/server/main.cpp) : `RPC` 서버
-    - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
+        - [server](example/network/rpc/server/main.cpp) : `RPC` 서버
+        - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
 - 🔀 [sftp](example/network/sftp/putty/main.cpp)
     - `psftp` 연동 클라이언트
