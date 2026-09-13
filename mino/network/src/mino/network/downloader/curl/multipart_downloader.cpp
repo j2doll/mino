@@ -190,6 +190,9 @@ namespace mino::network::downloader::curl
         curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xfer_info_callback);
         curl_easy_setopt(curl, CURLOPT_XFERINFODATA, this);
 
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // SSL 피어 인증서 검증 비활성화 (0으로 설정)
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // 호스트 네임 검증 비활성화 (0으로 설정)
+
         CURLcode res = curl_easy_perform(curl);
         if (res != CURLE_OK)
         {

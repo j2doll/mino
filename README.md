@@ -161,12 +161,12 @@
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
     - [example](example/external/xml/main.cpp) : 구조체 사용 예제
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 `http` 다운로드 클라이언트
+- 🔀 멀티파트 형식(`multipart/mixed` 또는 `multipart/form-data`) `http` 다운로드 클라이언트
     - [curl](example/network/download/curl/main.cpp) : `libcurl` 기반 다운로드
     - [httplib](example/network/download/httplib/main.cpp) : `httplib` 기반 다운로드
-- 🔀 `ftp` 클라이언트
-    - [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
-    - [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
+- 🔀 `ftp`/`sftp` 클라이언트
+    - [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp`/`sftp` 클라이언트
+    - [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp`/`sftp` 클라이언트
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
 - 🔀 [manager](example/network/log/manager/main.cpp) : `logging` 환경 정보 `hard/soft/hot reloading` 기능
