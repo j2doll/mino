@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
         .set_broker("127.0.0.1", 1883)
         .set_client_id("logged_client")
         .set_keep_alive(10) // Keep Alive 메시지 송신 주기
-        .set_reconnect_backoff(std::chrono::seconds(1), std::chrono::seconds(10), 2.0) // 재연결 지수 백오프: 1초부터 시작하여 2배씩 증가, 최대 10초 상한
+        .set_reconnect_backoff(std::chrono::seconds(5), std::chrono::seconds(60), 2.0) // 재연결 지수 백오프: 5초부터 시작하여 2배씩 증가, 최대 60초 상한 (5 -> 10 -> 20 -> 40 -> 60 -> 60 -> ...)
         .set_max_reconnect_duration(mnm::mqtt_client::infinite_reconnect); // 최대 재연결 시도 시간: 무한대 재시도 (또는 std::chrono::seconds(60) 처럼 지정 가능)
 
     // MQTT 계정 인증 설정 (사용자명, 비밀번호)
