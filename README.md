@@ -57,9 +57,9 @@
     - `.csv` 파일 입출력 및 파싱. 엑셀용 `csv` 파일 생성.
 - 🏛️ [daemon](example/core/daemon/main.cpp)
     - 상주형 데몬 예제.
-- `datetime` : 날짜·시간 처리 
-    - 🏛️ [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
-    - 🏛️ [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
+- 🏛️ `datetime` : 날짜·시간 처리 
+    - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
+    - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
 - 🏛️ [dispatch](example/core/dispatch/main.cpp)
     - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
@@ -103,9 +103,9 @@
     - 재시도 전략, 지수 백오프, 서킷 브레이커.
 - 🏛️ [result](example/core/result/main.cpp)
     - 타입 별 성공/실패 처리.
-- `schedule`  
-    - 🏛️ [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
-    - 🏛️ [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
+- 🏛️ `schedule`  
+    - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
+    - [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
 - 🏛️ [server](example/core/server/main.cpp) 
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 
@@ -148,29 +148,30 @@
 - 🏛️ [zip](example/core/zip/main.cpp)
     - `.zip` 압축
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
-- `json`
-    - 📦 [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능
-    - 📦 [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
-- `log` : 외부 로깅 어댑터/팩토리
-    - 📦 [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결
-    - 📦 [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴
-    - 📦 [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능
-- `schedule` : 외부 스케줄러 연동
-    - 📦 [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
+- 📦 `json`
+    - [json](example/external/json/main.cpp) : `nlohmann::json` 확장 기능
+    - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
+- 📦 `log` : 외부 로깅 어댑터/팩토리
+    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결
+    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴
+    - [spd](example/external/log/spd/main.cpp) : `spdlog` 확장 로깅 기능
+- 📦 `schedule` : 외부 스케줄러 연동
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장
 - `xml` : `.xml` => `C++` 구조체 변환
-    - 📦 [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
-    - 📦 [example](example/external/xml/main.cpp) : 구조체 사용 예제
+    - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
+    - [example](example/external/xml/main.cpp) : 구조체 사용 예제
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- `http` 다운로드 클라이언트
-    - 🔀 [curl](example/network/download/curl/main.cpp) : `libcurl` 기반 다운로드
-    - 🔀 [httplib](example/network/download/httplib/main.cpp) : `httplib` 기반 다운로드
-- `ftp` 클라이언트
-    - 🔀 [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
-    - 🔀 [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
-- 🔀 [interface](example/network/interface/main.cpp) : 네트워크 인터페이스 정보 조회
+- 🔀 `http` 다운로드 클라이언트
+    - [curl](example/network/download/curl/main.cpp) : `libcurl` 기반 다운로드
+    - [httplib](example/network/download/httplib/main.cpp) : `httplib` 기반 다운로드
+- 🔀 `ftp` 클라이언트
+    - [curl](example/network/ftp/curl/main.cpp) : `libcurl` 기반 `ftp` 클라이언트
+    - [tcp](example/network/ftp/tcp/main.cpp) : `tcp` 소켓 기반 `ftp` 클라이언트
+- 🔀 [interface](example/network/interface/main.cpp)
+    - 네트워크 인터페이스 정보 조회
 - 🔀 [manager](example/network/log/manager/main.cpp) : `logging` 환경 정보 `hard/soft/hot reloading` 기능
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
-- `memory_store` : 네트워크 기반 정보(메모리) 저장소
+- 🔀 `memory_store` : 네트워크 기반 정보(메모리) 저장소
     - ```
            +------------+   tcp    +------------+
            |  server    |----------|   client   |
@@ -178,9 +179,9 @@
                     <-- set key:value --
                     -- get key:value -->
       ```
-    - 🔀 [server](example/network/memory_store/server/main.cpp) : 서버
-    - 🔀 [client](example/network/memory_store/client/main.cpp) : 클라이언트
-- `message_broker` : 분산 메시지 브로커
+    - [server](example/network/memory_store/server/main.cpp) : 서버
+    - [client](example/network/memory_store/client/main.cpp) : 클라이언트
+- 🔀 `message_broker` : 분산 메시지 브로커
     - ```
                           +------------+
                +--------->|   broker   |----------+
@@ -193,21 +194,21 @@
        |      pub      |                  |      sub      |
        +---------------+                  +---------------+
       ```
-    - 🔀 [broker](example/network/message_broker/broker) : 브로커
-    - 🔀 [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`)
-    - 🔀 [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`)
-    - 🔀 `python` 파이썬 코드
+        - [broker](example/network/message_broker/broker) : 브로커
+        - [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`)
+        - [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`)
+    - `python` 파이썬 `pub/sub` 
         - [pub](example/network/message_broker/python/pub/message_publisher.py)
         - [sub](example/network/message_broker/python/sub/message_subscriber.py)
     - 구조체 직렬화/역직렬화 예제
-        - 🔀 [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
-        - 🔀 [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
+        - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
+        - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
 - 🔀 [`mqtt`](example/network/mqtt/main.cpp)
     - `MQTT`(`Message Queuing Telemetry Transport`) 클라이언트
-- `REST API` 클라이언트
-    - 🔀 [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
-    - 🔀 [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
-- `rpc`(`Remote Procedure Call`) 클라이언트/서버
+- 🔀 `REST API` 클라이언트
+    - [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
+    - [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
+- 🔀 `rpc`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
         |    Server    |           |    broker    |          |    Client    |
@@ -222,8 +223,8 @@
                 |                          |    Return RPC (tcp)     |
                 |                          |------------------------>|
       ```
-    - 🔀 [server](example/network/rpc/server/main.cpp) : `RPC` 서버
-    - 🔀 [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
+    - [server](example/network/rpc/server/main.cpp) : `RPC` 서버
+    - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
 - 🔀 [sftp](example/network/sftp/putty/main.cpp)
     - `psftp` 연동 클라이언트
@@ -231,15 +232,15 @@
     - `socket.io` 클라이언트
 - 🔀 [ssh](example/network/ssh/main.cpp)
     - 외부 종속성 없는 `ssh` 클라이언트
-- `tcp` 소켓 예제
-    - 🔀 [server](example/network/tcp/server/main.cpp) : `tcp` 서버
-    - 🔀 [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
-- `tls` 서버 및 클라이언트
-    - 🔀 [server](example/network/tls/server/main.cpp) : `tls` 서버
-    - 🔀 [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
-- `udp` 소켓 예제
-    - 🔀 [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
-    - 🔀 [sender](example/network/udp/sender/main.cpp) : `udp` 송신
+- 🔀 `tcp` 소켓 예제
+    - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
+    - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
+- 🔀 `tls` 서버 및 클라이언트
+    - [server](example/network/tls/server/main.cpp) : `tls` 서버
+    - [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
+- 🔀 `udp` 소켓 예제
+    - [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
+    - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기. IP 주소 검증
 - 🔀 [ws](example/network/ws/main.cpp)
@@ -390,7 +391,7 @@ cmake --build build -j "$(nproc)"
 # 설치
 cmake --install build
 ```
-- 🏛️ 설치 후 디렉토리 구조 확인
+- 설치 후 디렉토리 구조 확인
 ```
 C:\opt>eza --tree mino
 📁 mino/
