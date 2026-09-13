@@ -231,7 +231,9 @@
 - 🔀 [socket-io](example/network/socket-io/main.cpp)
     - `socket.io` 클라이언트
 - 🔀 [ssh](example/network/ssh/main.cpp)
-    - 외부 종속성 없는 `ssh` 클라이언트
+    - 종속성 없는 `ssh` 클라이언트
+- 🔀 [ssh2](example/network/ssh2/main.cpp)
+    - `libssh2` 기반 `ssh` 클라이언트
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
