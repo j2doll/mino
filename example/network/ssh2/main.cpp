@@ -40,7 +40,6 @@ int main(int argc, char* argv[]) {
 #endif
     auto console_sink_instance = std::make_shared<console_sink>("console_sink", console_cfg);
 
-    // 1. tinylog 로거 생성 및 콘솔 싱크 등록
     auto logger_instance = std::make_shared<logger>("ssh2_client");
     logger_instance->add_sink(console_sink_instance);
     logger_instance->set_level(log_level::debug);
