@@ -206,7 +206,7 @@
         - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자
         - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자
 - 🔀 [`mqtt`](example/network/mqtt/main.cpp)
-    - `MQTT`(`Message Queuing Telemetry Transport`) 클라이언트
+    - `MQTT`(`Message Queuing Telemetry Transport`) `publisher` 클라이언트
 - 🔀 `REST API` 클라이언트
     - [curl](example/network/rest/curl/main.cpp) : `libcurl` 기반 `REST` 클라이언트
     - [httplib](example/network/rest/httplib/main.cpp) : `httplib` 기반 `REST` 클라이언트
