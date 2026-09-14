@@ -84,7 +84,7 @@ private:
         if (val.has_path("parameters")) {
             auto& params_val = const_cast<json&>(val)["parameters"];
             if (params_val.is_array()) {
-                const auto& arr = std::get<mino::core::json::array_t>(params_val.data);
+                const auto& arr = params_val.get_array();
                 for (const auto& item : arr) {
                     req.parameters.push_back(item.get_number());
                 }

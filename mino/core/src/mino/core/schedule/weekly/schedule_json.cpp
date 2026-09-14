@@ -15,8 +15,6 @@ namespace mino::core::schedule::weekly {
         const char* day_name[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
         for (int i = 0; i < 7; ++i) {
-            // std::string dn = day_name[i];
-            // std::string lower = [](std::string s) { for (char& c : s) c = std::tolower(static_cast<unsigned char>(c)); return s; }(dn);
             if (s == day_name[i])
                 return static_cast<weekday>(i);
         }
@@ -52,13 +50,15 @@ namespace mino::core::schedule::weekly {
         value root = parser::parse(json_text);
         if (!root.is_array()) return std::nullopt;
 
-        const auto& arr = std::get<array_t>(root.data);
+        // std::get<array_t>(root.data) 대신 get_array() 사용
+        const auto& arr = root.get_array();
         weekly_ranges result;
         result.reserve(arr.size());
 
         for (const auto& item : arr) {
             if (!item.is_object()) return std::nullopt;
-            const auto& obj = std::get<object_t>(item.data);
+            // std::get<object_t>(item.data) 대신 get_object() 사용
+            const auto& obj = item.get_object();
 
             // required fields
             auto it_sd = obj.find("start_day");
@@ -75,8 +75,9 @@ namespace mino::core::schedule::weekly {
 
             // start_day / end_day (strings)
             if (!it_sd->second.is_string() || !it_ed->second.is_string()) return std::nullopt;
-            const std::string& sd = std::get<std::string>(it_sd->second.data);
-            const std::string& ed = std::get<std::string>(it_ed->second.data);
+            // .data 대신 get_string() 사용
+            const std::string& sd = it_sd->second.get_string();
+            const std::string& ed = it_ed->second.get_string();
 
             auto sd_opt = day_from_string(sd);
             auto ed_opt = day_from_string(ed);
@@ -88,15 +89,16 @@ namespace mino::core::schedule::weekly {
                 return std::nullopt;
             }
 
-            double sh_d = std::get<double>(it_sh->second.data);
-            double sm_d = std::get<double>(it_sm->second.data);
-            double eh_d = std::get<double>(it_eh->second.data);
-            double em_d = std::get<double>(it_em->second.data);
+            // .data 대신 get_number() 사용
+            double sh_d = it_sh->second.get_number();
+            double sm_d = it_sm->second.get_number();
+            double eh_d = it_eh->second.get_number();
+            double em_d = it_em->second.get_number();
 
             // ensure they are integers
             auto is_integral = [](double x) {
                 return std::fabs(x - std::round(x)) < 1e-9;
-                };
+            };
 
             if (!is_integral(sh_d) || !is_integral(sm_d) || !is_integral(eh_d) || !is_integral(em_d)) {
                 return std::nullopt;
@@ -126,6 +128,4 @@ namespace mino::core::schedule::weekly {
         return result;
     }
 
-
 } // namespace mino::core::schedule::weekly
-

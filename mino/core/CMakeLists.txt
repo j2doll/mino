@@ -37,6 +37,11 @@ endif()
 # 4-3. gcc setting
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_core PUBLIC -Wno-free-nonheap-object)
+
+    # gcc 8.x filesystem library fix for std::filesystem
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        target_link_libraries(mino_core PUBLIC stdc++fs)
+    endif()    
 endif()
 
 # 4-4. Link the Threads library 

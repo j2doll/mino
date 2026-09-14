@@ -3,7 +3,6 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
-#include <cassert>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/json/json.hpp"
@@ -74,11 +73,11 @@ void test_value_constructors_and_types() {
     value v_obj_rval(object_t{ {"a", value(1.0)} });
     assert(v_obj_rval.is_object());
 
-    // 12. Public member variable access test (data)
+    // 12. Internal member variable access test (get_impl().data)
     value v_data_test;
-    v_data_test.data = 100.0;
+    v_data_test.get_impl().data = 100.0;
     assert(v_data_test.is_number());
-    assert(std::get<double>(v_data_test.data) == 100.0);
+    assert(std::get<double>(v_data_test.get_impl().data) == 100.0);
 
     std::cout << "[PASS] value constructors and type checks\n";
 }
@@ -139,7 +138,7 @@ void test_parser() {
 
     assert(parsed["array"].is_array());
     if (parsed["array"].is_array()) {
-        auto& arr = std::get<array_t>(parsed["array"].data);
+        const auto& arr = parsed["array"].get_array();
         size_t count = arr.size();
         assert(count == 3);
     }
@@ -147,54 +146,46 @@ void test_parser() {
 
     assert(parsed["object"].is_object());
     if (parsed["object"].is_object()) {
-        auto& obj = std::get<object_t>(parsed["object"].data);
+        const auto& obj = parsed["object"].get_object();
         assert(obj.find("nested_key") != obj.end()); // Check if the key('nested_key') exists
-        assert(obj["nested_key"].is_string() && obj["nested_key"].get_string() == "nested_value");
+        assert(obj.at("nested_key").is_string() && obj.at("nested_key").get_string() == "nested_value");
 
         assert(parsed["object"]["nested_key"].is_string() && parsed["object"]["nested_key"].get_string() == "nested_value");
     }
 
     if (parsed.has_path("/str")) { // 존재하는 경로 
-        // 존재함
         assert(true);
         std::cout << "Value at path '/str': " << parsed["str"].get_string() << "\n";
     }
     else {
-        // 존재하지 않음
-        assert(false); // This should not happen
+        assert(false);
         std::cout << "Path '/str' does not exist, which is unexpected.\n";
     }
 
     if (parsed.has_path("/str2")) { // 존재하지 않는 경로
-        // 존재함
-        assert(false); // This should not happen
+        assert(false);
         std::cout << "Value at path '/str2': " << parsed["str2"].get_string() << "\n";
     }
     else {
-        // 존재하지 않음
         assert(true);
         std::cout << "Path '/str2' does not exist, as expected.\n";
     }
 
     if (parsed.has_path("/array/1")) { // 존재하는 array 요소 경로
-        // 존재함
         assert(true);
         std::cout << "Value at path '/array/1': " << (parsed["array"][1].is_bool() ? (parsed["array"][1].get_bool() ? "true" : "false") : "not a bool") << "\n";
     }
     else {
-        // 존재하지 않음
-        assert(false); // This should not happen
+        assert(false);
         std::cout << "Path '/array/1' does not exist, which is unexpected.\n";
     }
 
     if (parsed.has_path("/object/nested_key")) { // 존재하는 object key 경로
-        // 존재함
         assert(true);
         std::cout << "Value at path '/object/nested_key': " << parsed["object"]["nested_key"].get_string() << "\n";
     }
     else {
-        // 존재하지 않음
-        assert(false); // This should not happen
+        assert(false);
         std::cout << "Path '/object/nested_key' does not exist, which is unexpected.\n";
     }
 

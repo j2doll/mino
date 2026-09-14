@@ -7,7 +7,6 @@
 namespace mino::core::json {
 
 namespace {
-    // 숫자를 기존 동작과 비슷하게 스트림으로 포맷
     static std::string number_to_string(double d) {
         std::ostringstream ss;
         ss << d;
@@ -20,19 +19,19 @@ static void serialize_compact(const value& val, std::string& out) {
         out += "null";
     }
     else if (val.is_bool()) {
-        out += (std::get<bool>(val.data) ? "true" : "false");
+        out += (val.get_bool() ? "true" : "false");
     }
     else if (val.is_number()) {
-        out += number_to_string(std::get<double>(val.data));
+        out += number_to_string(val.get_number());
     }
     else if (val.is_string()) {
         out += "\"";
-        out += std::get<std::string>(val.data);
+        out += val.get_string();
         out += "\"";
     }
     else if (val.is_array()) {
         out += "[";
-        const auto& arr = std::get<array_t>(val.data);
+        const auto& arr = val.get_array();
         for (size_t i = 0; i < arr.size(); ++i) {
             serialize_compact(arr[i], out);
             if (i + 1 < arr.size()) out += ",";
@@ -41,7 +40,7 @@ static void serialize_compact(const value& val, std::string& out) {
     }
     else if (val.is_object()) {
         out += "{";
-        const auto& obj = std::get<object_t>(val.data);
+        const auto& obj = val.get_object();
         size_t count = 0;
         for (const auto& [key, v] : obj) {
             out += "\"";
@@ -63,18 +62,18 @@ static void serialize_pretty(const value& val, int indent, int level, std::strin
         out += "null";
     }
     else if (val.is_bool()) {
-        out += (std::get<bool>(val.data) ? "true" : "false");
+        out += (val.get_bool() ? "true" : "false");
     }
     else if (val.is_number()) {
-        out += number_to_string(std::get<double>(val.data));
+        out += number_to_string(val.get_number());
     }
     else if (val.is_string()) {
         out += "\"";
-        out += std::get<std::string>(val.data);
+        out += val.get_string();
         out += "\"";
     }
     else if (val.is_array()) {
-        const auto& arr = std::get<array_t>(val.data);
+        const auto& arr = val.get_array();
         if (arr.empty()) {
             out += "[]";
             return;
@@ -90,7 +89,7 @@ static void serialize_pretty(const value& val, int indent, int level, std::strin
         out += "]";
     }
     else if (val.is_object()) {
-        const auto& obj = std::get<object_t>(val.data);
+        const auto& obj = val.get_object();
         if (obj.empty()) {
             out += "{}";
             return;
@@ -123,7 +122,7 @@ std::string serializer::serialize(const value& val, int indent) noexcept {
         return out;
     }
     catch (...) {
-        return std::string(); // noexcept 보장: 실패 시 빈 문자열 반환
+        return std::string();
     }
 }
 

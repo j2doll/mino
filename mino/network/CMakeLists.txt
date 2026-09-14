@@ -89,6 +89,11 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_network PUBLIC -Wno-free-nonheap-object)
     target_compile_options(mino_network PUBLIC -Wno-deprecated-literal-operator)
+
+    # gcc 8.x filesystem library fix for std::filesystem
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        target_link_libraries(mino_core PUBLIC stdc++fs)
+    endif()      
 endif()
 
 # 5. Specify the header file path

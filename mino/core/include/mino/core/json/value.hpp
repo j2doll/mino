@@ -1,26 +1,24 @@
 #pragma once
 
-#include "json_fwd.hpp"
-#include "value_type.hpp"
+#include "mino/core/json/json_fwd.hpp"
+#include "mino/core/json/value_type.hpp"
 #include <string>
+#include <memory>
 #include <variant>
 
 namespace mino::core::json {
 
     class value {
     public:
-        using variant_t = std::variant<
-            std::monostate,
-            bool,
-            double,
-            std::string,
-            array_t,
-            object_t
-        >;
-
-        variant_t data;
+        struct impl;
 
         value() noexcept;
+        ~value();
+        value(const value& other);
+        value(value&& other) noexcept;
+        value& operator=(const value& other);
+        value& operator=(value&& other) noexcept;
+
         value(bool val) noexcept;
         value(double val) noexcept;
         value(int val) noexcept;
@@ -45,15 +43,40 @@ namespace mino::core::json {
         bool get_bool(bool default_val = false) const noexcept;
         const std::string& get_string(const std::string& default_val = "") const noexcept;
 
+        const array_t& get_array() const noexcept;
+        array_t& get_array() noexcept;
+        const object_t& get_object() const noexcept;
+        object_t& get_object() noexcept;
+
         value& operator[](const std::string& key) noexcept;
         value& operator[](size_t index) noexcept;
 
-        // 경로 기반 존재 확인. 예: "/obj/arr/0/key"
-        // 객체 키는 문자열로, 배열 요소는 숫자 문자열로 지정합니다.
         bool has_path(const std::string& path) const noexcept;
+
+        impl& get_impl() noexcept { return *pimpl_; }
+        const impl& get_impl() const noexcept { return *pimpl_; }
+
+    private:
+        std::unique_ptr<impl> pimpl_;
     };
 
+    // value 클래스가 완전히 정의되었으므로, array_t와 object_t를 안전하게 인스턴스화할 수 있습니다.
+    struct value::impl {
+        using variant_t = std::variant<
+            std::monostate,
+            bool,
+            double,
+            std::string,
+            array_t,
+            object_t
+        >;
+
+        variant_t data;
+
+        impl() noexcept : data(std::monostate{}) {}
+        impl(variant_t v) : data(std::move(v)) {}
+    };
+
+    using variant_t = value::impl::variant_t;
+
 } // namespace mino::core::json
-
-
-

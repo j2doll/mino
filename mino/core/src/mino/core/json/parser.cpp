@@ -1,5 +1,5 @@
 #include <cctype>
-#include <charconv>
+#include <cstdlib>
 
 #include "mino/core/json/parser.hpp"
 #include "mino/core/json/value.hpp"
@@ -54,14 +54,25 @@ namespace mino::core::json {
     }
 
     value parser::parse_number(std::string_view src, size_t& idx) noexcept {
-        const char* start = src.data() + idx;
-        const char* end = src.data() + src.size();
+        size_t end_idx = idx;
+        if (end_idx < src.size() && (src[end_idx] == '-' || src[end_idx] == '+')) {
+            ++end_idx;
+        }
+        while (end_idx < src.size()) {
+            char c = src[end_idx];
+            if (std::isdigit(static_cast<unsigned char>(c)) || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
+                ++end_idx;
+            } else {
+                break;
+            }
+        }
 
-        double val = 0.0;
-        auto [ptr, ec] = std::from_chars(start, end, val);
+        std::string num_str(src.substr(idx, end_idx - idx));
+        char* end_ptr = nullptr;
+        double val = std::strtod(num_str.c_str(), &end_ptr);
 
-        if (ec == std::errc{}) {
-            idx += (ptr - start);
+        if (end_ptr != num_str.c_str()) {
+            idx += (end_ptr - num_str.c_str());
             return value(val);
         }
 
@@ -92,7 +103,7 @@ namespace mino::core::json {
 
         if (idx < src.size() && src[idx] == ']') {
             ++idx;
-            return value(arr);
+            return value(std::move(arr));
         }
 
         while (idx < src.size()) {
@@ -106,7 +117,7 @@ namespace mino::core::json {
                 break;
             }
         }
-        return value(arr);
+        return value(std::move(arr));
     }
 
     value parser::parse_object(std::string_view src, size_t& idx) noexcept {
@@ -116,7 +127,7 @@ namespace mino::core::json {
 
         if (idx < src.size() && src[idx] == '}') {
             ++idx;
-            return value(obj);
+            return value(std::move(obj));
         }
 
         while (idx < src.size()) {
@@ -138,7 +149,7 @@ namespace mino::core::json {
                 break;
             }
         }
-        return value(obj);
+        return value(std::move(obj));
     }
 
 } // namespace mino::core::json
