@@ -274,6 +274,46 @@
          }
      }
     ```
+    - 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
+    ```json
+    {
+      "name": "windows-vs-base",
+      "hidden": true,
+      "inherits": "base-common",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "vs-debug",
+      "displayName": "Windows VS 2022 (Debug)",
+      "inherits": "windows-vs-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "vs-release",
+      "displayName": "Windows VS 2022 (Release)",
+      "inherits": "windows-vs-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    ``` 
 #### 🐧 Linux 환경 
 - 🦬 `gcc` (8.5 이상)
 - 🔨 `cmake` (3.24 이상)
@@ -335,15 +375,6 @@ sudo dnf install -y brotli-devel
 
 # libssh2
 sudo dnf install -y libssh2-devel
-    
-# Build library
-rm -rf build
-
-cmake -S . -B build -G "Ninja" \
- -DCMAKE_CXX_STANDARD=17 \
- -DCMAKE_BUILD_TYPE=Debug
-
-cmake --build build -j
 
 ``` 
 - 🌀 `Debian` 계열 (`Ubuntu`/`Debian`)
