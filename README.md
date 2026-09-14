@@ -261,8 +261,12 @@
 - 🔨 `cmake` (3.24 이상)
 - 🥷 `ninja` (1.12.1 이상)
 - 📦 `vcpkg` (2023.06 이상)
-    - `Visual Studio` : `vcpkg integrate install` 명령 실행
-    - `VS Code` : `settings.json` 
+    - 사전에 환경변수 `VCPKG_ROOT`를 `vcpkg`가 설치된 경로로 설정
+       - `VCPKG_ROOT`는 `PATH` 경로에 추가하여야 함 
+    - :one: `Visual Studio` 인 경우
+       - `vcpkg integrate install` 명령 실행
+       - 또는 `Tools`/`Options`/`vcpkg Pacakage Manager`에 `VCPKG_ROOT` 경로 설정
+    - :two: `VS Code`인 경우 : `.vscode`/`settings.json` 
     ```json
      {
          "cmake.configureSettings": {
@@ -270,22 +274,45 @@
          }
      }
     ```
-    - `CMakeSettings.json` 설정 (`MSVC` 전용 설정 파일)
-    ```json
-     {
-        // ...
-        "variables": [
-        {
-            "name": "CMAKE_TOOLCHAIN_FILE",
-            "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-            "type": "FILEPATH"
-        }
-     }
-    ```
 #### 🐧 Linux 환경 
 - 🦬 `gcc` (8.5 이상)
 - 🔨 `cmake` (3.24 이상)
 - 🥷 `ninja` (1.8.2 이상)
+- `Linux`에서는 `vcpkg`는 사용하지 않는 것을 가정하였음
+- `vscode` 사용 시 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
+```json
+{
+    "name": "linux-gcc-base",
+    "hidden": true,
+    "inherits": "base-common",
+    "generator": "Ninja",
+    "cacheVariables": {
+    "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
+    "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/g++"
+    },
+    "condition": {
+    "type": "equals",
+    "lhs": "${hostSystemName}",
+    "rhs": "Linux"
+    }
+},
+{
+    "name": "linux-gcc-debug",
+    "displayName": "Linux GCC (Debug)",
+    "inherits": "linux-gcc-base",
+    "cacheVariables": {
+    "CMAKE_BUILD_TYPE": "Debug"
+    }
+},
+{
+    "name": "linux-gcc-release",
+    "displayName": "Linux GCC (Release)",
+    "inherits": "linux-gcc-base",
+    "cacheVariables": {
+    "CMAKE_BUILD_TYPE": "Release"
+    }
+}
+```
 #### 🧩 외부 라이브러리 설치
 - 🎩 `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
