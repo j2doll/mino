@@ -55,24 +55,24 @@
 - 🏛️ [crypt](example/core/crypt/main.cpp)
     - 암복호화 (키 사용/미사용 방식)
 - 🏛️ [csv](example/core/csv/main.cpp)
-    - `.csv` 파일 입출력 및 파싱. 엑셀용 `csv` 파일 생성.
+    - `.csv` 파일 입출력 및 파싱. 엑셀용 `.csv` 파일 생성.
 - 🏛️ [daemon](example/core/daemon/main.cpp)
-    - 상주형 데몬 예제.
+    - 상주형 데몬 예제
 - 🏛️ `datetime` : 날짜·시간 처리 
     - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
-    - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, ISO 표기, 타임존 보정 등
+    - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, `ISO` 표기, 타임존 보정 등
 - 🏛️ [dispatch](example/core/dispatch/main.cpp)
     - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
-    - Base64 인코딩/디코딩.
+    - `Base64` 인코딩/디코딩
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
     - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
 - 🏛️ [exception](example/core/exception/main.cpp)
-    - `C++17` 예외 처리 보완 기능 : <sub> `c++20` `std::source_location`, `c++23` `std::stacktrace` </sub>
+    - `C++17` 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
 - 🏛️ [file](example/core/file/main.cpp)
-    - 실행 프로그램 경로/파일명 얻기. UTF-8 한글 경로.
+    - 실행 프로그램 경로/파일명 얻기. `UTF-8` 한글 경로.
     - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
 - 🏛️ [findfile](example/core/findfile/main.cpp)
     - 파일에서 찾기 (`Find in files`)
@@ -111,7 +111,7 @@
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 
     - 서비스 등록, 시작/중지, 상태 확인
-- 🏛️ [shared_memory](example/core/shared_memory/main.cpp) : 공유 메모리 IPC  
+- 🏛️ [shared_memory](example/core/shared_memory/main.cpp) : 공유 메모리 `IPC` 
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
 - 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
@@ -128,8 +128,8 @@
     - [tokenizer](example/core/string/test_tokenizer.cpp) : 다중 토큰 기반 문자열 분할
     - [to_string](example/core/string/test_to_string.cpp) : 실수 정밀도 적용 문자열 변환
     - [mutex_string](example/core/string/test_mutex_string.cpp) : 스레드 안전 문자열
-    - [u8string](example/core/string/test_u8string.cpp) : UTF-8 문자열 처리
-    - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp) : 한글 인코딩간 변환 <sub> (UTF-8/16/32, wstring, CP949/EUC-KR, ISO-2022-KR, JOHAB, MacKorean) </sub> , 콘솔 출력용 인코딩 변환
+    - [u8string](example/core/string/test_u8string.cpp) : `UTF-8` 문자열 처리
+    - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp) : 한글 인코딩간 변환 <sub> (`UTF-8/16/32`, `wstring`, `CP949`/`EUC-KR`, `ISO-2022-KR`, `JOHAB`, `MacKorean`) </sub> , 콘솔 출력용 인코딩 변환
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회.
 - 🏛️ [thread](example/core/thread/main.cpp)
@@ -147,7 +147,7 @@
 - 🏛️ [yaml](example/core/yaml/main.cpp)
     - `.yaml` 파싱·직렬화
 - 🏛️ [zip](example/core/zip/main.cpp)
-    - `.zip` 압축
+    - `deflate` `.zip` 압축
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
     - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> `nlohmann::json` </sub>
@@ -163,18 +163,19 @@
     - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> `pugixml` </sub>
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
 - 🔀 [download-file](example/network/download-file/main.cpp)
-    - `http`/`https` `URL` => 파일 다운로더 <sub> `libcurl` </sub>
-- 🔀 멀티파트 형식 <sub> (`multipart/mixed` 또는 `multipart/form-data`) </sub> 다운로드 클라이언트
-    - [curl](example/network/download-multi/curl/main.cpp) : 다운로더 <sub> `libcurl` </sub>
-    - [httplib](example/network/download-multi/httplib/main.cpp) : 다운로더 <sub> `httplib` </sub>
+    - `http`/`https` 파일 다운로더 <sub> `libcurl` </sub>
+- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
+    - [curl](example/network/download-multi/curl/main.cpp) <sub> `libcurl` </sub>
+    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> `httplib` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [curl](example/network/ftp/curl/main.cpp) : `ftp`/`sftp` 클라이언트 <sub> `libcurl` </sub>
-    - [tcp](example/network/ftp/tcp/main.cpp) : `ftp`/`sftp` 클라이언트 <sub> `tcp` </sub>
+    - [curl](example/network/ftp/curl/main.cpp) <sub> `libcurl` </sub> 
+    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `openssl` </sub>
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
-- 🔀 [manager](example/network/log/manager/main.cpp) : `logging` 환경 정보 `hard/soft/hot reloading` 기능 <sub> `udp` </sub>
+- 🔀 [manager](example/network/log/manager/main.cpp) 
+   - `logging` 환경 정보 `hard/soft/hot reloading` 기능 <sub> `udp` </sub>
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
-- 🔀 `memory_store` : 네트워크 기반 정보(메모리) 저장소 
+- 🔀 `memory_store` : 네트워크 기반 메모리 저장소
     - ```
            +------------+   tcp    +------------+
            |  server    |----------|   client   |
@@ -182,8 +183,8 @@
                     <-- set key:value --
                     -- get key:value -->
       ```
-        - [server](example/network/memory_store/server/main.cpp) : 서버 <sub> `tcp` </sub>
-        - [client](example/network/memory_store/client/main.cpp) : 클라이언트 <sub> `tcp` </sub>
+        - [server](example/network/memory_store/server/main.cpp) <sub> `tcp` </sub>
+        - [client](example/network/memory_store/client/main.cpp) <sub> `tcp` </sub>
 - 🔀 `message_broker` : 분산 메시지 브로커
     - ```
                           +------------+
@@ -197,9 +198,9 @@
        |      pub      |                  |      sub      |
        +---------------+                  +---------------+
       ```
-        - [broker](example/network/message_broker/broker) : 브로커 <sub> `tcp` </sub>
-        - [pub](example/network/message_broker/pub/main.cpp) : 발행자(`Publisher`) <sub> `tcp` </sub>
-        - [sub](example/network/message_broker/sub/main.cpp) : 구독자(`Subscriber`) <sub> `tcp` </sub>
+        - [broker](example/network/message_broker/broker) <sub> `tcp` </sub>
+        - [발행자(`Publisher`)](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
+        - [구독자(`Subscriber`)](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
     - `python` 파이썬 `pub/sub` 
         - [pub](example/network/message_broker/python/pub/message_publisher.py)
         - [sub](example/network/message_broker/python/sub/message_subscriber.py)
@@ -210,8 +211,8 @@
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
 - 🔀 `REST API` 클라이언트
-    - [curl](example/network/rest/curl/main.cpp) : `REST` 클라이언트 <sub> `libcurl` </sub>
-    - [httplib](example/network/rest/httplib/main.cpp) : `REST` 클라이언트 <sub> `httplib` </sub>
+    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> `libcurl` </sub>
+    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> `httplib` </sub>
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
@@ -248,9 +249,9 @@
     - [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 [util](example/network/util/main.cpp)
-    - 네트워크 인터페이스 목록 얻기. IP 주소 검증
+    - 네트워크 인터페이스 목록 얻기, `IP` 주소 검증
 - 🔀 [ws](example/network/ws/main.cpp)
-    - `curl` 기반 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> `libcurl` </sub>
+    - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> `libcurl` </sub>
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿 <sub> `core` `network` `external` </sub>
 - 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 템플릿
@@ -259,10 +260,10 @@
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
-- 🛠️ `Visual Studio` (2022 이상)
-- 🔨 `cmake` (3.24 이상)
-- 🥷 `ninja` (1.12.1 이상)
-- 📦 `vcpkg` (2023.06 이상)
+- 🛠️ `Visual Studio` <sub> (2022 이상) </sub>
+- 🔨 `cmake` <sub> (3.24 이상) </sub>
+- 🥷 `ninja` <sub> (1.12.1 이상) </sub>
+- 📦 `vcpkg` <sub> (2023.06 이상) </sub>
     - 사전에 환경변수 `VCPKG_ROOT`를 `vcpkg`가 설치된 경로로 설정
        - `VCPKG_ROOT`는 `PATH` 경로에 추가하여야 함 
     - :one: `Visual Studio` 인 경우
@@ -317,9 +318,9 @@
     },
     ``` 
 #### 🐧 Linux 환경 
-- 🦬 `gcc` (8.5 이상)
-- 🔨 `cmake` (3.24 이상)
-- 🥷 `ninja` (1.8.2 이상)
+- 🦬 `gcc` <sub> (8.5 이상) </sub>
+- 🔨 `cmake` <sub> (3.24 이상) </sub>
+- 🥷 `ninja` <sub> (1.8.2 이상) </sub>
 - `Linux`에서는 `vcpkg`는 사용하지 않는 것을 가정하였음
 - `vscode` 사용 시 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
 ```json
@@ -403,7 +404,7 @@ sudo apt install -y libbrotli-dev
 ```
 ##### 📦 라이브러리 설치 
 - 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
-- 라이브러리 경로 설정 (`C:\opt\mino` 등)
+- 라이브러리 경로 설정 (`C:\opt\mino`, `~/mino` 등)
 ###### :one: 🛠️ `Visual Studio` + 📦 `vcpkg` 환경
 ```bat
 ::::::::::::::::::::::::::::::::::::::::::::::::::
