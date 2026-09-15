@@ -67,7 +67,8 @@ namespace mino::network::ssh {
 #else
             ssize_t n = ::send(sock_fd_, buf + sent, len - sent, MSG_NOSIGNAL);
 #endif
-            if (n <= 0) throw std::runtime_error("소켓 데이터 송신 실패");
+            if (n <= 0)
+                throw std::runtime_error("Socket data transmission failed");
             sent += n;
         }
     }
@@ -80,7 +81,8 @@ namespace mino::network::ssh {
 #else
             ssize_t n = ::recv(sock_fd_, buf + recvd, len - recvd, 0);
 #endif
-            if (n <= 0) throw std::runtime_error("원격 호스트가 소켓을 닫았습니다");
+            if (n <= 0)
+                throw std::runtime_error("The remote host closed the socket");
             recvd += n;
         }
     }
@@ -134,7 +136,8 @@ namespace mino::network::ssh {
         std::string p_str = std::to_string(port_);
 
         if (getaddrinfo(host_.c_str(), p_str.c_str(), &hints, &res) != 0) {
-            if (logger_) logger_->error("[ssh_client] getaddrinfo 실패: {}:{}", host_, port_);
+            if (logger_)
+                logger_->error("[ssh_client] getaddrinfo failed: {}:{}", host_, port_);
             return false;
         }
 
@@ -162,7 +165,8 @@ namespace mino::network::ssh {
 
     void ssh_client::do_handshake() {
         set_state(session_state::handshaking);
-        if (logger_) logger_->info("[ssh_client] 프로토콜 식별자 배너 교환 중...");
+        if (logger_)
+            logger_->info("[ssh_client] Protocol identifier banner exchange...");
         send_raw(reinterpret_cast<const uint8_t*>(client_banner_.data()), client_banner_.size());
 
         std::string line;
@@ -181,7 +185,8 @@ namespace mino::network::ssh {
                 line.clear();
             }
         }
-        if (logger_) logger_->info("[ssh_client] 서버 배너 수신: <bright_cyan>{}</bright_cyan>", server_banner_);
+        if (logger_)
+            logger_->info("[ssh_client] Receive server banner: <bright_cyan>{}</bright_cyan>", server_banner_);
 
         // 1. KEXINIT 송신
         ssh_buffer kex;
@@ -219,7 +224,8 @@ namespace mino::network::ssh {
         send_packet(ecdh_init);
 
         auto reply = recv_packet();
-        if (reply.read_byte() != 31) throw std::runtime_error("비정상적인 ECDH 응답");
+        if (reply.read_byte() != 31)
+            throw std::runtime_error("Abnormal ECDH response");
 
         auto k_s = reply.read_bytes();
         auto pub_s = reply.read_bytes();
@@ -228,11 +234,12 @@ namespace mino::network::ssh {
         auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
         std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
         std::string fingerprint = "SHA256:" + mino::core::encoding::base64_encode(hkh_vec);
-        if (logger_) logger_->info("[ssh_client] 호스트 지문 검증: <bright_yellow>{}</bright_yellow>", fingerprint);
+        if (logger_)
+            logger_->info("[ssh_client] Host fingerprint verification: <bright_yellow>{}</bright_yellow>", fingerprint);
 
         if (host_key_verifier_cb_) {
             if (!host_key_verifier_cb_(host_, fingerprint)) {
-                throw std::runtime_error("호스트 키 핑거프린트 검증이 거부되었습니다.");
+                throw std::runtime_error("Host key fingerprint verification was rejected.");
             }
         }
 
@@ -261,7 +268,8 @@ namespace mino::network::ssh {
         send_packet(newkeys);
 
         auto resp_nk = recv_packet();
-        if (resp_nk.read_byte() != 21) throw std::runtime_error("NEWKEYS 패킷 수신 실패");
+        if (resp_nk.read_byte() != 21)
+            throw std::runtime_error("Failed to receive the NEWKEYS packet");
 
         auto iv_c2s = derive_key(K, H, 'A', 16);
         auto iv_s2c = derive_key(K, H, 'B', 16);
@@ -276,7 +284,8 @@ namespace mino::network::ssh {
         std::memcpy(mac_key_in_.data(), mac_s2c.data(), 32);
 
         keys_activated_ = true;
-        if (logger_) logger_->info("[ssh_client] 암호화 터널 활성화 완료 <bright_green>(AES-128-CTR / HMAC-SHA256)</bright_green>");
+        if (logger_)
+            logger_->info("[ssh_client] Encryption tunnel activation completed <bright_green>(AES-128-CTR / HMAC-SHA256)</bright_green>");
 
         // 6. Userauth
         ssh_buffer srv;
@@ -285,7 +294,8 @@ namespace mino::network::ssh {
         send_packet(srv);
 
         auto srv_resp = recv_packet();
-        if (srv_resp.read_byte() != 6) throw std::runtime_error("인증 서비스 거절");
+        if (srv_resp.read_byte() != 6)
+            throw std::runtime_error("Authentication service rejection");
 
         ssh_buffer auth;
         auth.write_byte(50);
@@ -297,7 +307,8 @@ namespace mino::network::ssh {
         send_packet(auth);
 
         auto auth_resp = recv_packet();
-        if (auth_resp.read_byte() != 52) throw std::runtime_error("사용자 패스워드 인증 실패");
+        if (auth_resp.read_byte() != 52)
+            throw std::runtime_error("User password authentication failed");
 
         // 7. Session Channel Open
         ssh_buffer ch_open;
@@ -309,12 +320,14 @@ namespace mino::network::ssh {
         send_packet(ch_open);
 
         auto open_resp = recv_packet();
-        if (open_resp.read_byte() != 91) throw std::runtime_error("세션 채널 열기 실패");
+        if (open_resp.read_byte() != 91)
+            throw std::runtime_error("Session channel open failure");
         open_resp.read_uint32();
         remote_channel_id_ = open_resp.read_uint32();
 
         set_state(session_state::authenticated);
-        if (logger_) logger_->info("[ssh_client] SSH 터널 및 세션 채널 개방 성공. 사용자: <bright_green>{}</bright_green>", username_);
+        if (logger_)
+            logger_->info("[ssh_client] SSH tunnel and session channel opening succeeded. User: <bright_green>{}</bright_green>", username_);
     }
 
     void ssh_client::send_packet(const ssh_buffer& payload_buf) {
@@ -370,7 +383,8 @@ namespace mino::network::ssh {
         if (keys_activated_) enc_in_.process(head, head, 4);
 
         uint32_t packet_len = (head[0] << 24) | (head[1] << 16) | (head[2] << 8) | head[3];
-        if (packet_len > 35000) throw std::runtime_error("허용 패킷 크기 초과");
+        if (packet_len > 35000)
+            throw std::runtime_error("Permission packet size exceeded");
 
         std::vector<uint8_t> body(packet_len);
         recv_raw(body.data(), packet_len);
@@ -386,14 +400,14 @@ namespace mino::network::ssh {
             mac_buf.write_raw(body.data(), body.size());
             auto mac_local = mino::core::crypt::hmac_sha256(mac_key_in_.data(), 32, mac_buf.data().data(), mac_buf.size());
             if (std::memcmp(mac_remote, mac_local.data(), 32) != 0) {
-                throw std::runtime_error("HMAC 무결성 검증 실패");
+                throw std::runtime_error("HMAC Integrity Verification Failure");
             }
         }
         seq_in_++;
 
         uint8_t pad_len = body[0];
         if (pad_len + 1 > packet_len) {
-            throw std::runtime_error("패킷의 패딩 길이가 올바르지 않습니다.");
+            throw std::runtime_error("The padding length of the packet is not correct.");
         }
         size_t payload_len = packet_len - 1 - pad_len;
         return ssh_buffer(std::vector<uint8_t>(body.begin() + 1, body.begin() + 1 + payload_len));
@@ -440,7 +454,8 @@ namespace mino::network::ssh {
                 case 1: { // SSH_MSG_DISCONNECT
                     uint32_t reason = p.read_uint32();
                     std::string desc = p.read_string();
-                    if (logger_) logger_->warn("[ssh_client] 서버로부터 세션 종료 통보 수신: <bright_yellow>{}</bright_yellow>", desc);
+                    if (logger_)
+                        logger_->warn("[ssh_client] Receive a session termination notification from the server: <bright_yellow>{}</bright_yellow>", desc);
                     reset_session_state();
                     if (on_disconnect_cb_) on_disconnect_cb_(reason, desc);
                     break;
@@ -451,7 +466,7 @@ namespace mino::network::ssh {
             }
             catch (const std::exception& e) {
                 if (!stop_flag_) {
-                    if (logger_) logger_->warn("[ssh_client] 수신 에러 발생: <bright_yellow>{}</bright_yellow>", e.what());
+                    if (logger_) logger_->warn("[ssh_client] Receive error occurs: <bright_yellow>{}</bright_yellow>", e.what());
                     reset_session_state();
                     if (on_disconnect_cb_) on_disconnect_cb_(0, e.what());
                 }
@@ -469,8 +484,10 @@ namespace mino::network::ssh {
                     return stop_flag_ || !rx_queue_.empty();
                     });
 
-                if (stop_flag_ && rx_queue_.empty()) break;
-                if (rx_queue_.empty()) continue;
+                if (stop_flag_ && rx_queue_.empty())
+                    break;
+                if (rx_queue_.empty())
+                    continue;
 
                 ev = std::move(rx_queue_.front());
                 rx_queue_.pop();
@@ -485,10 +502,10 @@ namespace mino::network::ssh {
                 }
             }
             catch (const std::exception& ex) {
-                if (logger_) logger_->error("[ssh_client] 수신 디스패치 콜백 예외: {}", ex.what());
+                if (logger_) logger_->error("[ssh_client] Receive dispatch callback exception: {}", ex.what());
             }
             catch (...) {
-                if (logger_) logger_->error("[ssh_client] 수신 디스패치 콜백 알 수 없는 예외 발생");
+                if (logger_) logger_->error("[ssh_client] Receive dispatch callback unknown exception occurred");
             }
         }
     }
@@ -497,7 +514,8 @@ namespace mino::network::ssh {
         int attempts = 0;
         while (!stop_flag_) {
             reset_session_state();
-            if (logger_) logger_->info("[ssh_client] 서버 접속 시도: {}:{}", host_, port_);
+            if (logger_)
+                logger_->info("[ssh_client] Attempting to connect to server: {}:{}", host_, port_);
 
             if (establish_tcp()) {
                 try {
@@ -508,19 +526,22 @@ namespace mino::network::ssh {
                     receive_loop();
                 }
                 catch (const std::exception& e) {
-                    if (logger_) logger_->error("[ssh_client] 핸드셰이크 실패: <bright_red>{}</bright_red>", e.what());
+                    if (logger_)
+                        logger_->error("[ssh_client] Handshake failed: <bright_red>{}</bright_red>", e.what());
                     reset_session_state();
                 }
             }
             else {
-                if (logger_) logger_->warn("[ssh_client] TCP 소켓 연결 실패: {}:{}", host_, port_);
+                if (logger_)
+                    logger_->warn("[ssh_client] TCP socket connection failed: {}:{}", host_, port_);
             }
 
             if (stop_flag_ || !policy_.enabled) break;
 
             attempts++;
             if (policy_.max_retries >= 0 && attempts > policy_.max_retries) {
-                if (logger_) logger_->critical("[ssh_client] 최대 재시도 횟수 초과로 재연결을 중단합니다. (최대: {})", policy_.max_retries);
+                if (logger_)
+                    logger_->critical("[ssh_client] Maximum retry attempts exceeded. Stopping reconnection. (Max: {})", policy_.max_retries);
                 break;
             }
 
@@ -528,7 +549,8 @@ namespace mino::network::ssh {
             auto delay_ms = std::chrono::duration_cast<std::chrono::milliseconds>(policy_.initial_delay * factor);
             if (delay_ms > policy_.max_delay) delay_ms = policy_.max_delay;
 
-            if (logger_) logger_->warn("[ssh_client] {}ms 후 재연결을 시도합니다. ({}번째 시도)", delay_ms.count(), attempts);
+            if (logger_)
+                logger_->warn("[ssh_client] Attempting to reconnect in {}ms. (Attempt #{})", delay_ms.count(), attempts);
 
             auto start_wait = std::chrono::steady_clock::now();
             while (!stop_flag_ && (std::chrono::steady_clock::now() - start_wait < delay_ms)) {

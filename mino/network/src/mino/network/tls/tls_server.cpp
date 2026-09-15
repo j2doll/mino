@@ -10,7 +10,8 @@ namespace mino::network::tls {
     namespace {
         std::string get_openssl_error_string() {
             BIO* bio = BIO_new(BIO_s_mem());
-            if (!bio) return "Failed to allocate memory BIO for OpenSSL error";
+            if (!bio)
+                return "Failed to allocate memory BIO for OpenSSL error";
             ERR_print_errors(bio);
             char* buf = nullptr;
             long len = BIO_get_mem_data(bio, &buf);
@@ -137,7 +138,8 @@ namespace mino::network::tls {
         if (ssl_ctx) return true;
 
         if (cert_file.empty() || key_file.empty()) {
-            if (logger) logger->error("[tls_server] Certificate or key path is not set.");
+            if (logger)
+                logger->error("[tls_server] Certificate or key path is not set.");
             return false;
         }
 
@@ -150,7 +152,8 @@ namespace mino::network::tls {
         if (SSL_CTX_use_certificate_file(ssl_ctx, cert_file.c_str(), SSL_FILETYPE_PEM) <= 0 ||
             SSL_CTX_use_PrivateKey_file(ssl_ctx, key_file.c_str(), SSL_FILETYPE_PEM) <= 0 ||
             !SSL_CTX_check_private_key(ssl_ctx)) {
-            if (logger) logger->error("[tls_server] Key/Certificate error: <bright_red>{}</bright_red>", get_openssl_error_string());
+            if (logger)
+                logger->error("[tls_server] Key/Certificate error: <bright_red>{}</bright_red>", get_openssl_error_string());
             cleanup_ssl_context();
             return false;
         }
@@ -242,10 +245,12 @@ namespace mino::network::tls {
             if (it != client_sessions.end()) session = it->second;
         }
 
-        if (!session) return -1;
+        if (!session)
+            return -1;
 
         std::lock_guard<std::mutex> lock(session->ssl_mutex);
-        if (!session->ssl) return -1;
+        if (!session->ssl)
+            return -1;
 
         int total_written = 0;
         int to_write = static_cast<int>(message.size());
@@ -257,7 +262,8 @@ namespace mino::network::tls {
             else {
                 int err = SSL_get_error(session->ssl, ret);
                 if (err == SSL_ERROR_WANT_WRITE) {
-                    if (!wait_socket_writable(client_socket, 50)) break;
+                    if (!wait_socket_writable(client_socket, 50))
+                        break;
                     continue;
                 }
                 break;
@@ -316,7 +322,8 @@ namespace mino::network::tls {
     }
 
     void tls_server::quit() {
-        if (!is_running) return;
+        if (!is_running)
+            return;
         is_running = false;
 
 #ifdef _WIN32
@@ -403,9 +410,11 @@ namespace mino::network::tls {
             socket_t client_fd = accept(server_socket, reinterpret_cast<sockaddr*>(&client_addr), &len);
 
 #ifdef _WIN32
-            if (client_fd == INVALID_SOCKET) continue;
+            if (client_fd == INVALID_SOCKET)
+                continue;
 #else
-            if (client_fd < 0) continue;
+            if (client_fd < 0)
+                continue;
 #endif
 
             std::thread(&tls_server::client_handler, this, client_fd).detach();
@@ -426,7 +435,8 @@ namespace mino::network::tls {
         SSL_set_fd(ssl, static_cast<int>(client_socket));
 
         if (SSL_accept(ssl) <= 0) {
-            if (logger && is_running) logger->warn("[tls_server] Client TLS handshake <bright_red>failed</bright_red>");
+            if (logger && is_running)
+                logger->warn("[tls_server] Client TLS handshake <bright_red>failed</bright_red>");
             SSL_free(ssl);
 #ifdef _WIN32
             closesocket(client_socket);
@@ -453,7 +463,8 @@ namespace mino::network::tls {
                 client_socket, SSL_get_cipher(ssl));
         }
 
-        if (on_connect) on_connect(client_socket, "Client handshake complete");
+        if (on_connect)
+            on_connect(client_socket, "Client handshake complete");
 
         char buffer[BUFFER_SIZE];
         while (is_running) {
@@ -473,7 +484,8 @@ namespace mino::network::tls {
             int ssl_err = SSL_ERROR_NONE;
             {
                 std::lock_guard<std::mutex> lock(session->ssl_mutex);
-                if (!session->ssl || !is_running) break;
+                if (!session->ssl || !is_running)
+                    break;
 
                 bytes = SSL_read(session->ssl, buffer, sizeof(buffer) - 1);
                 if (bytes <= 0) {
@@ -482,7 +494,8 @@ namespace mino::network::tls {
             }
 
             if (bytes > 0) {
-                if (on_receive) on_receive(client_socket, std::string(buffer, bytes));
+                if (on_receive)
+                    on_receive(client_socket, std::string(buffer, bytes));
             }
             else {
                 if (ssl_err == SSL_ERROR_WANT_READ || ssl_err == SSL_ERROR_WANT_WRITE) {
