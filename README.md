@@ -150,26 +150,26 @@
     - `deflate` `.zip` 압축
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
-    - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> `nlohmann::json` </sub>
-    - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : `nlohmann::json` => `C++` 구조체 변환
+    - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub>
+    - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
 - 📦 `log` : 로깅 어댑터/팩토리
-    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> `spdlog` </sub>
-    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 <sub> `spdlog` </sub>
-    - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> `spdlog` </sub>
+    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub>
+    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub>
+    - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> ⚡ `spdlog` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
-    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> `nlohmann::json` </sub>
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub>
 - 📦 `xml` : `.xml` => `C++` 구조체 변환
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
-    - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> `pugixml` </sub>
+    - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> 🐶 `pugixml` </sub>
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
 - 🔀 [download-file](example/network/download-file/main.cpp)
-    - `http`/`https` 파일 다운로더 <sub> `libcurl` </sub>
+    - `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub>
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [curl](example/network/download-multi/curl/main.cpp) <sub> `libcurl` </sub>
-    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> `httplib` </sub> 
+    - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub>
+    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [curl](example/network/ftp/curl/main.cpp) <sub> `libcurl` </sub> 
-    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `openssl` </sub>
+    - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> 
+    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp`, 🔒 `openssl` </sub>
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
 - 🔀 [manager](example/network/log/manager/main.cpp) 
@@ -211,8 +211,8 @@
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
 - 🔀 `REST API` 클라이언트
-    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> `libcurl` </sub>
-    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> `httplib` </sub>
+    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub>
+    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub>
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
@@ -234,11 +234,11 @@
 - 🔀 [sftp](example/network/sftp/putty/main.cpp)
     - `psftp` 연동 클라이언트
 - 🔀 [socket-io](example/network/socket-io/main.cpp)
-    - `socket.io` 클라이언트 <sub> `libcurl` </sub>
+    - `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub>
 - 🔀 [ssh](example/network/ssh/main.cpp)
     - 종속성 없는 `ssh` 클라이언트 
 - 🔀 [ssh2](example/network/ssh2/main.cpp)
-    - `ssh` 클라이언트 <sub> `libssh2` </sub>
+    - `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub>
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
@@ -251,12 +251,12 @@
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기, `IP` 주소 검증
 - 🔀 [ws](example/network/ws/main.cpp)
-    - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> `libcurl` </sub>
+    - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub>
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿 <sub> `core` `network` `external` </sub>
-- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : 코어 템플릿
-- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : 외부 템플릿
-- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : 네트워크 템플릿
+- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : `core` 템플릿
+- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : `external` 템플릿
+- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : `network` 템플릿
 
 ### 🏗️ 빌드 도구
 #### ⊞ Windows 환경 🧩
@@ -492,14 +492,15 @@ $ eza --tree mino
    - 상세 내용 [LICENSE](LICENSE) 참고
 - 📜 외부 라이브러리 
     - 📦 `external` 모듈
-        - [nlohmann/json](https://github.com/nlohmann/json) : `MIT License`
-        - [spdlog](https://github.com/gabime/spdlog) : `MIT License`
+        - 📄 [nlohmann/json](https://github.com/nlohmann/json) : `MIT License`
+        - ⚡ [spdlog](https://github.com/gabime/spdlog) : `MIT License`
+        - 🐶 [pugixml](https://github.com/zeux/pugixml) : `MIT License`
         - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
-        - [pugixml](https://github.com/zeux/pugixml) : `MIT License`
     - 🔀 `network` 모듈
-        - [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
-        - [openssl](https://www.openssl.org/) : `Apache License 2.0`
-        - [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
+        - 📡 [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
+        - 🌐 [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
+        - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License`
+        - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`
         - [brotli](https://github.com/google/brotli) : `MIT License`
-        - [libssh2](https://www.libssh2.org/) : `BSD-3 License`
+
 
