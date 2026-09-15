@@ -9,7 +9,6 @@
 
 // main() 구동 전에 다음을 실행한다.
 //  python mqtt_broker.py
-//  python subscriber.py 
 int main(int argc, char* argv[]) {
     namespace mn = mino::network;
     namespace mclt = mino::core::log::tinylog;
@@ -26,14 +25,14 @@ int main(int argc, char* argv[]) {
     console_cfg.eol = mclt::eol_type::lf;
 #endif
     auto console = std::make_shared<mclt::console_sink>("console", console_cfg);
-    auto app_logger = std::make_shared<mclt::logger>("app");
+    auto app_logger = std::make_shared<mclt::logger>("pub_app");
     app_logger->add_sink(console);
     app_logger->set_level(mclt::log_level::debug);
 
     mnm::mqtt_client client;
     client.set_logger(app_logger)
         .set_broker("127.0.0.1", 1883)
-        .set_client_id("logged_client")
+        .set_client_id("pub_client_1")
         .set_keep_alive(10) // Keep Alive 메시지 송신 주기
         .set_reconnect_backoff(std::chrono::seconds(5), std::chrono::seconds(60), 2.0) // 재연결 지수 백오프: 5초부터 시작하여 2배씩 증가, 최대 60초 상한 (5 -> 10 -> 20 -> 40 -> 60 -> 60 -> ...)
         .set_max_reconnect_duration(mnm::mqtt_client::infinite_reconnect); // 최대 재연결 시도 시간: 무한대 재시도 (또는 std::chrono::seconds(60) 처럼 지정 가능)
@@ -54,14 +53,22 @@ int main(int argc, char* argv[]) {
 
     // 5회 반복 발행 테스트 (subscriber.py에서 실시간 수신 확인)
     for (int i = 1; i <= 5; ++i) {
-        std::string msg = "Message from main.cpp [seq: " + std::to_string(i) + "]";
+        std::string msg = "msg from [pub] main.cpp [seq: " + std::to_string(i) + "]";
 
-        bool ok = client.publish("test/topic", msg);
+        std::string_view topic_name = "test/topic";
+        bool ok = client.publish(topic_name, msg);
         if (ok) {
-            std::cout << "Successfully published: " << msg << std::endl;
+            app_logger->log(
+                mclt::log_level::info,
+                "[MQTT PUB] <green>Published</green> message to topic: <yellow>{}</yellow>"
+                ", payload: <bright_yellow>{}</bright_yellow>",
+                topic_name, msg);
         }
         else {
-            std::cerr << "Publish failed!" << std::endl;
+            app_logger->log(mclt::log_level::err,
+                "[MQTT PUB] <red>Failed</red> to publish message to topic: <yellow>{}</yellow>"
+                ", payload: <bright_yellow>{}</bright_yellow>",
+                topic_name, msg);
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(2)); // 잠시 대기 필요

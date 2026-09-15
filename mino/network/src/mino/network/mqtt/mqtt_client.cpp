@@ -193,20 +193,24 @@ namespace mino::network::mqtt {
 
     bool mqtt_client::publish(std::string_view topic, std::string_view payload) noexcept {
         if (!validate_publish_topic(topic)) {
-            if (logger_) logger_->warn("[mqtt_client] publish rejected invalid topic: {}", topic);
+            if (logger_)
+                logger_->warn("[mqtt_client] publish rejected invalid topic: {}", topic);
             return false;
         }
-        if (!is_connected()) return false;
+        if (!is_connected())
+            return false;
 
         std::vector<uint8_t> packet;
-        if (!build_publish_packet(topic, payload, packet)) return false;
+        if (!build_publish_packet(topic, payload, packet))
+            return false;
 
         return send_raw(packet.data(), packet.size());
     }
 
     bool mqtt_client::subscribe(std::string_view topic) noexcept {
         if (!validate_subscribe_topic(topic)) {
-            if (logger_) logger_->warn("[mqtt_client] subscribe rejected invalid topic: {}", topic);
+            if (logger_)
+                logger_->warn("[mqtt_client] subscribe rejected invalid topic: {}", topic);
             return false;
         }
 
@@ -218,11 +222,13 @@ namespace mino::network::mqtt {
             return false;
         }
 
-        if (!is_connected()) return false;
+        if (!is_connected())
+            return false;
 
         uint16_t pid = ++packet_id_counter_;
         std::vector<uint8_t> packet;
-        if (!build_subscribe_packet(topic, pid, packet)) return false;
+        if (!build_subscribe_packet(topic, pid, packet))
+            return false;
 
         return send_raw(packet.data(), packet.size());
     }
@@ -252,7 +258,7 @@ namespace mino::network::mqtt {
                 if (keep_alive_seconds_ > 0 && elapsed_sec >= static_cast<long long>(keep_alive_seconds_ * 0.75)) {
                     uint8_t ping_packet[] = { 0xC0, 0x00 };
                     if (send_raw(ping_packet, sizeof(ping_packet))) {
-                        if (logger_) logger_->debug("[mqtt_client] Sent PINGREQ");
+                        if (logger_) logger_->debug("[mqtt_client] Sent <gray>PINGREQ</gray>");
                     }
                 }
 
@@ -385,13 +391,16 @@ namespace mino::network::mqtt {
                     len_complete = true;
                     break;
                 }
-                if (len_byte_index > 4) break;
+                if (len_byte_index > 4)
+                    break;
             }
 
-            if (!len_complete) return;
+            if (!len_complete)
+                return;
 
             size_t total_packet_size = len_byte_index + remaining_length;
-            if (rx_buffer_.size() < total_packet_size) return;
+            if (rx_buffer_.size() < total_packet_size)
+                return;
 
             // CONNACK (0x20)
             if (packet_type == 0x20 && remaining_length >= 2) {
@@ -399,7 +408,8 @@ namespace mino::network::mqtt {
                 if (return_code == 0x00) {
                     is_mqtt_connected_ = true;
                     update_last_sent();
-                    if (logger_) logger_->info("[mqtt_client] Handshake completed (CONNACK accepted).");
+                    if (logger_)
+                        logger_->info("[mqtt_client] Handshake completed (CONNACK accepted).");
                     resubscribe_all();
                 }
                 else {
@@ -419,26 +429,38 @@ namespace mino::network::mqtt {
             }
             // PINGRESP (0xD0)
             else if (packet_type == 0xD0) {
-                if (logger_) logger_->debug("[mqtt_client] Received PINGRESP");
+                if (logger_)
+                    logger_->debug("[mqtt_client] Received <gray>PINGRESP</gray>");
             }
             // SUBACK (0x90)
             else if (packet_type == 0x90) {
-                if (logger_) logger_->debug("[mqtt_client] Received SUBACK");
+                if (logger_)
+                    logger_->debug("[mqtt_client] Received <gray>SUBACK</gray>");
             }
             // PUBLISH (0x30)
             else if (packet_type == 0x30) {
-                parse_publish_packet(rx_buffer_.data() + len_byte_index, remaining_length);
+                bool ret = parse_publish_packet(rx_buffer_.data() + len_byte_index, remaining_length);
+                if (ret) {
+                    if (logger_)
+                        logger_->debug("[mqtt_client] Received <gray>PUBLISH</gray> packet and processed <green>successfully</green>.");
+                }
+                else {
+                    if (logger_)
+                        logger_->warn("[mqtt_client] <red>Failed</red> to process <gray>PUBLISH</gray> packet.");
+                }
             }
 
             rx_buffer_.erase(rx_buffer_.begin(), rx_buffer_.begin() + total_packet_size);
         }
     }
 
-    void mqtt_client::parse_publish_packet(const uint8_t* payload_ptr, size_t length) noexcept {
-        if (length < 2) return;
+    bool mqtt_client::parse_publish_packet(const uint8_t* payload_ptr, size_t length) noexcept {
+        if (length < 2)
+            return false;
 
         size_t topic_len = (static_cast<size_t>(payload_ptr[0]) << 8) | payload_ptr[1];
-        if (length < 2 + topic_len) return;
+        if (length < 2 + topic_len)
+            return false;
 
         std::string_view topic(reinterpret_cast<const char*>(payload_ptr + 2), topic_len);
         size_t payload_offset = 2 + topic_len;
@@ -448,9 +470,14 @@ namespace mino::network::mqtt {
         if (on_message_cb_) {
             try {
                 on_message_cb_(topic, payload);
+                return true;
             }
-            catch (...) {}
+            catch (...) {
+                return false;
+            }
         }
+
+        return false;
     }
 
     void mqtt_client::resubscribe_all() noexcept {

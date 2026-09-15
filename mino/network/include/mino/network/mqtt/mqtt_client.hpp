@@ -130,7 +130,7 @@ namespace mino::network::mqtt {
         void setup_tcp_callbacks() noexcept;
         void handle_tcp_receive(const std::string& data) noexcept;
         void parse_incoming_packets() noexcept;
-        void parse_publish_packet(const uint8_t* payload_ptr, size_t length) noexcept;
+        bool parse_publish_packet(const uint8_t* payload_ptr, size_t length) noexcept;
         void resubscribe_all() noexcept;
         void supervisor_loop() noexcept;
         bool interruptible_sleep(std::chrono::milliseconds duration) noexcept;
