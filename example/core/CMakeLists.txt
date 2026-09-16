@@ -4,6 +4,7 @@ project(mino_core_example_project)
 
 add_subdirectory(bit)
 add_subdirectory(broker)
+add_subdirectory(cli)
 add_subdirectory(config)
 add_subdirectory(container)
 add_subdirectory(convert)

@@ -7,17 +7,16 @@
 ## 개요
 
 ### 프로젝트 개요
-- **`mino`** 는 **`C++` 기반의 범용 라이브러리** 입니다.
-   - <sub> `C++17` 이상을 사용합니다. </sub>
+- **`mino`** 는 **`C++` 기반의 범용 라이브러리** 입니다. <sub> `C++17` 이상 </sub>
 - 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공이 목표로 합니다.
 
 <br />
 
 ### 아키텍처 요약
 - 🏛️ [**core**](mino/core/include/mino/core)
-   - 코어 기능. 외부 종속성이 없는 모듈
+   - 독립적인 코어 기능 모듈
 - 📦 [**external**](mino/external/include/mino/external)
-   - 외부 라이브러리 종속성이 있는 모듈
+   - 외부 라이브러리를 사용하는 모듈
 - 🔀 [**network**](mino/network/include/mino/network)
    - 네트워크 기능 모듈
 
