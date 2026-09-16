@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     arg_parser parser("Mino Server Option Runner (Non-template Getter)");
 
     // 1. 문자열 (기본 UTF-8 및 대소문자 무시)
-    parser.add_option("-e", "--env", U8("실행 환경 (dev/stage/prod)"), true, "production")
+    parser.add_option("-e", "--env", U8("실행 환경 (--env=dev/stage/prod)"), true, "prod")
         .case_sensitive(false); // 대소문자 구분 없이 처리
     // --env=DEV, --env=dev, --env=Dev 모두 동일하게 "dev"로 처리됨
 
@@ -46,11 +46,14 @@ int main(int argc, char* argv[]) {
         .precision(2) // 소수점 2자리까지 반올림
         .allow_inf(false) // 무한대 허용하지 않음
         .allow_nan(false); // NaN(Not a Number) 허용하지 않음
+    // --scale=1.4142 입력 시, 내부적으로 1.41로 반올림되어 저장됨
 
     // 6. 배정밀도 실수형 (double)
     parser.add_option("-w", "--weight", U8("가중치 (double, inf/nan 허용)"), true, "inf")
-        .allow_inf(true) // 무한대 허용
+        .allow_inf(true) // 무한대(infinity) 허용
         .allow_nan(true); // NaN(Not a Number) 허용
+    // --weight=inf 입력 시, 내부적으로 무한대(inf)로 인식되어 저장됨
+    // --weight=nan 입력 시, 내부적으로 NaN(Not a Number)로 인식되어 저장됨
 
     // 7. 단순 플래그
     parser.add_option("-d", "--daemon", U8("백그라운드 데몬 구동 여부"), false);
@@ -59,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     // 파싱 실행
     if (!parser.parse(argc, argv)) {
-        mcs::print::eprintln("파싱 에러: {}", parser.get_error());
+        mcs::print::eprintln("Failed to parse: {}", parser.get_error());
         parser.print_help();
         return 1;
     }
