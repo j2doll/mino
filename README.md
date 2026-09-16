@@ -7,9 +7,11 @@
 ## 개요
 
 ### 프로젝트 개요
-- `mino`는 **`C++` 기반의 범용 라이브러리** 입니다.
-   - 최소 버전은 `C++17` 이상을 요구합니다.
-- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공이 목표입니다.
+- **`mino`** 는 **`C++` 기반의 범용 라이브러리** 입니다.
+   - <sub> `C++17` 이상을 사용합니다. </sub>
+- 빠른 프로토타이핑과 재사용 가능한 컴포넌트 제공이 목표로 합니다.
+
+<br />
 
 ### 아키텍처 요약
 - 🏛️ [**core**](mino/core/include/mino/core)
@@ -18,6 +20,8 @@
    - 외부 라이브러리 종속성이 있는 모듈
 - 🔀 [**network**](mino/network/include/mino/network)
    - 네트워크 기능 모듈
+
+<br />
 
 ### 예제
 #### 💡 [example](example/) : 예제 루트 경로
@@ -148,6 +152,9 @@
     - `.yaml` 파싱·직렬화
 - 🏛️ [zip](example/core/zip/main.cpp)
     - `deflate` `.zip` 압축
+	
+<br />
+	
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
     - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub>
@@ -161,6 +168,9 @@
 - 📦 `xml` : `.xml` => `C++` 구조체 변환
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
     - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> 🐶 `pugixml` </sub>
+
+<br />
+
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
 - 🔀 [download-file](example/network/download-file/main.cpp)
     - `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub>
@@ -252,13 +262,19 @@
     - 네트워크 인터페이스 목록 얻기, `IP` 주소 검증
 - 🔀 [ws](example/network/ws/main.cpp)
     - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub>
+
+<br />
+
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
 - 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿 <sub> `core` `network` `external` </sub>
 - 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : `core` 템플릿
 - 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : `external` 템플릿
 - 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : `network` 템플릿
 
+<br />
+
 ### 🏗️ 빌드 도구
+
 #### ⊞ Windows 환경 🧩
 - 🛠️ `Visual Studio` <sub> (2022 이상) </sub>
 - 🔨 `cmake` <sub> (3.24 이상) </sub>
@@ -317,6 +333,9 @@
       }
     },
     ``` 
+
+<br />
+
 #### 🐧 Linux 환경 
 - 🦬 `gcc` <sub> (8.5 이상) </sub>
 - 🔨 `cmake` <sub> (3.24 이상) </sub>
@@ -356,6 +375,9 @@
     }
 }
 ```
+
+<br />
+
 #### 🧩 외부 라이브러리 설치
 - 🎩 `Redhat` 계열 (`Rocky`/`CentOS`/`AlmaLinux`)
 ```bash
@@ -380,6 +402,7 @@ sudo dnf install -y brotli-devel
 sudo dnf install -y libssh2-devel
 
 ``` 
+
 - 🌀 `Debian` 계열 (`Ubuntu`/`Debian`)
 ```bash
 # Ubuntu 22.04 LTS
@@ -402,6 +425,9 @@ sudo apt install -y libcurl4-openssl-dev
 sudo apt install -y libbrotli-dev
 
 ```
+
+<br />
+
 ##### 📦 라이브러리 설치 
 - 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
 - 라이브러리 경로 설정 (`C:\opt\mino`, `~/mino` 등)
@@ -433,6 +459,9 @@ cmake --build build -j
 :: 설치
 cmake --install build
 ```
+
+<br />
+
 ###### :two: 🐧 `Linux` 환경
 ```bash
 #############################################
@@ -462,26 +491,26 @@ C:\opt>eza --tree mino
 📁 mino/
  +- 📁 include/
  |   +- 📁 mino/
- |       +- 📁 xxx/
- |           +- 📄 xxx.hpp
+ |       +- 📁 core/
+ |           +- 📁 xxx/
+ |               +- 📄 xxx.hpp
  +- 📁 lib/
  |   +- 📁 cmake/
- |   +- 📄 libmino_*.lib
- +- 📁 use-cmake/
-```
+ |   +- 📄 mino_*.lib
+ ```
 
 ```
 $ eza --tree mino
 📁 mino/
  +- 📁 include/
  |   +- 📁 mino/
- |       +- 📁 xxx/
- |           +- 📄 xxx.hpp
+|        +- 📁 core/ 
+ |           +- 📁 xxx/
+ |               +- 📄 xxx.hpp
  +- 📁 lib/
  |   +- 📁 cmake/
  |   +- 📄 libmino_*.a
- +- 📁  use-cmake/
-```
+ ```
 
 <br />
 
@@ -495,12 +524,12 @@ $ eza --tree mino
         - 📄 [nlohmann/json](https://github.com/nlohmann/json) : `MIT License`
         - ⚡ [spdlog](https://github.com/gabime/spdlog) : `MIT License`
         - 🐶 [pugixml](https://github.com/zeux/pugixml) : `MIT License`
-        - [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
+        - 🗜️ [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
     - 🔀 `network` 모듈
         - 📡 [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
         - 🌐 [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
         - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License`
         - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`
-        - [brotli](https://github.com/google/brotli) : `MIT License`
+        - 🥖 [brotli](https://github.com/google/brotli) : `MIT License`
 
 
