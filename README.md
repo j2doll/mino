@@ -29,8 +29,10 @@
    - 비트 단위 연산
 - 🏛️ [broker](example/core/broker/main.cpp)
    - 인메모리+경량 메시지 브로커
+- 🏛️ [cli](example/core/cli/main.cpp)
+   - 명령행 인자 파서
 - 🏛️ [config](example/core/config/main.cpp)
-   - [설정 파일(`.config`)](example/core/config/app_config.conf) 읽기 기능
+   - [설정 파일(`.config`)](example/core/config/app_config.conf) 읽기
 - 🏛️ [container](example/core/container/main.cpp) : 표준 확장 컨테이너들
     - [bimap](mino/core/include/mino/core/container/bimap.hpp) : 양방향 맵
     - [binomial_heap](mino/core/include/mino/core/container/binomial_heap.hpp) : 이항 힙
@@ -208,15 +210,15 @@
        +---------------+                  +---------------+
       ```
         - [broker](example/network/message_broker/broker) <sub> `tcp` </sub>
-        - [발행자(`Publisher`)](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
-        - [구독자(`Subscriber`)](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
+        - [Publisher](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
+        - [Subscriber](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
     - `python` 파이썬 `pub/sub` 
         - [pub](example/network/message_broker/python/pub/message_publisher.py)
         - [sub](example/network/message_broker/python/sub/message_subscriber.py)
     - 구조체 직렬화/역직렬화 
         - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자 <sub> `core/reflect` `tcp` </sub>
         - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
-- 🔀 `MQTT`(`Message Queuing Telemetry Transport`) 
+- 🔀 `MQTT` <sub> (`Message Queuing Telemetry Transport`) </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
 - 🔀 `REST API` 클라이언트
