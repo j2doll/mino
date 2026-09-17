@@ -220,6 +220,23 @@
         - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자 <sub> `core/reflect` `tcp` </sub>
         - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
 - 🔀 `MQTT` <sub> (`Message Queuing Telemetry Transport`) </sub>
+    - ```
+                            +-------------------+
+                            |    MQTT Broker    |
+                            +-------------------+
+                              ^        ^      |
+           Publish            |        |      |  Publish
+           (e.g. "sensor/temp")|       |      |  (Matched Topic)
+                              |        |      v
+                              |     Subscribe |
+                              |     (e.g. "sensor/+")
+                              |        |      |
+                    +---------------+  |   +---------------+
+                    |   Publisher   |  +---|  Subscriber   |
+                    |     (pub)     |      |     (sub)     |
+                    +---------------+      +---------------+
+      			  
+      ``` 
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
