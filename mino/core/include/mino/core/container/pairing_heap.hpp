@@ -184,7 +184,7 @@ namespace mino::core::container {
         void erase(handle_type handle) {
             if (!handle) return;
             if (handle == root_) {
-                pop();
+                (void)pop();
                 return;
             }
             detach_node(handle);
