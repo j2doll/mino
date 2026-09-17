@@ -39,7 +39,7 @@
     - [circular_buffer](example/core/container/test_circular_buffer.cpp) : 원형 버퍼
     - [concurrent_queue](example/core/container/test_concurrent_queue.cpp) : 동시성 큐
     - [devector](example/core/container/test_devector.cpp) : 양방향 벡터
-    - [d_ary_heap](example/core/container/test_d_ary_heap.cpp) : `D`진 힙
+    - [d_ary_heap](example/core/container/test_d_ary_heap.cpp) : `D`진(進) 힙
     - [fibonacci_heap](example/core/container/test_fibonacci_heap.cpp) : 피보나치 힙
     - [flat_map](example/core/container/test_flat_map.cpp) : 정렬 맵
     - [flat_multimap](example/core/container/test_flat_multimap.cpp) : 정령 다중키 맵
