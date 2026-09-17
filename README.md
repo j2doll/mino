@@ -155,6 +155,7 @@
     - `deflate` `.zip` 압축
 	
 <br />
+
 	
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
@@ -221,6 +222,8 @@
 - 🔀 `MQTT` <sub> (`Message Queuing Telemetry Transport`) </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
+- 🔀 `redis` 클라이언트
+    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp/client` `tls/client` </sub>
 - 🔀 `REST API` 클라이언트
     - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub>
     - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub>

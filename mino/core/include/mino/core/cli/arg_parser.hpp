@@ -62,12 +62,16 @@ namespace mino::core::cli {
             const std::string& default_val = ""); // 옵션의 기본값 (has_value가 true일 때만 의미 있음)
 
         bool parse(int argc, char* argv[]); // 명령행 인자 파싱
-        bool has_flag(const std::string& long_opt) const; // 플래그 옵션 존재 여부 확인
+
+        bool has_flag(const std::string& long_opt) const; // 플래그 옵션 존재 여부 확인 (long_opt: "--help" 같은 전체 옵션 이름)
+
         const std::vector<std::string>& get_positional() const; // 위치 인자(옵션이 아닌 인자) 반환
+
         void print_help() const; // 도움말 출력
+
         const std::string& get_error() const; // 마지막 파싱 에러 메시지 반환
 
-        // 타입별 명시적 getter 함수
+        // 타입별 명시적 getter 함수. (long_opt: "--port" 같은 전체 옵션 이름)
         std::optional<std::string> get_string(const std::string& long_opt) const;
         std::optional<bool>        get_bool(const std::string& long_opt) const;
         std::optional<int>         get_int(const std::string& long_opt) const;
@@ -89,7 +93,7 @@ namespace mino::core::cli {
         std::unordered_map<std::string, size_t> short_map_;
         std::unordered_map<std::string, size_t> long_map_;
         std::unordered_map<std::string, std::string> parsed_values_;
-        std::unordered_set<std::string> flags_;
+        std::unordered_set<std::string> flags_; // 플래그 옵션 저장
         std::vector<std::string> positional_args_;
     };
 
