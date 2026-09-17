@@ -225,12 +225,12 @@
                             |    MQTT Broker    |
                             +-------------------+
                               ^        ^      |
-           Publish            |        |      |  Publish
-           (e.g. "sensor/temp")|       |      |  (Matched Topic)
-                              |        |      v
-                              |     Subscribe |
-                              |     (e.g. "sensor/+")
+                      Publish |        |      | Publish
+                              |        |      | (Matched Topic)
                               |        |      |
+                              |     Subscribe |
+                              |        |      |
+                              |        |      v
                     +---------------+  |   +---------------+
                     |   Publisher   |  +---|  Subscriber   |
                     |     (pub)     |      |     (sub)     |
