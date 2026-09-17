@@ -14,7 +14,17 @@ extern void test_fibonacci_heap_all_public();
 extern void test_flat_map_all_public();
 extern void test_flat_multimap_all_public();
 extern void test_flat_multiset_all_public();
+extern void test_flat_set_all_public();
+extern void test_multi_array_all_public();
+extern void test_multi_index_container_all_public();
+extern void test_pairing_heap_all_public();
+extern void test_priority_queue_all_public();
 extern void test_red_black_tree();
+extern void test_skew_heap_all_public();
+extern void test_small_vector_all_public();
+extern void test_stable_vector_all_public();
+extern void test_static_vector_all_public();
+extern void test_topic_queue_all_public();
 
 // ============================================================================
 // 메인 함수
@@ -35,7 +45,17 @@ int main() {
         test_flat_map_all_public();
         test_flat_multimap_all_public();
         test_flat_multiset_all_public();
+        test_flat_set_all_public();
+        test_multi_array_all_public();
+        test_multi_index_container_all_public();
+        test_pairing_heap_all_public();
+        test_priority_queue_all_public();
         test_red_black_tree();
+        test_skew_heap_all_public();
+        test_small_vector_all_public();
+        test_stable_vector_all_public();
+        test_static_vector_all_public();
+        test_topic_queue_all_public();
 
         std::cout << "========================================================\n";
         std::cout << " ALL TESTS PASSED SUCCESSFULLY!\n";
