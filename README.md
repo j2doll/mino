@@ -407,21 +407,25 @@
 sudo dnf install -y epel-release dnf-plugins-core
 sudo dnf config-manager --set-enabled powertools
 
+# Rocky 9
+sudo dnf install -y epel-release
+sudo dnf config-manager --set-enabled crb
+
 # Tools & Compiler 
-sudo dnf install -y gcc-c++ cmake make pkgconfig
+sudo dnf install -y gcc-c++ cmake make pkgconfig wget
 
 # OpenSSL
 sudo dnf install -y openssl-devel
-
-# CURL
-sudo dnf swap -y libcurl-minimal libcurl
-sudo dnf install -y libcurl-devel
 
 # Brotli
 sudo dnf install -y brotli-devel
 
 # libssh2
 sudo dnf install -y libssh2-devel
+
+# CURL
+sudo dnf swap -y libcurl-minimal libcurl
+sudo dnf install -y libcurl-devel
 
 ``` 
 
@@ -440,11 +444,11 @@ sudo apt install -y openssl
 # libssh2
 sudo apt install -y libssl-dev libssh2-1-dev
 
-# CURL
-sudo apt install -y libcurl4-openssl-dev
-
 # Brotli
 sudo apt install -y libbrotli-dev
+
+# CURL
+sudo apt install -y libcurl4-openssl-dev
 
 ```
 

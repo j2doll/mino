@@ -7,13 +7,15 @@
 #include "mino/core/string/string.hpp"
 #include "mino/core/datetime/datetime.hpp"
 #include "mino/core/json/json.hpp"
+#include "mino/core/log/log.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/socket-io/socketio_client.hpp"
 
-bool g_keep_running = true;
-mino::network::socket_io::socketio_client_base* g_active_client = nullptr;
+bool g_keep_running = true; // 프로그램 종료를 위한 전역 플래그
+mino::network::socket_io::socketio_client_base* g_active_client = nullptr; // 현재 활성화된 Socket.IO 클라이언트 포인터
 
+// 시그널 핸들러: SIGINT (Ctrl+C) 처리
 void handle_signal(int signum) {
     namespace dtutil = mino::core::datetime::util;
     auto current_local = dtutil::current_time_string();
@@ -28,8 +30,8 @@ void handle_signal(int signum) {
 
 // main 실행 전에 다음을 실행한다.
 // (1) install_sio.cmd 또는 install_sio.sh 스크립트를 실행
-// (2) node server.js 를 실행하여 Socket.IO 서버를 구동
-int main() {
+// (2) node server.js 를 실행 (Socket.IO 서버 구동)
+int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
     std::signal(SIGINT, handle_signal);
 
@@ -64,12 +66,16 @@ int main() {
     const std::string target_room = "";
 
     std::unique_ptr<sio::socketio_client_base> client = nullptr;
+
+    auto socket_io_server_ip = "127.0.0.1";
     int port = 0;
+
     std::string version_name;
     std::string ping_event;
     std::string pong_event;
 
     if (target_version == 2) {
+        // socket.io v2
         client = sio::create_socketio_client(sio::socketio_version::v2);
         port = 52000;
         version_name = "v2";
@@ -77,13 +83,15 @@ int main() {
         pong_event = "pong_v2";
     }
     else if (target_version == 3) {
+        // socket.io v3
         client = sio::create_socketio_client(sio::socketio_version::v4);
         port = 53000;
         version_name = "v3";
         ping_event = "ping_v3";
         pong_event = "pong_v3";
     }
-    else { // 4
+    else {
+        // socket.io v4
         client = sio::create_socketio_client(sio::socketio_version::v4);
         port = 54000;
         version_name = "v4";
@@ -98,7 +106,7 @@ int main() {
         << (use_ssl ? (ignore_ssl_errors ? " (Ignore SSL Errors)" : " (Strict SSL Verify)") : "")
         << ", NS: " << target_namespace << "\n";
 
-    client->set_server_endpoint("127.0.0.1", port);
+    client->set_server_endpoint(socket_io_server_ip, port);
     client->set_connect_timeout_seconds(5);
 
     // 1. 네임스페이스 설정
@@ -142,6 +150,31 @@ int main() {
         namespace dtutil = mino::core::datetime::util;
         std::cout << dtutil::current_time_string()
             << " [App Room Broadcast] Received: " << data << "\n";
+
+        /*
+           // 4-1. Room별 전용 처리 예시 (Room 이름이 "hello"인 경우)
+            namespace dtutil = mino::core::datetime::util;
+            mino::core::json::parser json_parser;
+            auto parsed = json_parser.parse(data);
+
+            if (!data.empty() && !parsed.is_null() && parsed.is_object()) {
+                if (parsed.has_path("room") &&
+                    parsed["room"].get_string() == "hello")
+                {
+                    // hello 룸 전용 처리
+                    std::cout << dtutil::current_time_string()
+                        << " [Room hello] Payload: "
+                        << mino::core::json::serializer::serialize(parsed, 4)
+                        << "\n";
+                } else {
+                    // 다른 룸 또는 무시
+                }
+            }
+            else {
+                std::cout << dtutil::current_time_string()
+                << " [Room Broadcast] Non-JSON or empty payload\n";
+            }
+        */
         });
 
     // 5. 전체 이벤트 메시지 수신 모니터링
@@ -150,55 +183,63 @@ int main() {
         std::cout << dtutil::current_time_string() << " [App All Events] " << payload << "\n";
         });
 
+    // 6. 연결 종료 시 핸들러
     client->on_close([](const std::string& reason) {
         namespace dtutil = mino::core::datetime::util;
         std::cout << dtutil::current_time_string() << " [App] Connection lost: " << reason << "\n";
         });
 
+    // 7. 에러 발생 시 핸들러
     client->on_error([](const std::string& err) {
         namespace dtutil = mino::core::datetime::util;
         std::cerr << dtutil::current_time_string() << " [App Error] " << err << "\n";
         });
 
-    const int reconnect_interval_seconds = 3;
+    const int reconnect_interval_seconds = 3; // 재연결 시도 간격 (초)
 
-    // 6. 연결 및 재연결 제어 루프
+    // 8. 연결 및 재연결 제어 루프
     while (g_keep_running) {
         auto current_local = dtutil::current_time_string();
         std::cout << "\n" << current_local << " [App] Attempting to connect to "
             << version_name << " server (Port " << port << ")...\n";
 
-        client->reset();
+        client->reset(); // 재연결을 위해 소켓 자원을 정리하고 핸들을 새로 발급
 
         // use_ssl 및 verify_ssl (!ignore_ssl_errors) 전달
         bool verify_ssl = !ignore_ssl_errors;
         if (client->connect(use_ssl, verify_ssl)) {
+            // 연결 성공
             current_local = dtutil::current_time_string();
             std::cout << current_local << " [App] Connected successfully. Entering event loop...\n";
 
-            client->run_event_loop();
+            client->run_event_loop(); // 이벤트 루프 실행 (블로킹)
         }
         else {
+            // 연결 실패
             current_local = dtutil::current_time_string();
             std::cerr << current_local << " [App] Connection attempt failed.\n";
         }
 
-        if (!g_keep_running) break;
-
+        if (!g_keep_running) {
+            break;
+        }
+            
         current_local = dtutil::current_time_string();
         std::cout << current_local << " [App] Waiting "
             << reconnect_interval_seconds << " seconds before reconnecting...\n";
 
+        // 재연결 대기 시간 동안 프로그램 종료 요청이 들어오면 즉시 종료
         int waited_ms = 0;
         int target_ms = reconnect_interval_seconds * 1000;
         while (g_keep_running && waited_ms < target_ms) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             waited_ms += 10;
         }
-    }
+    } // while (g_keep_running)
 
     auto current_local = dtutil::current_time_string();
     std::cout << current_local << " [App] Program exited safely.\n";
     g_active_client = nullptr;
+
     return 0;
 }
