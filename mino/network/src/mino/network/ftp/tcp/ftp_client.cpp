@@ -1,3 +1,4 @@
+#ifdef USE_CURL
 
 #include <cstdint>
 #include <string>
@@ -673,3 +674,5 @@ bool sftp_client::remove_directory(const std::string& path) {
     }
     return true;
 }
+
+#endif // USE_CURL

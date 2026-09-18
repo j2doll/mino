@@ -1,3 +1,5 @@
+#ifdef USE_CURL
+
 #include "mino/network/downloader/curl/file_downloader.hpp"
 
 #include <fstream>
@@ -136,3 +138,5 @@ namespace mino::network::downloader::curl {
     }
 
 } // namespace mino::network::downloader::curl
+
+#endif // USE_CURL

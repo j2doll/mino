@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef USE_CURL
+
 #include <string>
 #include <functional>
 #include <filesystem>
@@ -40,3 +42,5 @@ namespace mino::network::downloader::curl {
     };
 
 } // namespace mino::network::downloader::curl
+
+#endif // USE_CURL
