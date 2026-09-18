@@ -60,9 +60,9 @@
 - 🏛️ [crypt](example/core/crypt/main.cpp)
     - 암복호화 (키 사용/미사용 방식)
 - 🏛️ [csv](example/core/csv/main.cpp)
-    - `.csv` 파일 입출력 및 파싱. 엑셀용 `.csv` 파일 생성.
+    - `.csv` 파일 입출력 및 파싱. 엑셀용 `.csv` 파일 생성
 - 🏛️ [daemon](example/core/daemon/main.cpp)
-    - 상주형 데몬 예제
+    - 상주형 데몬 
 - 🏛️ `datetime` : 날짜·시간 처리 
     - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
     - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, `ISO` 표기, 타임존 보정 등
@@ -159,23 +159,23 @@
 	
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
-    - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub>
-    - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
+    - `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub> : [json](example/external/json/main.cpp)
+    - 📄 `nlohmann::json` => `C++` 구조체 변환 : [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py)
 - 📦 `log` : 로깅 어댑터/팩토리
-    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub>
-    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub>
-    - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> ⚡ `spdlog` </sub>
+    - 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub> : [adapter](example/external/log/adapter/main.cpp)
+    - 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub> : [factory](example/external/log/factory/main.cpp)
+    - 로깅 확장 기능 <sub> ⚡ `spdlog` </sub> : [spd](example/external/log/spd/main.cpp)
 - 📦 `schedule` : `core` 스케줄러 확장
-    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub>
+    - 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub> : [weekly](example/external/schedule/weekly/main.cpp)
 - 📦 `xml` : `.xml` => `C++` 구조체 변환
-    - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
-    - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> 🐶 `pugixml` </sub>
+    - [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환 : [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) 
+    - 구조체 사용 예제 <sub> 🐶 `pugixml` </sub> : [example](example/external/xml/main.cpp)
 
 <br />
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 [download-file](example/network/download-file/main.cpp)
-    - `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub>
+- 🔀 `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub> 
+    - [download-file](example/network/download-file/main.cpp)
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
     - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub>
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> 
@@ -184,8 +184,8 @@
     - [tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp`, 🔒 `openssl` </sub>
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
-- 🔀 [manager](example/network/log/manager/main.cpp) 
-   - `logging` 환경 정보 `hard/soft/hot reloading` 기능 <sub> `udp` </sub>
+- 🔀 `logging` 환경 정보 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
+   - [manager](example/network/log/manager/main.cpp) 
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - 🔀 `memory_store` : 네트워크 기반 메모리 저장소
     - ```
@@ -263,14 +263,14 @@
         - [server](example/network/rpc/server/main.cpp) : `RPC` 서버 <sub> `tcp` </sub>
         - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트 <sub> `tcp` </sub>
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- 🔀 [sftp](example/network/sftp/putty/main.cpp)
-    - `psftp` 연동 클라이언트
-- 🔀 [socket-io](example/network/socket-io/main.cpp)
-    - `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub>
-- 🔀 [ssh](example/network/ssh/main.cpp)
-    - 종속성 없는 `ssh` 클라이언트 
-- 🔀 [ssh2](example/network/ssh2/main.cpp)
-    - `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub>
+- 🔀 `psftp` 연동 클라이언트
+    - [sftp](example/network/sftp/putty/main.cpp)
+- 🔀 `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub>
+    - [socket-io](example/network/socket-io/main.cpp)
+- 🔀 종속성 없는 `ssh` 클라이언트 
+    - [ssh](example/network/ssh/main.cpp)
+- 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
+    - [ssh2](example/network/ssh2/main.cpp)
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
@@ -280,10 +280,10 @@
 - 🔀 `udp` 소켓 예제
     - [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
-- 🔀 [util](example/network/util/main.cpp)
-    - 네트워크 인터페이스 목록 얻기, `IP` 주소 검증
-- 🔀 [ws](example/network/ws/main.cpp)
-    - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub>
+- 🔀 네트워크 인터페이스 목록 얻기, `IP` 주소 검증 
+    - [util](example/network/util/main.cpp)
+- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> 
+    - [ws](example/network/ws/main.cpp)
 
 <br />
 
