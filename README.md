@@ -181,7 +181,7 @@
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> 
-    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp`, 🔒 `openssl` </sub>
+    - [tcp](example/network/ftp/tcp/main.cpp) <sub> 🔒 `openssl` </sub> <sub> 🔑 `libssh2` </sub>
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
 - 🔀 `logging` 환경 정보 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub> : [manager](example/network/log/manager/main.cpp) 
