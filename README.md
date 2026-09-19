@@ -268,8 +268,6 @@
     - [socket-io](example/network/socket-io/main.cpp)
 - 🔀 종속성 없는 `ssh` 클라이언트 
     - [ssh](example/network/ssh/main.cpp)
-- 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
-    - [ssh2](example/network/ssh2/main.cpp)
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
@@ -283,6 +281,12 @@
     - [util](example/network/util/main.cpp)
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> 
     - [ws](example/network/ws/main.cpp)
+
+<br />
+
+##### 🔀 [network_libssh2](example/network_libssh2) : `libssh2` 관련 예제    
+- 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
+    - [ssh2](example/network_libssh2/ssh2/main.cpp)
 
 <br />
 
