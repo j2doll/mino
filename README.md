@@ -159,17 +159,17 @@
 	
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
 - 📦 `json`
-    - `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub> : [json](example/external/json/main.cpp)
-    - 📄 `nlohmann::json` => `C++` 구조체 변환 : [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py)
+    - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub>
+    - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
 - 📦 `log` : 로깅 어댑터/팩토리
-    - 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub> : [adapter](example/external/log/adapter/main.cpp)
-    - 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub> : [factory](example/external/log/factory/main.cpp)
-    - 로깅 확장 기능 <sub> ⚡ `spdlog` </sub> : [spd](example/external/log/spd/main.cpp)
+    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub>
+    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub> 
+    - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> ⚡ `spdlog` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
-    - 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub> : [weekly](example/external/schedule/weekly/main.cpp)
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub> 
 - 📦 `xml` : `.xml` => `C++` 구조체 변환
-    - [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환 : [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) 
-    - 구조체 사용 예제 <sub> 🐶 `pugixml` </sub> : [example](example/external/xml/main.cpp)
+    - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환  
+    - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> 🐶 `pugixml` </sub>
 
 <br />
 
