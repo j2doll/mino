@@ -1,9 +1,10 @@
-#include "mino/network/ssh2/ssh_client.hpp"
+
+#include "mino/network_libssh2/ssh2/ssh_client.hpp"
 
 #include <algorithm>
 #include <sstream>
 
-namespace mino::network::ssh2 {
+namespace mino::network_libssh2::ssh2 {
 
     ssh_client::ssh_client() {
         platform_network_initializer::ensure_initialized();
@@ -382,4 +383,4 @@ namespace mino::network::ssh2 {
         cleanup_ssh_session();
     }
 
-} // namespace mino::network::ssh2
+} // namespace mino::network_libssh2::ssh2

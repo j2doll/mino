@@ -6,8 +6,10 @@
 #include <atomic>
 #include <csignal>
 
+#include "mino/core/string/string.hpp"
 #include "mino/core/log/tinylog/logger.hpp"
-#include "mino/network/ssh2/ssh2.hpp"
+
+#include "mino/network_libssh2/ssh2/ssh2.hpp"
 
 //
 // main() 을 실행하기 전에 다음을 수행한다.
@@ -18,7 +20,7 @@
 int main(int argc, char* argv[]) {
     namespace mn = mino::network;
     namespace mclt = mino::core::log::tinylog;
-    namespace mns2 = mino::network::ssh2;
+    namespace mns2 = mino::network_libssh2::ssh2;
 
     using mnsock = mn::sock;
     using logger = mclt::logger;
@@ -79,12 +81,13 @@ int main(int argc, char* argv[]) {
         logger_instance->error("[callback] SSH client error occurred [code: {}]: {}", error_code, message);
         });
 
-    // 6. 지수 백오프 기반 재연결 정책 설정
+    // 6. 지수 백오프 기반 재연결(reconnection) 정책 설정
+    //  NOTE: 서버와 연결이 종료된 경우 자동으로 재연결을 시도하는 정책을 설정
     mns2::reconnect_config r_cfg;
-    r_cfg.initial_interval = std::chrono::milliseconds(1000); // 첫 대기: 1초
-    r_cfg.backoff_multiplier = 2.0;                          // 실패 시 2배씩 증가
-    r_cfg.max_interval = std::chrono::milliseconds(15000);    // 최대 대기 상한선: 15초
-    r_cfg.max_duration = std::nullopt;                       // 무한대 재연결 시도
+    r_cfg.initial_interval = std::chrono::milliseconds(5000); // 첫 대기: 5초
+    r_cfg.backoff_multiplier = 2.0;                           // 실패 시 2배씩 증가 (5, 10, 20, 40, 60s)
+    r_cfg.max_interval = std::chrono::milliseconds(60000);    // 최대 대기 상한선: 60초
+    r_cfg.max_duration = std::nullopt;                        // 무한대 재연결 시도 (std::chrono::milliseconds(300000) 인 경우, 최대 5분간 재연결 시도 후, 재연결 중단)
 
     // 7. 백그라운드 자동 재연결 및 데이터 수신 워커 시작
     const std::string target_ip = "127.0.0.1";
@@ -96,7 +99,7 @@ int main(int argc, char* argv[]) {
     // 8. 주기적 JSON 전송 및 통신 루프
     int sequence_id = 0;
     for (int i = 0; i < 3; ++i) {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::seconds(3)); // wait a moment
 
         if (client.is_connected()) {
             // std::string payload_string = "{\"seq\":" + std::to_string(++sequence_id) + ",\"status\":\"active\",\"data\":\"sample_telemetry\"}"; // json payload

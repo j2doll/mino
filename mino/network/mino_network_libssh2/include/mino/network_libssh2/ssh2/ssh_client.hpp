@@ -12,9 +12,10 @@
 #include <libssh2.h>
 
 #include "mino/network/tcp/tcp_client.hpp"
-#include "mino/network/ssh2/ssh_common.hpp"
 
-namespace mino::network::ssh2 {
+#include "mino/network_libssh2/ssh2/ssh_common.hpp"
+
+namespace mino::network_libssh2::ssh2 {
 
     enum class auth_type {
         password,
@@ -104,4 +105,4 @@ namespace mino::network::ssh2 {
         std::string recv_stream_buffer_;
     };
 
-} // namespace mino::network::ssh
+} // namespace mino::network_libssh2::ssh2

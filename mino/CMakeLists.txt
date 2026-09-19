@@ -17,7 +17,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # 공유 라이브�
 
 # 4. 하위 프로젝트 디렉토리
 add_subdirectory(core)  
-add_subdirectory(network/mino_network) 
+add_subdirectory(network/mino_network)
+add_subdirectory(network/mino_network_libssh2) 
 add_subdirectory(external) 
 
 # 5. 패키지를 설치할 때 필요한 CMake 모듈을 포함

@@ -12,7 +12,7 @@
 
 #include "mino/network/ethernet.hpp"
 
-namespace mino::network::ssh2 {
+namespace mino::network_libssh2::ssh2 {
 
     enum class fingerprint_type {
         sha256,
@@ -82,4 +82,4 @@ namespace mino::network::ssh2 {
         return out;
     }
 
-} // namespace mino::network::ssh
+} // namespace mino::network_libssh2::ssh2

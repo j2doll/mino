@@ -32,4 +32,5 @@ else()
 endif()
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 use_mino_network(${EXE_NAME} "${MINO_DIR}")
+use_mino_network_ssh2(${EXE_NAME} "${MINO_DIR}")
 
