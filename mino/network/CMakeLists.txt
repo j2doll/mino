@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.24)
 
+########################################################################
 # 1. Set the project name and version
 project(mino_network VERSION 1.0.0 LANGUAGES CXX)
 
+########################################################################
 # 2. C++ standard information settings
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
@@ -15,6 +17,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 3-1. Threads
 find_package(Threads REQUIRED)
 
+####################################
 # 3-2. OpenSSL
 find_package(OpenSSL REQUIRED)
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
@@ -25,11 +28,12 @@ if(TARGET crypto AND TARGET ssl)
     add_library(OpenSSL::SSL ALIAS ssl)
 endif()
 
+####################################
 # 3-3. CURL
 find_package(CURL REQUIRED)
 message(STATUS "CURL version: ${CURL_VERSION}")
 
-# 3-4. Brotli  
+# 3-3-1. Brotli  
 set(MINO_BROTLI_AVAILABLE FALSE)
 if(DEFINED VCPKG_ROOT
    OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
@@ -57,6 +61,7 @@ else()
     endif()
 endif()
 
+####################################
 # 3-5. libssh2
 find_package(Libssh2 CONFIG QUIET)
 if(TARGET Libssh2::libssh2)
@@ -67,6 +72,8 @@ else()
     message(STATUS "Found libssh2 via PkgConfig (${LIBSSH2_VERSION})")
 endif()
 
+
+########################################################################
 # 4. Configure the library source code
 
 # 4-1. Create a library
@@ -104,6 +111,7 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
+########################################################################
 # 6. Link external libraries
 
 # 6-1. Threads link settings
@@ -118,6 +126,7 @@ if(WIN32)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
+##########################################
 # 6-2. OpenSSL link settings
 set(MINO_OPENSSL_LINKS "")
 
@@ -140,6 +149,7 @@ else()
     target_compile_definitions(mino_network PUBLIC USE_OPENSSL=0)
 endif()
 
+##########################################
 # 6-3. CURL link settings
 set(MINO_CURL_LINKS "")
 if(TARGET CURL::libcurl)
@@ -156,6 +166,7 @@ else()
     message(FATAL_ERROR "CURL not found.")
 endif()
 
+##########################################
 # 6-4. libssh2 link settings
 if(TARGET Libssh2::libssh2)
     target_link_libraries(mino_network PRIVATE Libssh2::libssh2)
@@ -174,10 +185,12 @@ if(WIN32)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
+########################################################################
 # 7. [Dependency] If network uses xxx, link it here.
 # target_link_libraries(mino_network PUBLIC mino_core mino_external)
 target_link_libraries(mino_network PUBLIC mino_core)
 
+########################################################################
 # 8. Define install rules (use the same EXPORT bundle name 'minoTargets')
 install(
     TARGETS mino_network
@@ -187,7 +200,9 @@ install(
     RUNTIME DESTINATION bin
 )
 
+########################################################################
 # 9. Install header files as well
 install(DIRECTORY include/mino DESTINATION include)
+
 
 
