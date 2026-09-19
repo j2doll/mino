@@ -178,7 +178,7 @@
     - [download-file](example/network/download-file/main.cpp)
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
     - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub>
-    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> 
+    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> 
     - [tcp](example/network/ftp/tcp/main.cpp) <sub> 🔒 `openssl` </sub> <sub> 🔑 `libssh2` </sub>
@@ -243,7 +243,7 @@
     - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp/client` `tls/client` </sub>
 - 🔀 `REST API` 클라이언트
     - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub>
-    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub>
+    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
