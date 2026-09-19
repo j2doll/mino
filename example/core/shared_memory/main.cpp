@@ -3,6 +3,8 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <cstdint>
+#include <type_traits>
 
 #include "mino/core/shared_memory/shared_memory.hpp"
 
@@ -11,8 +13,8 @@
 
 #pragma pack(push, 1) // 구조체 멤버들의 메모리 정렬 단위를 1바이트로 설정
 struct TestData {
-    int counter;
-    char buffer[32];
+    std::int32_t counter; // long은 OS/Compiler ABI에 따라 크기가 다를 수 있으므로, 명시적으로 32bit(4B) 정수형으로 정의
+    char buffer[32]; // char는 primitive 타입이고, 크기가 1바이트로 고정되어 있음
 };
 #pragma pack(pop) // 스택에 백업해 두었던 이전 메모리 정렬 설정을 꺼내와 복원
 
