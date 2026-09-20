@@ -9,9 +9,9 @@
 
 typedef void CURL;
 
-namespace mino::network::rest::curl {
+namespace mino::network_curl::rest {
 
-    class  get_client
+    class get_client
     {
     public:
 

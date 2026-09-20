@@ -5,10 +5,11 @@
 #include "mino/core/string/string.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/rest/curl/get_client.hpp"
-#include "mino/network/rest/curl/post_client.hpp"
 
-namespace rest_namespace = mino::network::rest::curl;
+#include "mino/network_curl/rest/get_client.hpp"
+#include "mino/network_curl/rest/post_client.hpp"
+
+namespace rest_namespace = mino::network_curl::rest;
 
 using get_client = rest_namespace::get_client;
 void test_get_no_except();

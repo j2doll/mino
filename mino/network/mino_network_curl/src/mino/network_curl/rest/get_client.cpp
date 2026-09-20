@@ -2,15 +2,16 @@
 
 #include <sstream>
 #include <algorithm>
+
 #include <curl/curl.h>
 
-#include "mino/network/rest/curl/get_client.hpp"
+#include "mino/network_curl/rest/get_client.hpp"
 
 namespace {
     std::once_flag g_curl_global_init_flag;
 }
 
-namespace mino::network::rest::curl {
+namespace mino::network_curl::rest {
 
     void get_client::global_init()
     {

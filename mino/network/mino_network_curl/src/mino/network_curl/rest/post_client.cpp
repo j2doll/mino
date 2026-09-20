@@ -5,13 +5,13 @@
 
 #include <curl/curl.h>
 
-#include "mino/network/rest/curl/post_client.hpp"
+#include "mino/network_curl/rest/post_client.hpp"
 
 namespace {
     std::once_flag g_curl_global_init_flag;
 }
 
-namespace mino::network::rest::curl {
+namespace mino::network_curl::rest {
 
     void post_client::global_init()
     {

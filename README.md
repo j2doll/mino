@@ -177,7 +177,7 @@
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
     - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [tcp](example/network/ftp/tcp/main.cpp) 
+    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `ssh` </sub>
 - 🔀 네트워크 인터페이스 정보 조회
     - [interface](example/network/interface/main.cpp)
 - 🔀 로깅 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
@@ -263,7 +263,7 @@
     - [sftp](example/network/sftp/putty/main.cpp)
 - 🔀 `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub>
     - [socket-io](example/network/socket-io/main.cpp)
-- 🔀 종속성 없는 `ssh` 클라이언트 
+- 🔀 `ssh` 클라이언트 
     - [ssh](example/network/ssh/main.cpp)
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
