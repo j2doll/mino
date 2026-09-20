@@ -14,17 +14,17 @@
 
 ### 아키텍처 요약
 - 🏛️ [**core**](mino/core/include/mino/core)
-   - 독립적인 코어 기능 모듈
+   - 독립형 핵심 기능 모듈
 - 📦 [**external**](mino/external/include/mino/external)
-   - 외부 라이브러리를 사용하는 모듈
+   - 외부 라이브러리 사용 모듈
 - 🔀 [**network**](mino/network/include/mino/network)
-   - 네트워크 기능 모듈
+   - 네트워크 모듈
 
 <br />
 
 ### 예제
-#### 💡 [example](example/) : 예제 루트 경로
-##### 🏛️ [core](example/core) : 코어 라이브러리 예제
+#### 💡 [example](example/) <sub> 예제 루트 경로 </sub> 
+##### 🏛️ [core](example/core) <sub> 독립형 핵심 기능 </sub>
 - 🏛️ [bit](example/core/bit/main.cpp)
    - 비트 단위 연산
 - 🏛️ [broker](example/core/broker/main.cpp)
@@ -157,22 +157,22 @@
 <br />
 
 	
-##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
+##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 </sub>
 - 📦 [json](example/external/json/main.cpp) 📄 `nlohmann::json` </sub>
     -  `nlohmann::json` 확장 기능
     - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
 - 📦 `log` : 로깅 어댑터/팩토리
-    - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub>
-    - [factory](example/external/log/factory/main.cpp) : 런타임 로거 구성 변경·팩토리 패턴 <sub> ⚡ `spdlog` </sub> 
-    - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> ⚡ `spdlog` </sub>
+    - [adapter](example/external/log/adapter/main.cpp) : `spdlog` 기능 확장 어댑터 <sub> ⚡ `spdlog` </sub>
+    - [factory](example/external/log/factory/main.cpp) : `spdlog` 확장 팩토리 패턴 <sub> ⚡ `spdlog` </sub> 
+    - [spd](example/external/log/spd/main.cpp) : `spdlog` 추가 기능 <sub> ⚡ `spdlog` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
-    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub> 
-- 📦 [`xml`](example/external/xml/main.cpp) : `.xml` => `C++` 구조체 변환 사용 예제 <sub> 🐶 `pugixml` </sub>  
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `n::json` 확장 <sub> 📄 `nlohmann::json` </sub> 
+- 📦 [`xml`](example/external/xml/main.cpp) : `.xml` => `C++` 변환 구조체 사용 <sub> 🐶 `pugixml` </sub>  
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
 
 <br />
 
-##### 🔀 [network](example/network) : 네트워크 관련 예제
+##### 🔀 [network](example/network) <sub> 네트워크 </sub>
 - 🔀 [ftp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `ssh` </sub>
     - `ftp`/`sftp` 클라이언트
 - 🔀 [interface](example/network/interface/main.cpp)
@@ -206,12 +206,14 @@
         - [broker](example/network/message_broker/broker) <sub> `tcp` </sub>
         - [Publisher](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
         - [Subscriber](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
-    - `python` 파이썬 `pub/sub` 
-        - [pub](example/network/message_broker/python/pub/message_publisher.py)
-        - [sub](example/network/message_broker/python/sub/message_subscriber.py)
+    - `python pub/sub`
+        - [pub/message_publisher.py](example/network/message_broker/python/pub/message_publisher.py)
+        - [sub/message_subscriber.py](example/network/message_broker/python/sub/message_subscriber.py)
     - 구조체 직렬화/역직렬화 
-        - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자 <sub> `core/reflect` `tcp` </sub>
-        - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
+        - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp)
+           - [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자 <sub> `core/reflect` `tcp` </sub>
+        - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp)
+           - [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
 - 🔀 `mqtt` <sub> (`Message Queuing Telemetry Transport`) </sub>
     - ```
                             +-------------------+
@@ -270,7 +272,7 @@
 
 <br />
 
-##### 🔀 [network_curl](example/network_curl) <sub> `libcurl` 사용 </sub>
+##### 🔀 [network_curl](example/network_curl) <sub> `libcurl` 사용 네트워크 </sub>
 - 🔀 [file-downloader](example/network_curl/file-downloader/main.cpp) 
     - 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
 - 🔀 [ftp](example/network_curl/ftp/main.cpp) 
@@ -286,13 +288,13 @@
 
 <br />
 
-##### 🔀 [network_libssh2](example/network_libssh2) <sub> `libssh2` 사용 </sub>
+##### 🔀 [network_libssh2](example/network_libssh2) <sub> `libssh2` 사용 네트워크 </sub>
 - 🔀 [ssh2](example/network_libssh2/ssh2/main.cpp) 
     - 소형 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub>
 
 <br />
 
-##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 </sub>
+##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 네트워크 </sub>
 - 🔀 [multipart-downloader](example/network_openssl/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
     - 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 
 - 🔀 [redis](example/network_openssl/redis/main.cpp) 
