@@ -17,7 +17,7 @@
    - 독립형 핵심 기능 모듈
 - 📦 [**external**](mino/external/include/mino/external)
    - 외부 라이브러리 사용 모듈
-- 🔀 [**network**](mino/network/include/mino/network)
+- 🔀 [**network**](main/mino/network)
    - 네트워크 모듈
 
 <br />
