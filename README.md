@@ -236,7 +236,7 @@
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
-- 🔀 `redis` 클라이언트
+- 🔀 [`Redis`](https://github.com/redis/redis) 클라이언트
     - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
 - 🔀 `REST API` 클라이언트
     - [httplib](example/network_curl/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
