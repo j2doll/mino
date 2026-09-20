@@ -178,8 +178,8 @@
     - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [tcp](example/network/ftp/tcp/main.cpp) 
-- 🔀 [interface](example/network/interface/main.cpp)
-    - 네트워크 인터페이스 정보 조회
+- 🔀 네트워크 인터페이스 정보 조회
+    - [interface](example/network/interface/main.cpp)
 - 🔀 로깅 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
    - [manager](example/network/log/manager/main.cpp)
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
