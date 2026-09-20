@@ -5,10 +5,10 @@
 #include "mino/core/string/string.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/rest/httplib/get_client.hpp"
-#include "mino/network/rest/httplib/post_client.hpp"
 
-namespace rest_namespace = mino::network::rest::httplib; 
+#include "mino/network_openssl/rest/rest.hpp" 
+
+namespace rest_namespace = mino::network_openssl::rest;
 
 using get_client = rest_namespace::get_client;
 void test_get_no_except();

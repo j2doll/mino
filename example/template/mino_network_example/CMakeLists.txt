@@ -30,5 +30,10 @@ else()
         message(FATAL_ERROR "Please check MINO_DIR path.")
     endif()
 endif() 
-use_mino_network("${EXE_NAME}" "${MINO_DIR}") 
+use_mino_network("${EXE_NAME}" "${MINO_DIR}")
+use_mino_network_curl("${EXE_NAME}" "${MINO_DIR}")
+use_mino_network_ssh2("${EXE_NAME}" "${MINO_DIR}")
+use_mino_network_openssl("${EXE_NAME}" "${MINO_DIR}")
+
+
 

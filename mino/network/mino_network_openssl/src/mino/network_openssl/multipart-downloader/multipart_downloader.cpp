@@ -6,19 +6,19 @@
 #include <cctype>
 #include <filesystem>
 
-#include "mino/network/downloader/httplib/multipart_downloader.hpp"
+#include "mino/network_openssl/multipart-downloader/multipart_downloader.hpp"
 
 #ifdef USE_OPENSSL
-    #ifndef CPPHTTPLIB_OPENSSL_SUPPORT
-        #define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
-    #endif
+#   ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#       define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
+#   endif
 #endif
 
 // A C++ header-only HTTP/HTTPS server and client library
 // https://github.com/yhirose/cpp-httplib
-#include "mino/network/third-party/httplib/httplib.h"
+#include "mino/network_openssl/third-party/httplib/httplib.h"
 
-namespace mino::network::downloader::httplib
+namespace mino::network_openssl::mpdownloader
 {
 
     namespace

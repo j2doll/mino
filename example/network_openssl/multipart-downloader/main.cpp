@@ -8,7 +8,8 @@
 #include "mino/core/string/string.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/downloader/httplib/multipart_downloader.hpp"
+
+#include "mino/network_openssl/multipart-downloader/multipart_downloader.hpp"
 
 // 콘솔 출력 헬퍼 정의
 const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -18,7 +19,7 @@ auto tce = mino::core::string::to_console_encoding;
 
 // 콘솔에 다운로드 진행률을 출력하는 커스텀 콜백 클래스 구현
 class ConsoleProgressCallback
-    : public mino::network::downloader::httplib::multipart_progress_callback
+    : public mino::network_openssl::mpdownloader::multipart_progress_callback
 {
 public:
     bool on_progress(long long total_bytes, long long now_bytes) override
@@ -48,7 +49,9 @@ int main(int argc, char* argv[])
 {
     mino::network::sock mnsock;
 
-    using multipart_downloader = mino::network::downloader::httplib::multipart_downloader;
+    namespace mnmpd = mino::network_openssl::mpdownloader;
+
+    using multipart_downloader = mnmpd::multipart_downloader;
 
     // 1. 명령행 인자 기반 URL 및 저장 경로 설정
     std::string test_url = (argc > 1) ? argv[1] : "http://127.0.0.1:8080/download";

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace mino::network::downloader::httplib
+namespace mino::network_openssl::mpdownloader
 {
     // 진행 현황 콜백 인터페이스
     class  multipart_progress_callback
@@ -18,7 +18,7 @@ namespace mino::network::downloader::httplib
     };
 
     // multipart/form-data 응답을 다운로드하는 클래스
-    class  multipart_downloader
+    class multipart_downloader
     {
     public:
         multipart_downloader();

@@ -158,8 +158,8 @@
 
 	
 ##### 📦 [external](example/external) : 외부 라이브러리 사용 예제
-- 📦 `json`
-    - [json](example/external/json/main.cpp) : `json` 확장 기능 <sub> 📄 `nlohmann::json` </sub>
+- 📦 [json](example/external/json/main.cpp) 📄 `nlohmann::json` </sub>
+    -  `nlohmann::json` 확장 기능
     - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
 - 📦 `log` : 로깅 어댑터/팩토리
     - [adapter](example/external/log/adapter/main.cpp) : 내부 로그 추상화층에 외부 로거 연결 <sub> ⚡ `spdlog` </sub>
@@ -167,19 +167,18 @@
     - [spd](example/external/log/spd/main.cpp) : 로깅 확장 기능 <sub> ⚡ `spdlog` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
     - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `json` 확장 <sub> 📄 `nlohmann::json` </sub> 
-- 📦 `xml` : `.xml` => `C++` 구조체 변환
-    - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환  
-    - [example](example/external/xml/main.cpp) : 구조체 사용 예제 <sub> 🐶 `pugixml` </sub>
+- 📦 [`xml`](example/external/xml/main.cpp) : `.xml` => `C++` 구조체 변환 사용 예제 <sub> 🐶 `pugixml` </sub>  
+    - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
 
 <br />
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 `ftp`/`sftp` 클라이언트
-    - [ftp/tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `ssh` </sub>
-- 🔀 네트워크 인터페이스 정보 조회
-    - [interface](example/network/interface/main.cpp)
-- 🔀 로깅 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
-   - [log/manager](example/network/log/manager/main.cpp)
+- 🔀 [ftp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `ssh` </sub>
+    - `ftp`/`sftp` 클라이언트
+- 🔀 [interface](example/network/interface/main.cpp)
+    - 네트워크 인터페이스 정보 조회
+- 🔀 [log/manager](example/network/log/manager/main.cpp)
+   - 로깅 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - 🔀 `memory_store` : 네트워크 기반 메모리 저장소
     - ```
@@ -213,7 +212,7 @@
     - 구조체 직렬화/역직렬화 
         - [pub-reflect](example/network/message_broker/pub-reflect/main.cpp) : [구조체](example/network/message_broker/reflect-sample.hpp) 직렬화 발행자 <sub> `core/reflect` `tcp` </sub>
         - [sub-reflect](example/network/message_broker/sub-reflect/main.cpp) :  [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
-- 🔀 `MQTT` <sub> (`Message Queuing Telemetry Transport`) </sub>
+- 🔀 `mqtt` <sub> (`Message Queuing Telemetry Transport`) </sub>
     - ```
                             +-------------------+
                             |    MQTT Broker    |
@@ -234,11 +233,7 @@
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
-- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
-- 🔀 `REST API` 클라이언트
-    - [httplib](example/network_curl/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
-- 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
+- 🔀 `rpc` <sub> `Remote Procedure Call` </sub>
     - ```
         +--------------+           +--------------+          +--------------+
         |    Server    |           |    broker    |          |    Client    |
@@ -256,49 +251,59 @@
         - [server](example/network/rpc/server/main.cpp) : `RPC` 서버 <sub> `tcp` </sub>
         - [client](example/network/rpc/client/main.cpp) : `RPC` 클라이언트 <sub> `tcp` </sub>
     - 공통 구조체 예제: [rpc_example_common.hpp](example/network/rpc/rpc_example_common.hpp)
-- 🔀 `psftp` 연동 클라이언트
-    - [sftp](example/network/sftp/putty/main.cpp)
-- 🔀 `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub>
-    - [socket-io](example/network/socket-io/main.cpp)
-- 🔀 `ssh` 클라이언트 
-    - [ssh](example/network/ssh/main.cpp)
-- 🔀 `tcp` 소켓 예제
-    - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
-    - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
-- 🔀 `udp` 소켓 예제
-    - [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
-    - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
-- 🔀 네트워크 인터페이스 목록 얻기, `IP` 주소 검증 
-    - [util](example/network/util/main.cpp)
-
-<br />
-
-##### 🔀 [network_libssh2](example/network_libssh2) <sub> `libssh2` 사용 </sub>
-- 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
-    - [ssh2](example/network_libssh2/ssh2/main.cpp)
+- 🔀 [sftp](example/network/sftp/putty/main.cpp)
+    - `psftp` 연동 클라이언트
+- 🔀 [ssh](example/network/ssh/main.cpp)
+    - 독립형 `ssh` 클라이언트 
+- 🔀 `tcp` 
+    - [server](example/network/tcp/server/main.cpp)
+       - `TCP` 서버
+    - [client](example/network/tcp/client/main.cpp)
+       - `TCP` 클라이언트
+- 🔀 `udp`
+    - [receiver](example/network/udp/receiver/main.cpp)
+       - `UDP` 수신
+    - [sender](example/network/udp/sender/main.cpp)
+       - `UDP` 송신 
+- 🔀 [util](example/network/util/main.cpp)
+    - 네트워크 인터페이스 목록 얻기 및 `IP` 주소 검증 
 
 <br />
 
 ##### 🔀 [network_curl](example/network_curl) <sub> `libcurl` 사용 </sub>
-- 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
-    - [file-downloader](example/network_curl/file-downloader/main.cpp)
-- 🔀 `ftp`/`sftp` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
-    - [ftp](example/network_curl/ftp/main.cpp)  
-- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
-- 🔀 `REST API` `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [rest](example/network_curl/rest/main.cpp) 
-- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
-    - [ws](example/network_curl/ws/main.cpp)
+- 🔀 [file-downloader](example/network_curl/file-downloader/main.cpp) 
+    - 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
+- 🔀 [ftp](example/network_curl/ftp/main.cpp) 
+    - `ftp`/`sftp` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
+- 🔀 [multipart-downloader](example/network_curl/multipart-downloader/main.cpp)  
+    - 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
+- 🔀 [rest](example/network_curl/rest/main.cpp)  
+    - `REST API` `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
+- 🔀 [socket-io](example/network_curl/socket-io/main.cpp)
+    - `socket.io` 클라이언트 <sub> 🌐 `libcurl` </sub> 
+- 🔀 [ws](example/network_curl/ws/main.cpp)
+    - 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
+
+<br />
+
+##### 🔀 [network_libssh2](example/network_libssh2) <sub> `libssh2` 사용 </sub>
+- 🔀 [ssh2](example/network_libssh2/ssh2/main.cpp) 
+    - 소형 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub>
 
 <br />
 
 ##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 </sub>
-- 🔀 [`Redis`](https://github.com/redis/redis) 클라이언트
-    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
- - 🔀 `TLS` 서버 및 클라이언트
-    - [server](example/network/tls/server/main.cpp) : `tls` 서버
-    - [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
+- 🔀 [multipart-downloader](example/network_openssl/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
+    - 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 
+- 🔀 [redis](example/network_openssl/redis/main.cpp) 
+    -  [`Redis`](https://github.com/redis/redis) 클라이언트 <sub> 🔒 `openssl` </sub>
+- 🔀 [rest](example/network_openssl/rest/httplib/main.cpp)
+    - `REST API` `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
+- 🔀 `tls`
+    - [server](example/network_openssl/tls/server/main.cpp) 
+	   - `TLS` 서버 <sub> 🔒 `openssl` </sub>
+    - [client](example/network_openssl/tls/client/main.cpp) 
+	   - `TLS` 클라이언트 <sub> 🔒 `openssl` </sub>
 
 <br />
 

@@ -1,27 +1,30 @@
+#include <sstream>
 #include <algorithm>
 #include <map>
 #include <chrono>
+#include <cctype>
 
 #ifdef USE_OPENSSL
-    #ifndef CPPHTTPLIB_OPENSSL_SUPPORT
-        #define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
-    #endif
+#   ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#       define CPPHTTPLIB_OPENSSL_SUPPORT // HTTPS 지원이 필요한 경우 활성화
+#   endif
 #endif
 
 // A C++ header-only HTTP/HTTPS server and client library
 // https://github.com/yhirose/cpp-httplib
-#include "mino/network/third-party/httplib/httplib.h"
+#include "mino/network_openssl/third-party/httplib/httplib.h"
 
-#include "mino/network/rest/httplib/get_client.hpp"
+#include "mino/network_openssl/rest/post_client.hpp"
 
-namespace mino::network::rest::httplib {
+namespace mino::network_openssl::rest {
 
-    struct get_client::impl
+    struct post_client::impl
     {
         impl() = default;
         ~impl() = default;
 
-        std::unique_ptr<::httplib::ClientImpl> client_impl;
+        // ClientImpl 대신 상위 공식 인터페이스 클래스인 Client를 사용합니다.
+        std::unique_ptr<::httplib::Client> client_impl;
 
         // helper to build full request path (base path + relative path)
         static std::string build_request_path(const std::string& base_path,
@@ -54,33 +57,23 @@ namespace mino::network::rest::httplib {
             }
             return out;
         }
-
-        static ::httplib::Params to_httplib_params(const query_params& params)
-        {
-            ::httplib::Params out;
-            for (const auto& kv : params) {
-                out.insert(std::make_pair(kv.first, kv.second));
-            }
-            return out;
-        }
     };
 
-    // Numeric mappings compatible with common libcurl CURLE_* values so 기존 classify 코드와 호환되게 설정
-    // (값은 libcurl의 정의와 동일하게 사용)
-    static constexpr int CURL_CODE_OPERATION_TIMEDOUT = 28; // CURLE_OPERATION_TIMEDOUT
-    static constexpr int CURL_CODE_PEER_FAILED_VERIFICATION = 60; // CURLE_PEER_FAILED_VERIFICATION
-    static constexpr int CURL_CODE_SSL_CONNECT_ERROR = 35; // CURLE_SSL_CONNECT_ERROR
-    static constexpr int CURL_CODE_COULDNT_RESOLVE_HOST = 6; // CURLE_COULDNT_RESOLVE_HOST
-    static constexpr int CURL_CODE_COULDNT_CONNECT = 7; // CURLE_COULDNT_CONNECT
+    // Numeric mappings compatible with common libcurl CURLE_* values
+    static constexpr int CURL_CODE_OPERATION_TIMEDOUT = 28;
+    static constexpr int CURL_CODE_PEER_FAILED_VERIFICATION = 60;
+    static constexpr int CURL_CODE_SSL_CONNECT_ERROR = 35;
+    static constexpr int CURL_CODE_COULDNT_RESOLVE_HOST = 6;
+    static constexpr int CURL_CODE_COULDNT_CONNECT = 7;
 
-    get_client::get_client()
+    post_client::post_client()
         : impl_(std::make_unique<impl>())
     {
     }
 
-    get_client::~get_client() = default;
+    post_client::~post_client() = default;
 
-    void get_client::set_server(const std::string& scheme,
+    void post_client::set_server(const std::string& scheme,
         const std::string& host,
         long port,
         const std::string& path)
@@ -92,27 +85,35 @@ namespace mino::network::rest::httplib {
         port_ = port;
         path_ = path;
 
-        // Create client_impl according to host/port.
-        // ClientImpl has constructors that accept host and port.
+        // scheme을 소문자로 안전하게 변환
+        std::string scheme_lower = scheme_;
+        std::transform(scheme_lower.begin(), scheme_lower.end(), scheme_lower.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+
+        // scheme://host:port 주소 구문을 만들어 Client 생성 (HTTP/HTTPS 자동 분기 처리 지원)
+        std::ostringstream url_oss;
+        url_oss << scheme_lower << "://" << host_;
         if (port_ > 0) {
-            impl_->client_impl = std::make_unique<::httplib::ClientImpl>(host_, static_cast<int>(port_));
-        }
-        else {
-            impl_->client_impl = std::make_unique<::httplib::ClientImpl>(host_);
+            url_oss << ":" << port_;
         }
 
-        // apply ssl verification setting if supported
+        impl_->client_impl = std::make_unique<::httplib::Client>(url_oss.str());
+
+        // 순서 변경 버그 방지: set_server가 나중에 호출되더라도 기존 타임아웃 세팅을 반영함
+        set_timeout_ms(timeout_ms_);
+
+        // SSL 검증 옵션 설정 적용
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
         impl_->client_impl->enable_server_certificate_verification(!ignore_ssl_errors_);
 #endif
     }
 
-    void get_client::set_headers(const headers& headers)
+    void post_client::set_headers(const headers& headers)
     {
         headers_ = headers;
     }
 
-    void get_client::set_timeout_ms(long timeout_ms)
+    void post_client::set_timeout_ms(long timeout_ms)
     {
         if (timeout_ms <= 0) return;
         timeout_ms_ = timeout_ms;
@@ -128,7 +129,7 @@ namespace mino::network::rest::httplib {
         impl_->client_impl->set_write_timeout(sec, usec);
     }
 
-    void get_client::set_ignore_ssl_errors(bool ignore)
+    void post_client::set_ignore_ssl_errors(bool ignore)
     {
         ignore_ssl_errors_ = ignore;
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
@@ -138,7 +139,7 @@ namespace mino::network::rest::httplib {
 #endif
     }
 
-    std::vector<std::string> get_client::build_header_lines(const headers& headers)
+    std::vector<std::string> post_client::build_header_lines(const headers& headers)
     {
         std::vector<std::string> lines;
         lines.reserve(headers.size());
@@ -151,7 +152,7 @@ namespace mino::network::rest::httplib {
         return lines;
     }
 
-    get_client::http_status get_client::to_http_status(long code)
+    post_client::http_status post_client::to_http_status(long code)
     {
         switch (code) {
         case 200: return http_status::ok;
@@ -168,7 +169,10 @@ namespace mino::network::rest::httplib {
         }
     }
 
-    get_client::response get_client::get(const query_params& query_params)
+    // ------------------------------
+    // POST
+    // ------------------------------
+    post_client::response post_client::post(const std::string& body_str)
     {
         response resp;
 
@@ -177,15 +181,27 @@ namespace mino::network::rest::httplib {
             return resp;
         }
 
-        // Build request path (base path + resource)
+        // Build request path (base path)
         std::string req_path = impl::build_request_path(path_, std::string());
 
-        // Convert params and headers
-        auto params = impl::to_httplib_params(query_params);
+        // Convert headers
         auto h = impl::to_httplib_headers(headers_);
 
-        // Perform GET
-        auto result = impl_->client_impl->Get(req_path, params, h);
+        // 요청용 Content-Type 추출 (대소문자 무관하게 처리하기 위해 안전하게 검색)
+        std::string content_type = "text/plain";
+        for (const auto& kv : h) {
+            if (kv.first.size() == 12) {
+                bool match = std::equal(kv.first.begin(), kv.first.end(), "Content-Type",
+                    [](char a, char b) { return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b)); });
+                if (match) {
+                    content_type = kv.second;
+                    break;
+                }
+            }
+        }
+
+        // Perform POST with headers + body + content_type
+        auto result = impl_->client_impl->Post(req_path, h, body_str, content_type);
 
         if (!result) {
             // Error occurred
@@ -193,40 +209,24 @@ namespace mino::network::rest::httplib {
             // Map httplib::Error to curl-like numeric codes for compatibility
             switch (result.error()) {
             case ::httplib::Error::Connection:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
             case ::httplib::Error::BindIPAddress:
+            case ::httplib::Error::Write:
+            case ::httplib::Error::ExceedRedirectCount:
+            case ::httplib::Error::Canceled:
+            case ::httplib::Error::UnsupportedMultipartBoundaryChars:
+            case ::httplib::Error::Compression:
                 resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
                 break;
             case ::httplib::Error::Read:
-                resp.curl_error_code = CURL_CODE_OPERATION_TIMEDOUT; // best-effort
-                break;
-            case ::httplib::Error::Write:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
-            case ::httplib::Error::ExceedRedirectCount:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
-            case ::httplib::Error::Canceled:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
+            case ::httplib::Error::ConnectionTimeout:
+                resp.curl_error_code = CURL_CODE_OPERATION_TIMEDOUT;
                 break;
             case ::httplib::Error::SSLConnection:
                 resp.curl_error_code = CURL_CODE_SSL_CONNECT_ERROR;
                 break;
             case ::httplib::Error::SSLLoadingCerts:
-                resp.curl_error_code = CURL_CODE_PEER_FAILED_VERIFICATION;
-                break;
             case ::httplib::Error::SSLServerVerification:
                 resp.curl_error_code = CURL_CODE_PEER_FAILED_VERIFICATION;
-                break;
-            case ::httplib::Error::UnsupportedMultipartBoundaryChars:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
-            case ::httplib::Error::Compression:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
-            case ::httplib::Error::ConnectionTimeout:
-                resp.curl_error_code = CURL_CODE_OPERATION_TIMEDOUT;
                 break;
             default:
                 resp.curl_error_code = 1;
@@ -235,35 +235,27 @@ namespace mino::network::rest::httplib {
             return resp;
         }
 
+        // 결과 응답 매핑
         const ::httplib::Response& r = result.value();
 
         resp.raw_status_code = r.status;
         resp.status = to_http_status(r.status);
         resp.body = r.body;
 
-        // headers: convert multimap to vector lines and find Content-Type
-        for (const auto& kv : r.headers) {
-            std::string line = kv.first + ": " + kv.second;
-            resp.headers.push_back(line);
-            if (!resp.content_type.empty()) continue;
-            const std::string key = "Content-Type";
-            if (kv.first.size() >= key.size() &&
-                std::equal(key.begin(), key.end(), kv.first.begin(),
-                    [](char a, char b) { return std::tolower(a) == std::tolower(b); })) {
-                resp.content_type = kv.second;
-            }
+        // 서버에서 받아온 진짜 응답 헤더(Response Headers) 파싱 및 저장 (버그 수정)
+        for (const auto& header : r.headers) {
+            resp.headers.push_back(header.first + ": " + header.second);
+        }
+
+        // 응답 본문의 Content-Type 추출 및 저장
+        if (r.has_header("Content-Type")) {
+            resp.content_type = r.get_header_value("Content-Type");
         }
 
         return resp;
     }
 
-    get_client::result_code get_client::get(const query_params& query_params, response& out_resp) noexcept
-    {
-        out_resp = get(query_params);
-        return classify(out_resp);
-    }
-
-    get_client::result_code get_client::classify(const response& r)
+    post_client::result_code post_client::classify(const response& r)
     {
         if (!r.error.empty()) {
             if (r.curl_error_code == CURL_CODE_OPERATION_TIMEDOUT)
@@ -301,4 +293,14 @@ namespace mino::network::rest::httplib {
         return result_code::unknown_error;
     }
 
-} // namespace mino::network::rest::httplib
+    // ------------------------------
+    // POST (noexcept version)
+    // ------------------------------
+    post_client::result_code
+        post_client::post(const std::string& body_str, response& out_resp) noexcept
+    {
+        out_resp = post(body_str);
+        return classify(out_resp);
+    }
+
+}

@@ -6,7 +6,7 @@
 #include <mutex>
 #include <memory>
 
-namespace mino::network::rest::httplib {
+namespace mino::network_openssl::rest {
 
     class get_client
     {

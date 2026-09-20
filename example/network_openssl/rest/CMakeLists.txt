@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(network_rest_httplib_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "network_rest_httplib_example")
+project(networkopenssl_rest_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "networkopenssl_rest_example")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
@@ -29,6 +29,9 @@ else()
     else()
         message(FATAL_ERROR "Please check MINO_DIR path.")
     endif()
-endif() 
+endif()
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
 use_mino_network(${EXE_NAME} "${MINO_DIR}")
+use_mino_network_openssl(${EXE_NAME} "${MINO_DIR}")
+
 

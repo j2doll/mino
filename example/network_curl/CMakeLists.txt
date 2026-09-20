@@ -6,6 +6,7 @@ add_subdirectory(file-downloader)
 add_subdirectory(ftp)
 add_subdirectory(multipart-downloader)
 add_subdirectory(rest)
+add_subdirectory(socket-io)
 add_subdirectory(ws)
 
 
