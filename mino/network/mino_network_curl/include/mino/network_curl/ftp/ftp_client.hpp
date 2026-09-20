@@ -13,7 +13,7 @@
 
 typedef void CURL;
 
-namespace mino::network::ftp::curl {
+namespace mino::network_curl::ftp {
 
     // CURL이 지원하는 프로토콜을 반환하는 함수 (디버깅용)
     std::string get_curl_supported_protocols();
@@ -167,6 +167,7 @@ namespace mino::network::ftp::curl {
         bool create_directory(const std::string& path) override;
         bool remove_directory(const std::string& path) override;
     };
-}  
+
+}  // namespace mino::network_curl::ftp
 
 #endif // USE_CURL

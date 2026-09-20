@@ -177,7 +177,6 @@
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [tcp](example/network/ftp/tcp/main.cpp) 
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
@@ -288,6 +287,8 @@
 ##### 🔀 [network_curl](example/network_curl) : `libcurl` 관련 예제    
 - 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
     - [file-downloader](example/network_curl/file-downloader/main.cpp)
+- 🔀 `ftp`/`sftp` 클라이언트
+    - [ftp](example/network_curl/ftp/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  

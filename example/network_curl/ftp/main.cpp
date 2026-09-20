@@ -8,7 +8,8 @@
 #include "mino/core/string/string.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/ftp/curl/ftp_client.hpp"
+
+#include "mino/network_curl/ftp/ftp_client.hpp" 
 
 // 콘솔 출력 헬퍼 및 함수 포인터 정의
 const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -18,7 +19,7 @@ auto tce = mino::core::string::to_console_encoding;
 
 // 직접 정의하는 커스텀 진행 현황 리스너
 class custom_progress_listener
-    : public mino::network::ftp::curl::i_progress_listener
+    : public mino::network_curl::ftp::i_progress_listener 
 {
 public:
     void on_progress(std::int64_t dlnow, std::int64_t dltotal,
@@ -55,7 +56,8 @@ public:
 int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
-    namespace mnfcurl = mino::network::ftp::curl;
+    namespace mnfcurl = mino::network_curl::ftp;
+
     using ftp_client = mnfcurl::ftp_client;
     using sftp_client = mnfcurl::sftp_client;
     using filtered_progress_listener = mnfcurl::filtered_progress_listener;
