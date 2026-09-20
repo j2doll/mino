@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Dependencies
 find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
-
+ 
 set(MINO_BROTLI_AVAILABLE FALSE)
 if(DEFINED VCPKG_ROOT OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
     find_package(unofficial-brotli CONFIG REQUIRED)

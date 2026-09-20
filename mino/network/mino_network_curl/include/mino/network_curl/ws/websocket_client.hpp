@@ -12,7 +12,7 @@
 // libcurl 내부 타입 전방 선언
 typedef void CURL;
 
-namespace mino::network::ws {
+namespace mino::network_curl::ws {
 
     // 웹소켓 프레임 타입
     enum class ws_frame_type {

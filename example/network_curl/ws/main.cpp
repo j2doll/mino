@@ -1,3 +1,5 @@
+#ifdef USE_CURL
+
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -6,11 +8,10 @@
 #include "mino/core/datetime/datetime.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/ws/ws.hpp"
 
-#ifdef USE_CURL
+#include "mino/network_curl/ws/ws.hpp"
 
-class custom_event_listener : public mino::network::ws::ws_event_listener {
+class custom_event_listener : public mino::network_curl::ws::ws_event_listener {
 public:
     void on_connected() override {
         namespace dtutil = mino::core::datetime::util;
@@ -49,14 +50,14 @@ public:
 int main() {
     mino::network::sock mnsock;
 
-    namespace mnws = mino::network::ws;
+    namespace mnws = mino::network_curl::ws;
     using ws_client = mnws::ws_client;
     using wss_client = mnws::wss_client;
     using ws_connection_config = mnws::ws_connection_config;
     using ws_callbacks = mnws::ws_callbacks;
 
-    bool testWss = false;  // wss 연동 테스트 여부
-    bool testWs  = true;   // ws 연동 테스트 여부
+    bool testWss = false; // wss 연동 테스트 여부
+    bool testWs  = true; // ws 연동 테스트 여부
 
     // 1. wss_client + 클래스 리스너 사용 예시
     if (testWss) {

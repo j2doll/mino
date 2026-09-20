@@ -7,13 +7,13 @@
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 
-#include "mino/network/ws/websocket_client.hpp"
+#include "mino/network_curl/ws/websocket_client.hpp"
 
 #include <random>
 #include <sstream>
 #include <chrono>
 
-namespace mino::network::ws {
+namespace mino::network_curl::ws {
 
     // -----------------------------------------------------------------------------
     // websocket_client_base 구현
