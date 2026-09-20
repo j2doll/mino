@@ -175,7 +175,7 @@
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
+    - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [tcp](example/network/ftp/tcp/main.cpp) 
 - 🔀 [interface](example/network/interface/main.cpp)
