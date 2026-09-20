@@ -180,7 +180,7 @@
     - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> 
+    - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [tcp](example/network/ftp/tcp/main.cpp) 
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
