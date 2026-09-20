@@ -278,13 +278,13 @@
 
 <br />
 
-##### 🔀 [network_libssh2](example/network_libssh2) : `libssh2` 관련 예제    
+##### 🔀 [network_libssh2](example/network_libssh2) <sub> `libssh2` 사용 </sub>
 - 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
     - [ssh2](example/network_libssh2/ssh2/main.cpp)
 
 <br />
 
-##### 🔀 [network_curl](example/network_curl) : `libcurl` 관련 예제    
+##### 🔀 [network_curl](example/network_curl) <sub> `libcurl` 사용 </sub>
 - 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
     - [file-downloader](example/network_curl/file-downloader/main.cpp)
 - 🔀 `ftp`/`sftp` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
