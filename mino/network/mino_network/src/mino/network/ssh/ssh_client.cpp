@@ -3,6 +3,7 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include <cstring>
 
 #include "mino/core/encoding/base64.hpp"
 #include "mino/network/ssh/ssh_client.hpp"
@@ -17,6 +18,10 @@ namespace mino::network::ssh {
             - 1
 #endif
         ) {
+#ifdef _WIN32
+        WSADATA wsa;
+        WSAStartup(MAKEWORD(2, 2), &wsa);
+#endif
     }
 
     ssh_client::~ssh_client() {
@@ -126,6 +131,19 @@ namespace mino::network::ssh {
 
         set_state(session_state::disconnected);
         clear_rx_queue();
+
+        {
+            std::lock_guard<std::mutex> lock(channel_rx_mutex_);
+            channel_rx_buf_.clear();
+        }
+        channel_rx_cv_.notify_all();
+
+        {
+            std::lock_guard<std::mutex> lock(channel_req_mutex_);
+            channel_req_done_ = true;
+            channel_req_success_ = false;
+        }
+        channel_req_cv_.notify_all();
     }
 
     bool ssh_client::establish_tcp() {
@@ -186,9 +204,9 @@ namespace mino::network::ssh {
             }
         }
         if (logger_)
-            logger_->info("[ssh_client] Receive server banner: <bright_cyan>{}</bright_cyan>", server_banner_);
+            logger_->info("[ssh_client] Receive server banner: {}", server_banner_);
 
-        // 1. KEXINIT 송신
+        // 1. KEXINIT
         ssh_buffer kex;
         kex.write_byte(20);
         for (int i = 0; i < 16; ++i) kex.write_byte(0x55);
@@ -208,11 +226,10 @@ namespace mino::network::ssh {
         client_kexinit_payload_ = kex.data();
         send_packet(kex);
 
-        // 2. KEXINIT 수신
         auto kex_recv = recv_packet();
         server_kexinit_payload_ = kex_recv.data();
 
-        // 3. X25519 ECDH 키 생성 및 송신
+        // 2. ECDH Key Exchange
         uint8_t priv_c[32], pub_c[32], base[32] = { 9 };
         std::mt19937_64 rng(1337);
         for (int i = 0; i < 32; ++i) priv_c[i] = static_cast<uint8_t>(rng());
@@ -235,15 +252,12 @@ namespace mino::network::ssh {
         std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
         std::string fingerprint = "SHA256:" + mino::core::encoding::base64_encode(hkh_vec);
         if (logger_)
-            logger_->info("[ssh_client] Host fingerprint verification: <bright_yellow>{}</bright_yellow>", fingerprint);
+            logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
 
-        if (host_key_verifier_cb_) {
-            if (!host_key_verifier_cb_(host_, fingerprint)) {
-                throw std::runtime_error("Host key fingerprint verification was rejected.");
-            }
+        if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
+            throw std::runtime_error("Host key fingerprint verification was rejected.");
         }
 
-        // 4. 공유 비밀키 K 계산 (RFC 8731: X25519 32바이트 출력값을 역전 없이 그대로 Big-Endian mpint로 인코딩)
         std::vector<uint8_t> K(32);
         mino::core::crypt::x25519::curve25519(K.data(), priv_c, pub_s.data());
 
@@ -262,7 +276,7 @@ namespace mino::network::ssh {
         auto H = mino::core::crypt::sha256::hash(h_buf.data().data(), h_buf.size());
         if (session_id_.empty()) session_id_.assign(H.begin(), H.end());
 
-        // 5. NEWKEYS 교환
+        // 3. NEWKEYS
         ssh_buffer newkeys;
         newkeys.write_byte(21);
         send_packet(newkeys);
@@ -284,10 +298,8 @@ namespace mino::network::ssh {
         std::memcpy(mac_key_in_.data(), mac_s2c.data(), 32);
 
         keys_activated_ = true;
-        if (logger_)
-            logger_->info("[ssh_client] Encryption tunnel activation completed <bright_green>(AES-128-CTR / HMAC-SHA256)</bright_green>");
 
-        // 6. Userauth
+        // 4. Userauth
         ssh_buffer srv;
         srv.write_byte(5);
         srv.write_string("ssh-userauth");
@@ -310,13 +322,13 @@ namespace mino::network::ssh {
         if (auth_resp.read_byte() != 52)
             throw std::runtime_error("User password authentication failed");
 
-        // 7. Session Channel Open
+        // 5. Session Channel Open
         ssh_buffer ch_open;
-        ch_open.write_byte(90);
+        ch_open.write_byte(90); // SSH_MSG_CHANNEL_OPEN
         ch_open.write_string("session");
         ch_open.write_uint32(0);
-        ch_open.write_uint32(2 * 1024 * 1024);
-        ch_open.write_uint32(32768);
+        ch_open.write_uint32(2 * 1024 * 1024); // 2MB initial window
+        ch_open.write_uint32(32768);            // 32KB max packet
         send_packet(ch_open);
 
         auto open_resp = recv_packet();
@@ -326,8 +338,6 @@ namespace mino::network::ssh {
         remote_channel_id_ = open_resp.read_uint32();
 
         set_state(session_state::authenticated);
-        if (logger_)
-            logger_->info("[ssh_client] SSH tunnel and session channel opening succeeded. User: <bright_green>{}</bright_green>", username_);
     }
 
     void ssh_client::send_packet(const ssh_buffer& payload_buf) {
@@ -335,7 +345,6 @@ namespace mino::network::ssh {
         const auto& payload = payload_buf.data();
         size_t block_size = keys_activated_ ? 16 : 8;
 
-        // RFC 4253 Section 6: (4 [packet_length] + 1 [padding_length] + payload + pad_len) % block_size == 0
         size_t unpadded = 4 + 1 + payload.size();
         size_t pad_len = block_size - (unpadded % block_size);
         if (pad_len < 4) {
@@ -413,6 +422,14 @@ namespace mino::network::ssh {
         return ssh_buffer(std::vector<uint8_t>(body.begin() + 1, body.begin() + 1 + payload_len));
     }
 
+    void ssh_client::send_window_adjust(uint32_t bytes_to_add) {
+        ssh_buffer adj;
+        adj.write_byte(93); // SSH_MSG_CHANNEL_WINDOW_ADJUST
+        adj.write_uint32(remote_channel_id_);
+        adj.write_uint32(bytes_to_add);
+        send_packet(adj);
+    }
+
     void ssh_client::receive_loop() {
         while (!stop_flag_ && is_connected()) {
             try {
@@ -420,9 +437,21 @@ namespace mino::network::ssh {
                 uint8_t type = p.read_byte();
 
                 switch (type) {
-                case 94: { // SSH_MSG_CHANNEL_DATA (stdout)
+                case 94: { // SSH_MSG_CHANNEL_DATA
                     uint32_t ch_id = p.read_uint32();
                     std::string data = p.read_string();
+
+                    // 1. Replenish window so large file transfers never block
+                    send_window_adjust(static_cast<uint32_t>(data.size()));
+
+                    // 2. Feed binary buffer for SFTP
+                    {
+                        std::lock_guard<std::mutex> lock(channel_rx_mutex_);
+                        channel_rx_buf_.insert(channel_rx_buf_.end(), data.begin(), data.end());
+                    }
+                    channel_rx_cv_.notify_all();
+
+                    // 3. Keep existing stdout event queue working
                     {
                         std::lock_guard<std::mutex> lock(rx_queue_mutex_);
                         rx_queue_.push({ rx_event_type::stdout_data, ch_id, std::move(data) });
@@ -430,10 +459,13 @@ namespace mino::network::ssh {
                     rx_cv_.notify_one();
                     break;
                 }
-                case 95: { // SSH_MSG_CHANNEL_EXTENDED_DATA (stderr)
+                case 95: { // SSH_MSG_CHANNEL_EXTENDED_DATA
                     uint32_t ch_id = p.read_uint32();
                     uint32_t code = p.read_uint32();
                     std::string data = p.read_string();
+
+                    send_window_adjust(static_cast<uint32_t>(data.size()));
+
                     {
                         std::lock_guard<std::mutex> lock(rx_queue_mutex_);
                         rx_queue_.push({ rx_event_type::stderr_data, ch_id, std::move(data) });
@@ -441,7 +473,25 @@ namespace mino::network::ssh {
                     rx_cv_.notify_one();
                     break;
                 }
-                case 80: { // SSH_MSG_GLOBAL_REQUEST (Keepalive ping)
+                case 99: { // SSH_MSG_CHANNEL_SUCCESS
+                    {
+                        std::lock_guard<std::mutex> lock(channel_req_mutex_);
+                        channel_req_success_ = true;
+                        channel_req_done_ = true;
+                    }
+                    channel_req_cv_.notify_all();
+                    break;
+                }
+                case 100: { // SSH_MSG_CHANNEL_FAILURE
+                    {
+                        std::lock_guard<std::mutex> lock(channel_req_mutex_);
+                        channel_req_success_ = false;
+                        channel_req_done_ = true;
+                    }
+                    channel_req_cv_.notify_all();
+                    break;
+                }
+                case 80: { // SSH_MSG_GLOBAL_REQUEST
                     std::string req_name = p.read_string();
                     uint8_t want_reply = p.read_byte();
                     if (want_reply) {
@@ -454,8 +504,6 @@ namespace mino::network::ssh {
                 case 1: { // SSH_MSG_DISCONNECT
                     uint32_t reason = p.read_uint32();
                     std::string desc = p.read_string();
-                    if (logger_)
-                        logger_->warn("[ssh_client] Receive a session termination notification from the server: <bright_yellow>{}</bright_yellow>", desc);
                     reset_session_state();
                     if (on_disconnect_cb_) on_disconnect_cb_(reason, desc);
                     break;
@@ -466,7 +514,6 @@ namespace mino::network::ssh {
             }
             catch (const std::exception& e) {
                 if (!stop_flag_) {
-                    if (logger_) logger_->warn("[ssh_client] Receive error occurs: <bright_yellow>{}</bright_yellow>", e.what());
                     reset_session_state();
                     if (on_disconnect_cb_) on_disconnect_cb_(0, e.what());
                 }
@@ -494,19 +541,14 @@ namespace mino::network::ssh {
             }
 
             try {
-                if (ev.type == rx_event_type::stdout_data) {
-                    if (on_stdout_cb_) on_stdout_cb_(ev.channel_id, ev.data);
+                if (ev.type == rx_event_type::stdout_data && on_stdout_cb_) {
+                    on_stdout_cb_(ev.channel_id, ev.data);
                 }
-                else if (ev.type == rx_event_type::stderr_data) {
-                    if (on_stderr_cb_) on_stderr_cb_(ev.channel_id, ev.data);
+                else if (ev.type == rx_event_type::stderr_data && on_stderr_cb_) {
+                    on_stderr_cb_(ev.channel_id, ev.data);
                 }
             }
-            catch (const std::exception& ex) {
-                if (logger_) logger_->error("[ssh_client] Receive dispatch callback exception: {}", ex.what());
-            }
-            catch (...) {
-                if (logger_) logger_->error("[ssh_client] Receive dispatch callback unknown exception occurred");
-            }
+            catch (...) {}
         }
     }
 
@@ -514,43 +556,27 @@ namespace mino::network::ssh {
         int attempts = 0;
         while (!stop_flag_) {
             reset_session_state();
-            if (logger_)
-                logger_->info("[ssh_client] Attempting to connect to server: {}:{}", host_, port_);
 
             if (establish_tcp()) {
                 try {
                     do_handshake();
                     attempts = 0;
                     if (on_authenticated_cb_) on_authenticated_cb_();
-
                     receive_loop();
                 }
-                catch (const std::exception& e) {
-                    if (logger_)
-                        logger_->error("[ssh_client] Handshake failed: <bright_red>{}</bright_red>", e.what());
+                catch (...) {
                     reset_session_state();
                 }
-            }
-            else {
-                if (logger_)
-                    logger_->warn("[ssh_client] TCP socket connection failed: {}:{}", host_, port_);
             }
 
             if (stop_flag_ || !policy_.enabled) break;
 
             attempts++;
-            if (policy_.max_retries >= 0 && attempts > policy_.max_retries) {
-                if (logger_)
-                    logger_->critical("[ssh_client] Maximum retry attempts exceeded. Stopping reconnection. (Max: {})", policy_.max_retries);
-                break;
-            }
+            if (policy_.max_retries >= 0 && attempts > policy_.max_retries) break;
 
             double factor = std::pow(policy_.backoff_multiplier, attempts - 1);
             auto delay_ms = std::chrono::duration_cast<std::chrono::milliseconds>(policy_.initial_delay * factor);
             if (delay_ms > policy_.max_delay) delay_ms = policy_.max_delay;
-
-            if (logger_)
-                logger_->warn("[ssh_client] Attempting to reconnect in {}ms. (Attempt #{})", delay_ms.count(), attempts);
 
             auto start_wait = std::chrono::steady_clock::now();
             while (!stop_flag_ && (std::chrono::steady_clock::now() - start_wait < delay_ms)) {
@@ -587,6 +613,80 @@ namespace mino::network::ssh {
         }
     }
 
+    bool ssh_client::connect_sync(const std::string& host, uint16_t port,
+        const std::string& username, const std::string& password,
+        std::chrono::milliseconds timeout) {
+        stop();
+        stop_flag_ = false;
+        set_server(host, port);
+        set_user(username);
+        set_password(password);
+        policy_.enabled = false;
+
+        if (!establish_tcp()) return false;
+        try {
+            do_handshake();
+        }
+        catch (...) {
+            reset_session_state();
+            return false;
+        }
+
+        // Spawn receive thread
+        worker_thread_ = std::thread([this]() { receive_loop(); });
+        return true;
+    }
+
+    bool ssh_client::request_subsystem(const std::string& subsystem, std::chrono::milliseconds timeout) {
+        if (!is_authenticated()) return false;
+        {
+            std::lock_guard<std::mutex> lock(channel_req_mutex_);
+            channel_req_done_ = false;
+            channel_req_success_ = false;
+        }
+
+        ssh_buffer req;
+        req.write_byte(98); // SSH_MSG_CHANNEL_REQUEST
+        req.write_uint32(remote_channel_id_);
+        req.write_string("subsystem");
+        req.write_byte(1); // want_reply = true
+        req.write_string(subsystem);
+        send_packet(req);
+
+        std::unique_lock<std::mutex> lock(channel_req_mutex_);
+        if (!channel_req_cv_.wait_for(lock, timeout, [this]() { return channel_req_done_.load(); })) {
+            return false;
+        }
+        return channel_req_success_.load();
+    }
+
+    void ssh_client::send_channel_data(const uint8_t* data, size_t len) {
+        if (!is_authenticated()) return;
+        ssh_buffer req;
+        req.write_byte(94); // SSH_MSG_CHANNEL_DATA
+        req.write_uint32(remote_channel_id_);
+        req.write_bytes(data, len);
+        send_packet(req);
+    }
+
+    void ssh_client::send_channel_data(const std::string& data) {
+        send_channel_data(reinterpret_cast<const uint8_t*>(data.data()), data.size());
+    }
+
+    bool ssh_client::recv_channel_exact(uint8_t* out, size_t len, std::chrono::milliseconds timeout) {
+        auto deadline = std::chrono::steady_clock::now() + timeout;
+        std::unique_lock<std::mutex> lock(channel_rx_mutex_);
+        while (channel_rx_buf_.size() < len) {
+            if (stop_flag_ || !is_connected()) return false;
+            if (channel_rx_cv_.wait_until(lock, deadline) == std::cv_status::timeout) {
+                return false;
+            }
+        }
+        std::memcpy(out, channel_rx_buf_.data(), len);
+        channel_rx_buf_.erase(channel_rx_buf_.begin(), channel_rx_buf_.begin() + len);
+        return true;
+    }
+
     void ssh_client::execute_command(const std::string& cmd) {
         if (!is_authenticated()) return;
         ssh_buffer req;
@@ -595,15 +695,6 @@ namespace mino::network::ssh {
         req.write_string("exec");
         req.write_byte(1);
         req.write_string(cmd);
-        send_packet(req);
-    }
-
-    void ssh_client::send_channel_data(const std::string& data) {
-        if (!is_authenticated()) return;
-        ssh_buffer req;
-        req.write_byte(94);
-        req.write_uint32(remote_channel_id_);
-        req.write_string(data);
         send_packet(req);
     }
 

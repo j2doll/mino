@@ -22,6 +22,7 @@ namespace mino::network::ssh {
 
         void write_byte(uint8_t b);
         void write_uint32(uint32_t val);
+        void write_uint64(uint64_t val);
         void write_string(const std::string& str);
         void write_bytes(const uint8_t* b, size_t len);
         void write_raw(const uint8_t* b, size_t len);
@@ -29,6 +30,7 @@ namespace mino::network::ssh {
 
         uint8_t read_byte();
         uint32_t read_uint32();
+        uint64_t read_uint64();
         std::string read_string();
         std::vector<uint8_t> read_bytes();
     };

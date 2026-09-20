@@ -56,7 +56,6 @@ namespace mino::network::ssh {
         using state_callback = std::function<void(session_state state)>;
 
     private:
-        // mino::network::socket_t sock_fd_;
         socket_t sock_fd_;
 
         std::string host_{ "127.0.0.1" };
@@ -93,6 +92,17 @@ namespace mino::network::ssh {
         std::condition_variable rx_cv_;
         std::thread rx_dispatch_thread_;
         std::thread worker_thread_;
+
+        // Binary channel RX stream buffer (for SFTP)
+        std::vector<uint8_t> channel_rx_buf_;
+        std::mutex channel_rx_mutex_;
+        std::condition_variable channel_rx_cv_;
+
+        // Subsystem request synchronization
+        std::atomic<bool> channel_req_done_{ false };
+        std::atomic<bool> channel_req_success_{ false };
+        std::mutex channel_req_mutex_;
+        std::condition_variable channel_req_cv_;
 
         std::shared_ptr<mino::core::log::tinylog::logger> logger_;
 
@@ -146,8 +156,21 @@ namespace mino::network::ssh {
         bool start();
         void stop();
 
-        void execute_command(const std::string& cmd);
+        // Synchronous interface for FTP/SFTP clients
+        bool connect_sync(const std::string& host, uint16_t port,
+            const std::string& username, const std::string& password,
+            std::chrono::milliseconds timeout = std::chrono::milliseconds(10000));
+
+        bool request_subsystem(const std::string& subsystem,
+            std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
+
+        void send_window_adjust(uint32_t bytes_to_add);
+        void send_channel_data(const uint8_t* data, size_t len);
         void send_channel_data(const std::string& data);
+        bool recv_channel_exact(uint8_t* out, size_t len,
+            std::chrono::milliseconds timeout = std::chrono::milliseconds(10000));
+
+        void execute_command(const std::string& cmd);
     };
 
 } // namespace mino::network::ssh

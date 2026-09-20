@@ -10,25 +10,23 @@
 #include <cstdint>
 #include <mutex>
 #include <condition_variable>
-
-#ifdef USE_OPENSSL
-    typedef struct ssl_ctx_st SSL_CTX;
-    typedef struct ssl_st SSL;
-#endif
-
-// libssh2 구조체 전방 선언
-struct _LIBSSH2_SESSION;
-struct _LIBSSH2_SFTP;
+#include <atomic>
 
 #include "mino/network/tcp/tcp_client.hpp"
+
+// Forward declaration for custom SSH/SFTP
+namespace mino::network::ssh {
+    class ssh_client;
+    class ssh_buffer;
+}
 
 namespace mino::network::ftp::tcp {
 
     // 파일 정보 구조체
     struct file_info {
-        std::string name;        // 파일 또는 디렉토리 이름
-        long size;               // 파일 크기 (바이트 단위, 디렉토리인 경우 0)
-        bool is_directory;       // 디렉토리 여부 (true: 디렉토리, false: 파일)
+        std::string name;
+        std::int64_t size{ 0 };   // 64비트 파일 크기
+        bool is_directory{ false };
     };
 
     // Progress listener interface
@@ -94,11 +92,6 @@ namespace mino::network::ftp::tcp {
 
         std::unique_ptr<mino::network::tcp::tcp_client> control_client;
 
-#ifdef USE_OPENSSL
-        SSL_CTX* ssl_ctx{ nullptr };
-        SSL* ssl{ nullptr };
-#endif
-
     public:
         ftp_client_base();
         virtual ~ftp_client_base();
@@ -141,13 +134,18 @@ namespace mino::network::ftp::tcp {
         bool remove_directory(const std::string& path) override;
     };
 
-    // SFTP client class
+    // Pure C++ SFTP client class (No libssh2)
     class sftp_client : public ftp_client_base {
     private:
-        int socket_fd{ -1 };
-        struct _LIBSSH2_SESSION* session{ nullptr };
-        struct _LIBSSH2_SFTP* sftp_session{ nullptr };
+        std::unique_ptr<mino::network::ssh::ssh_client> ssh_;
+        std::atomic<uint32_t> req_id_{ 1 };
 
+        uint32_t next_id() { return req_id_++; }
+        void send_sftp_packet(const mino::network::ssh::ssh_buffer& payload);
+        mino::network::ssh::ssh_buffer recv_sftp_packet(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
+        std::string sftp_open(const std::string& path, uint32_t flags, uint32_t mode);
+        bool sftp_close(const std::string& handle);
+        std::int64_t sftp_fstat_size(const std::string& handle);
         void cleanup();
 
     public:
@@ -166,5 +164,4 @@ namespace mino::network::ftp::tcp {
         bool remove_directory(const std::string& path) override;
     };
 
-}
-
+} // namespace mino::network::ftp::tcp

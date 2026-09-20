@@ -1,5 +1,3 @@
-#ifdef USE_CURL
-
 #include <cstdint>
 #include <string>
 #include <sstream>
@@ -10,36 +8,16 @@
 #include <thread>
 #include <chrono>
 
-#ifdef _WIN32
-#   include <winsock2.h>
-#   include <ws2tcpip.h>
-#else
-#   include <sys/socket.h>
-#   include <netinet/in.h>
-#   include <arpa/inet.h>
-#   include <unistd.h>
-#   include <netdb.h>
-#endif
-
-#include <libssh2.h>
-#include <libssh2_sftp.h>
-
-#ifdef USE_OPENSSL
-#   include <openssl/ssl.h>
-#   include <openssl/err.h>
-#endif
-
 #include "mino/network/ftp/tcp/ftp_client.hpp"
+#include "mino/network/ssh/ssh_client.hpp"
+#include "mino/network/ssh/ssh_buffer.hpp"
 
 using namespace mino::network::ftp::tcp;
 
 // --- default_progress_listener implementation ---
 void default_progress_listener::on_progress(std::int64_t dlnow, std::int64_t dltotal,
     std::int64_t ulnow, std::int64_t ultotal) {
-    if (dlnow < 0 || dltotal < 0 || ulnow < 0 || ultotal < 0) {
-        std::cout << "[Default] Progress: [Invalid data]\n";
-        return;
-    }
+    if (dlnow < 0 || dltotal < 0 || ulnow < 0 || ultotal < 0) return;
 
     if (dltotal > 0) {
         double pct = (static_cast<double>(dlnow) / dltotal) * 100.0;
@@ -143,32 +121,17 @@ ftp_client_base::ftp_client_base()
             }
         }
         });
-
-#ifdef USE_OPENSSL
-    static bool ssl_initialized = false;
-    if (!ssl_initialized) {
-        SSL_library_init();
-        OpenSSL_add_all_algorithms();
-        SSL_load_error_strings();
-        ssl_initialized = true;
-    }
-#endif
 }
 
 ftp_client_base::~ftp_client_base() {
     if (control_client) {
         control_client->stop();
     }
-#ifdef USE_OPENSSL
-    if (ssl) { SSL_free(ssl); }
-    if (ssl_ctx) { SSL_CTX_free(ssl_ctx); }
-#endif
 }
 
 std::string ftp_client_base::get_last_error() const { return last_error; }
 void ftp_client_base::set_progress_listener(i_progress_listener* listener) { progress_listener = listener; }
 void ftp_client_base::remove_progress_listener() { progress_listener = nullptr; }
-
 
 // --- ftp_client Real Implementation ---
 ftp_client::ftp_client() = default;
@@ -418,7 +381,7 @@ std::vector<file_info> ftp_client::list_directory(const std::string& path) {
             if (!name.empty() && name.back() == '\r') name.pop_back();
 
             info.name = name;
-            try { info.size = info.is_directory ? 0 : std::stol(size_str); }
+            try { info.size = info.is_directory ? 0 : std::stoll(size_str); }
             catch (...) { info.size = 0; }
             if (!info.name.empty() && info.name != "." && info.name != "..") {
                 results.push_back(info);
@@ -439,90 +402,168 @@ bool ftp_client::remove_directory(const std::string& path) {
 }
 
 
-// --- sftp_client Implementation (libssh2) ---
-sftp_client::sftp_client() {
-    static bool libssh2_initialized = false;
-    if (!libssh2_initialized) {
-        libssh2_init(0);
-        libssh2_initialized = true;
-    }
+// --- SFTP v3 Protocol Constants ---
+namespace {
+    constexpr uint8_t SSH_FXP_INIT = 1;
+    constexpr uint8_t SSH_FXP_VERSION = 2;
+    constexpr uint8_t SSH_FXP_OPEN = 3;
+    constexpr uint8_t SSH_FXP_CLOSE = 4;
+    constexpr uint8_t SSH_FXP_READ = 5;
+    constexpr uint8_t SSH_FXP_WRITE = 6;
+    constexpr uint8_t SSH_FXP_FSTAT = 8;
+    constexpr uint8_t SSH_FXP_OPENDIR = 11;
+    constexpr uint8_t SSH_FXP_READDIR = 12;
+    constexpr uint8_t SSH_FXP_REMOVE = 13;
+    constexpr uint8_t SSH_FXP_MKDIR = 14;
+    constexpr uint8_t SSH_FXP_RMDIR = 15;
+
+    constexpr uint8_t SSH_FXP_STATUS = 101;
+    constexpr uint8_t SSH_FXP_HANDLE = 102;
+    constexpr uint8_t SSH_FXP_DATA = 103;
+    constexpr uint8_t SSH_FXP_NAME = 104;
+    constexpr uint8_t SSH_FXP_ATTRS = 105;
+
+    constexpr uint32_t SSH_FX_OK = 0;
+    constexpr uint32_t SSH_FX_EOF = 1;
+
+    constexpr uint32_t SSH_FXF_READ = 0x00000001;
+    constexpr uint32_t SSH_FXF_WRITE = 0x00000002;
+    constexpr uint32_t SSH_FXF_CREAT = 0x00000008;
+    constexpr uint32_t SSH_FXF_TRUNC = 0x00000010;
+
+    constexpr uint32_t SSH_FILEXFER_ATTR_SIZE = 0x00000001;
+    constexpr uint32_t SSH_FILEXFER_ATTR_PERMISSIONS = 0x00000004;
 }
 
-sftp_client::~sftp_client() {
-    cleanup();
-}
+// --- sftp_client Implementation (Pure C++ / No libssh2) ---
+sftp_client::sftp_client() = default;
+sftp_client::~sftp_client() { cleanup(); }
 
 void sftp_client::cleanup() {
-    if (sftp_session) {
-        libssh2_sftp_shutdown(sftp_session);
-        sftp_session = nullptr;
+    if (ssh_) {
+        ssh_->stop();
+        ssh_.reset();
     }
-    if (session) {
-        libssh2_session_disconnect(session, "Normal Shutdown");
-        libssh2_session_free(session);
-        session = nullptr;
+}
+
+void sftp_client::send_sftp_packet(const mino::network::ssh::ssh_buffer& payload) {
+    if (!ssh_) return;
+    mino::network::ssh::ssh_buffer pkt;
+    pkt.write_uint32(static_cast<uint32_t>(payload.size()));
+    pkt.write_raw(payload.data().data(), payload.size());
+    ssh_->send_channel_data(pkt.data().data(), pkt.size());
+}
+
+mino::network::ssh::ssh_buffer sftp_client::recv_sftp_packet(std::chrono::milliseconds timeout) {
+    if (!ssh_) return {};
+    uint8_t len_buf[4];
+    if (!ssh_->recv_channel_exact(len_buf, 4, timeout)) {
+        return {};
     }
-    if (socket_fd >= 0) {
-#ifdef _WIN32
-        closesocket(socket_fd);
-#else
-        close(socket_fd);
-#endif
-        socket_fd = -1;
+    uint32_t len = (static_cast<uint32_t>(len_buf[0]) << 24) |
+        (static_cast<uint32_t>(len_buf[1]) << 16) |
+        (static_cast<uint32_t>(len_buf[2]) << 8) |
+        static_cast<uint32_t>(len_buf[3]);
+
+    std::vector<uint8_t> body(len);
+    if (!ssh_->recv_channel_exact(body.data(), len, timeout)) {
+        return {};
     }
+    return mino::network::ssh::ssh_buffer(std::move(body));
+}
+
+std::string sftp_client::sftp_open(const std::string& path, uint32_t flags, uint32_t mode) {
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_OPEN);
+    req.write_uint32(id);
+    req.write_string(path);
+    req.write_uint32(flags);
+    if (flags & SSH_FXF_CREAT) {
+        req.write_uint32(SSH_FILEXFER_ATTR_PERMISSIONS);
+        req.write_uint32(mode);
+    }
+    else {
+        req.write_uint32(0);
+    }
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0) return "";
+
+    uint8_t type = resp.read_byte();
+    resp.read_uint32(); // ID
+    if (type == SSH_FXP_HANDLE) {
+        return resp.read_string();
+    }
+    if (type == SSH_FXP_STATUS) {
+        uint32_t code = resp.read_uint32();
+        last_error = "SFTP OPEN rejected, status: " + std::to_string(code);
+    }
+    return "";
+}
+
+bool sftp_client::sftp_close(const std::string& handle) {
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_CLOSE);
+    req.write_uint32(id);
+    req.write_string(handle);
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) return false;
+    resp.read_uint32();
+    return (resp.read_uint32() == SSH_FX_OK);
+}
+
+std::int64_t sftp_client::sftp_fstat_size(const std::string& handle) {
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_FSTAT);
+    req.write_uint32(id);
+    req.write_string(handle);
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_ATTRS) return 0;
+    resp.read_uint32();
+    uint32_t flags = resp.read_uint32();
+    if (flags & SSH_FILEXFER_ATTR_SIZE) {
+        return static_cast<std::int64_t>(resp.read_uint64());
+    }
+    return 0;
 }
 
 bool sftp_client::connect(const std::string& host, int p, const std::string& user, const std::string& pass) {
     cleanup();
-    host_name = host; port = p; user_name = user; password = pass;
+    host_name = host;
+    port = p;
+    user_name = user;
+    password = pass;
 
-    struct addrinfo hints {}, * res = nullptr;
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    std::string port_str = std::to_string(port);
-    if (getaddrinfo(host.c_str(), port_str.c_str(), &hints, &res) != 0) {
-        last_error = "DNS resolution failed for " + host;
-        return false;
-    }
-
-    socket_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (socket_fd < 0) {
-        last_error = "Failed to create socket.";
-        freeaddrinfo(res);
-        return false;
-    }
-
-    if (::connect(socket_fd, res->ai_addr, res->ai_addrlen) != 0) {
-        last_error = "Failed to connect to SFTP host: " + host;
-        freeaddrinfo(res);
-        cleanup();
-        return false;
-    }
-    freeaddrinfo(res);
-
-    session = libssh2_session_init();
-    if (!session) {
-        last_error = "Failed to initialize libssh2 session.";
+    ssh_ = std::make_unique<mino::network::ssh::ssh_client>();
+    if (!ssh_->connect_sync(host, static_cast<uint16_t>(port), user, pass)) {
+        last_error = "Failed to establish SSH connection/authentication.";
         cleanup();
         return false;
     }
 
-    if (libssh2_session_handshake(session, socket_fd)) {
-        last_error = "SSH Handshake failed.";
+    if (!ssh_->request_subsystem("sftp")) {
+        last_error = "Server rejected SFTP subsystem request.";
         cleanup();
         return false;
     }
 
-    if (libssh2_userauth_password(session, user_name.c_str(), password.c_str())) {
-        last_error = "Authentication failed (User/Password incorrect).";
-        cleanup();
-        return false;
-    }
+    // Exchange SFTP Version (Init -> Version)
+    mino::network::ssh::ssh_buffer init_pkt;
+    init_pkt.write_byte(SSH_FXP_INIT);
+    init_pkt.write_uint32(3); // Version 3
+    send_sftp_packet(init_pkt);
 
-    sftp_session = libssh2_sftp_init(session);
-    if (!sftp_session) {
-        last_error = "Unable to initialize SFTP subsystem.";
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_VERSION) {
+        last_error = "SFTP subsystem handshake failed.";
         cleanup();
         return false;
     }
@@ -531,148 +572,267 @@ bool sftp_client::connect(const std::string& host, int p, const std::string& use
 }
 
 bool sftp_client::download(const std::string& remote_file, const std::string& local_file) {
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return false; }
-
-    LIBSSH2_SFTP_HANDLE* handle = libssh2_sftp_open(sftp_session, remote_file.c_str(), LIBSSH2_FXF_READ, 0);
-    if (!handle) {
-        last_error = "Failed to open remote file for download: " + remote_file;
+    if (!ssh_ || !ssh_->is_authenticated()) {
+        last_error = "Not connected to SFTP.";
         return false;
     }
 
-    LIBSSH2_SFTP_ATTRIBUTES attrs;
-    std::int64_t dltotal = 0;
-    if (libssh2_sftp_fstat(handle, &attrs) == 0) {
-        dltotal = attrs.filesize;
+    std::string handle = sftp_open(remote_file, SSH_FXF_READ, 0);
+    if (handle.empty()) {
+        last_error = "Failed to open remote file: " + remote_file;
+        return false;
     }
 
+    std::int64_t dltotal = sftp_fstat_size(handle);
     std::ofstream ofs(local_file, std::ios::binary);
     if (!ofs.is_open()) {
-        libssh2_sftp_close(handle);
+        sftp_close(handle);
         last_error = "Failed to open local destination file: " + local_file;
         return false;
     }
 
-    char mem[16384];
+    uint64_t offset = 0;
+    const uint32_t chunk_size = 32768; // 32KB chunk
     std::int64_t dlnow = 0;
-    ssize_t rc = 0;
-    while ((rc = libssh2_sftp_read(handle, mem, sizeof(mem))) > 0) {
-        ofs.write(mem, rc);
-        dlnow += rc;
-        if (progress_listener) {
-            progress_listener->on_progress(dlnow, dltotal, 0, 0);
+    bool ok = true;
+
+    while (true) {
+        uint32_t id = next_id();
+        mino::network::ssh::ssh_buffer req;
+        req.write_byte(SSH_FXP_READ);
+        req.write_uint32(id);
+        req.write_string(handle);
+        req.write_uint64(offset);
+        req.write_uint32(chunk_size);
+        send_sftp_packet(req);
+
+        auto resp = recv_sftp_packet();
+        if (resp.size() == 0) { ok = false; break; }
+
+        uint8_t type = resp.read_byte();
+        resp.read_uint32(); // ID
+
+        if (type == SSH_FXP_DATA) {
+            std::string data = resp.read_string();
+            if (data.empty()) break;
+            ofs.write(data.data(), data.size());
+            offset += data.size();
+            dlnow += data.size();
+            if (progress_listener) {
+                progress_listener->on_progress(dlnow, dltotal, 0, 0);
+            }
+        }
+        else if (type == SSH_FXP_STATUS) {
+            uint32_t code = resp.read_uint32();
+            if (code == SSH_FX_EOF) {
+                break; // Complete
+            }
+            last_error = "SFTP READ error code: " + std::to_string(code);
+            ok = false;
+            break;
+        }
+        else {
+            ok = false;
+            break;
         }
     }
 
-    libssh2_sftp_close(handle);
-    return (rc >= 0);
+    sftp_close(handle);
+    return ok;
 }
 
 bool sftp_client::upload(const std::string& local_file, const std::string& remote_file) {
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return false; }
-
-    std::ifstream ifs(local_file, std::ios::binary | std::ios::ate);
-    if (!ifs.is_open()) { last_error = "Failed to open local source file: " + local_file; return false; }
-    std::int64_t ultotal = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    LIBSSH2_SFTP_HANDLE* handle = libssh2_sftp_open(
-        sftp_session, remote_file.c_str(),
-        LIBSSH2_FXF_WRITE | LIBSSH2_FXF_CREAT | LIBSSH2_FXF_TRUNC,
-        LIBSSH2_SFTP_S_IRUSR | LIBSSH2_SFTP_S_IWUSR | LIBSSH2_SFTP_S_IRGRP | LIBSSH2_SFTP_S_IROTH
-    );
-
-    if (!handle) {
-        last_error = "Failed to open/create remote file for upload: " + remote_file;
+    if (!ssh_ || !ssh_->is_authenticated()) {
+        last_error = "Not connected to SFTP.";
         return false;
     }
 
-    char mem[16384];
-    std::int64_t ulnow = 0;
-    while (ifs.good()) {
-        ifs.read(mem, sizeof(mem));
-        std::streamsize bytes_read = ifs.gcount();
-        if (bytes_read <= 0) break;
+    std::ifstream ifs(local_file, std::ios::binary | std::ios::ate);
+    if (!ifs.is_open()) {
+        last_error = "Failed to open local source file: " + local_file;
+        return false;
+    }
+    std::int64_t ultotal = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
 
-        char* ptr = mem;
-        std::streamsize remaining = bytes_read;
-        while (remaining > 0) {
-            ssize_t rc = libssh2_sftp_write(handle, ptr, remaining);
-            if (rc < 0) {
-                last_error = "Failed while writing data to SFTP.";
-                libssh2_sftp_close(handle);
-                return false;
-            }
-            ptr += rc;
-            remaining -= rc;
+    std::string handle = sftp_open(
+        remote_file,
+        SSH_FXF_WRITE | SSH_FXF_CREAT | SSH_FXF_TRUNC,
+        0644
+    );
+    if (handle.empty()) {
+        last_error = "Failed to open remote file for upload: " + remote_file;
+        return false;
+    }
+
+    uint64_t offset = 0;
+    std::int64_t ulnow = 0;
+    std::vector<char> buf(32768);
+    bool ok = true;
+
+    while (ifs.good() && ulnow < ultotal) {
+        ifs.read(buf.data(), buf.size());
+        std::streamsize bytes = ifs.gcount();
+        if (bytes <= 0) break;
+
+        uint32_t id = next_id();
+        mino::network::ssh::ssh_buffer req;
+        req.write_byte(SSH_FXP_WRITE);
+        req.write_uint32(id);
+        req.write_string(handle);
+        req.write_uint64(offset);
+        req.write_bytes(reinterpret_cast<const uint8_t*>(buf.data()), static_cast<size_t>(bytes));
+        send_sftp_packet(req);
+
+        auto resp = recv_sftp_packet();
+        if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) {
+            ok = false;
+            break;
+        }
+        resp.read_uint32(); // ID
+        uint32_t code = resp.read_uint32();
+        if (code != SSH_FX_OK) {
+            last_error = "SFTP WRITE failure code: " + std::to_string(code);
+            ok = false;
+            break;
         }
 
-        ulnow += bytes_read;
+        offset += bytes;
+        ulnow += bytes;
         if (progress_listener) {
             progress_listener->on_progress(0, 0, ulnow, ultotal);
         }
     }
 
-    libssh2_sftp_close(handle);
-    return true;
+    sftp_close(handle);
+    return ok;
 }
 
 bool sftp_client::delete_file(const std::string& remote_file) {
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return false; }
-    if (libssh2_sftp_unlink(sftp_session, remote_file.c_str()) != 0) {
-        last_error = "Failed to delete remote file: " + remote_file;
-        return false;
-    }
-    return true;
+    if (!ssh_ || !ssh_->is_authenticated()) return false;
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_REMOVE);
+    req.write_uint32(id);
+    req.write_string(remote_file);
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) return false;
+    resp.read_uint32();
+    return (resp.read_uint32() == SSH_FX_OK);
 }
 
 std::vector<file_info> sftp_client::list_directory(const std::string& path) {
     std::vector<file_info> results;
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return results; }
+    if (!ssh_ || !ssh_->is_authenticated()) return results;
 
-    LIBSSH2_SFTP_HANDLE* handle = libssh2_sftp_opendir(sftp_session, path.c_str());
-    if (!handle) {
-        last_error = "Failed to open remote directory: " + path;
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_OPENDIR);
+    req.write_uint32(id);
+    req.write_string(path);
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_HANDLE) {
+        last_error = "Failed to open directory: " + path;
         return results;
     }
+    resp.read_uint32();
+    std::string handle = resp.read_string();
 
-    char mem[512];
-    char longentry[1024];
-    LIBSSH2_SFTP_ATTRIBUTES attrs;
+    while (true) {
+        id = next_id();
+        mino::network::ssh::ssh_buffer rdir;
+        rdir.write_byte(SSH_FXP_READDIR);
+        rdir.write_uint32(id);
+        rdir.write_string(handle);
+        send_sftp_packet(rdir);
 
-    while (libssh2_sftp_readdir_ex(handle, mem, sizeof(mem), longentry, sizeof(longentry), &attrs) > 0) {
-        std::string filename(mem);
-        if (filename == "." || filename == "..") continue;
+        auto dresp = recv_sftp_packet();
+        if (dresp.size() == 0) break;
 
-        file_info fi;
-        fi.name = filename;
-        fi.is_directory = (attrs.flags & LIBSSH2_SFTP_ATTR_PERMISSIONS) && LIBSSH2_SFTP_S_ISDIR(attrs.permissions);
-        fi.size = fi.is_directory ? 0 : static_cast<long>(attrs.filesize);
+        uint8_t type = dresp.read_byte();
+        dresp.read_uint32(); // ID
 
-        results.push_back(fi);
+        if (type == SSH_FXP_NAME) {
+            uint32_t count = dresp.read_uint32();
+            for (uint32_t i = 0; i < count; ++i) {
+                std::string name = dresp.read_string();
+                std::string longname = dresp.read_string();
+
+                uint32_t flags = dresp.read_uint32();
+                std::int64_t fsize = 0;
+                uint32_t perms = 0;
+                if (flags & SSH_FILEXFER_ATTR_SIZE) {
+                    fsize = static_cast<std::int64_t>(dresp.read_uint64());
+                }
+                if (flags & 0x00000002) {
+                    dresp.read_uint32(); dresp.read_uint32();
+                }
+                if (flags & SSH_FILEXFER_ATTR_PERMISSIONS) {
+                    perms = dresp.read_uint32();
+                }
+                if (flags & 0x00000008) {
+                    dresp.read_uint32(); dresp.read_uint32();
+                }
+                if (flags & 0x80000000) {
+                    uint32_t ext_cnt = dresp.read_uint32();
+                    for (uint32_t e = 0; e < ext_cnt; ++e) {
+                        dresp.read_string(); dresp.read_string();
+                    }
+                }
+
+                if (name != "." && name != "..") {
+                    file_info fi;
+                    fi.name = name;
+                    fi.is_directory = (flags & SSH_FILEXFER_ATTR_PERMISSIONS) && ((perms & 0040000) == 0040000);
+                    fi.size = fi.is_directory ? 0 : fsize;
+                    results.push_back(fi);
+                }
+            }
+        }
+        else if (type == SSH_FXP_STATUS) {
+            break; // EOF reached
+        }
+        else {
+            break;
+        }
     }
 
-    libssh2_sftp_closedir(handle);
+    sftp_close(handle);
     return results;
 }
 
 bool sftp_client::create_directory(const std::string& path) {
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return false; }
-    int rc = libssh2_sftp_mkdir(sftp_session, path.c_str(),
-        LIBSSH2_SFTP_S_IRWXU | LIBSSH2_SFTP_S_IRGRP | LIBSSH2_SFTP_S_IXGRP | LIBSSH2_SFTP_S_IROTH | LIBSSH2_SFTP_S_IXOTH);
-    if (rc != 0) {
-        last_error = "Failed to create remote directory: " + path;
-        return false;
-    }
-    return true;
+    if (!ssh_ || !ssh_->is_authenticated()) return false;
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_MKDIR);
+    req.write_uint32(id);
+    req.write_string(path);
+    req.write_uint32(SSH_FILEXFER_ATTR_PERMISSIONS);
+    req.write_uint32(0755);
+    send_sftp_packet(req);
+
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) return false;
+    resp.read_uint32();
+    return (resp.read_uint32() == SSH_FX_OK);
 }
 
 bool sftp_client::remove_directory(const std::string& path) {
-    if (!sftp_session) { last_error = "Not connected to SFTP."; return false; }
-    if (libssh2_sftp_rmdir(sftp_session, path.c_str()) != 0) {
-        last_error = "Failed to remove remote directory: " + path;
-        return false;
-    }
-    return true;
-}
+    if (!ssh_ || !ssh_->is_authenticated()) return false;
+    uint32_t id = next_id();
+    mino::network::ssh::ssh_buffer req;
+    req.write_byte(SSH_FXP_RMDIR);
+    req.write_uint32(id);
+    req.write_string(path);
+    send_sftp_packet(req);
 
-#endif // USE_CURL
+    auto resp = recv_sftp_packet();
+    if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) return false;
+    resp.read_uint32();
+    return (resp.read_uint32() == SSH_FX_OK);
+}

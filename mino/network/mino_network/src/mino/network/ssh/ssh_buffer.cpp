@@ -28,6 +28,11 @@ namespace mino::network::ssh {
         data_.push_back(val & 0xFF);
     }
 
+    void ssh_buffer::write_uint64(uint64_t val) {
+        write_uint32(static_cast<uint32_t>(val >> 32));
+        write_uint32(static_cast<uint32_t>(val & 0xFFFFFFFF));
+    }
+
     void ssh_buffer::write_string(const std::string& str) {
         write_uint32(static_cast<uint32_t>(str.size()));
         data_.insert(data_.end(), str.begin(), str.end());
@@ -83,6 +88,12 @@ namespace mino::network::ssh {
             static_cast<uint32_t>(data_[rpos_ + 3]);
         rpos_ += 4;
         return val;
+    }
+
+    uint64_t ssh_buffer::read_uint64() {
+        uint64_t high = read_uint32();
+        uint64_t low = read_uint32();
+        return (high << 32) | low;
     }
 
     std::string ssh_buffer::read_string() {
