@@ -175,7 +175,6 @@
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
