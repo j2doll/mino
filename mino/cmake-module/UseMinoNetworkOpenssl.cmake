@@ -27,14 +27,14 @@ function(use_mino_network_openssl EXE_NAME MINO_DIR)
         # 4-1. 라이브러리 및 헤더 경로 검색
         if(MINO_DIR)
             find_path(MINO_OPENSSL_INCLUDE_DIR 
-                NAMES "mino/network/openssl.hpp" "mino/network/ssl.hpp" "mino/network/network_openssl.hpp" "mino/network/network.hpp"
+                NAMES "mino/network_openssl/mno.hpp"
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_NETWORK_OPENSSL_LIBRARY 
                 NAMES mino_network_openssl mino_network_ssl
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
         else()
             find_path(MINO_OPENSSL_INCLUDE_DIR 
-                NAMES "mino/network/openssl.hpp" "mino/network/ssl.hpp" "mino/network/network_openssl.hpp" "mino/network/network.hpp")
+                NAMES "mino/network_openssl/mno.hpp")
             find_library(MINO_NETWORK_OPENSSL_LIBRARY 
                 NAMES mino_network_openssl mino_network_ssl)
         endif()

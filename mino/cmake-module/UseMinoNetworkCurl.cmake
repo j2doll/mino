@@ -23,14 +23,14 @@ function(use_mino_network_curl EXE_NAME MINO_DIR)
         # 4-1. 라이브러리 및 헤더 경로 검색
         if(MINO_DIR)
             find_path(MINO_CURL_INCLUDE_DIR 
-                NAMES "mino/network/curl.hpp" "mino/network/network_curl.hpp" "mino/network/network.hpp"
+                NAMES "mino/network_curl/mnc.hpp"
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_NETWORK_CURL_LIBRARY 
                 NAMES mino_network_curl
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
         else()
             find_path(MINO_CURL_INCLUDE_DIR 
-                NAMES "mino/network/curl.hpp" "mino/network/network_curl.hpp" "mino/network/network.hpp")
+                NAMES "mino/network_curl/mnc.hpp")
             find_library(MINO_NETWORK_CURL_LIBRARY 
                 NAMES mino_network_curl)
         endif()
@@ -78,7 +78,21 @@ function(use_mino_network_curl EXE_NAME MINO_DIR)
         target_link_libraries(${EXE_NAME} PRIVATE CURL::libcurl)
         target_compile_definitions(${EXE_NAME} PRIVATE USE_CURL)
 
-        # 4-4-4. Brotli (vcpkg / 시스템 환경)
+        # 4-4-4. OpenSSL (추가: websocket_client의 base64 BIO 심볼용)
+        find_package(OpenSSL REQUIRED)
+        if(TARGET crypto AND TARGET ssl)
+            add_library(OpenSSL::Crypto ALIAS crypto)
+            add_library(OpenSSL::SSL ALIAS ssl)
+        endif()
+
+        if(TARGET OpenSSL::Crypto AND TARGET OpenSSL::SSL)
+            target_link_libraries(${EXE_NAME} PRIVATE OpenSSL::Crypto OpenSSL::SSL)
+        else()
+            target_link_libraries(${EXE_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+        endif()
+        target_compile_definitions(${EXE_NAME} PRIVATE USE_OPENSSL=1)
+
+        # 4-4-5. Brotli (vcpkg / 시스템 환경)
         set(MINO_BROTLI_AVAILABLE FALSE)
         if(DEFINED VCPKG_ROOT OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
             find_package(unofficial-brotli CONFIG REQUIRED)
@@ -110,7 +124,7 @@ function(use_mino_network_curl EXE_NAME MINO_DIR)
             endif()
         endif()
 
-        # 4-4-5. Windows 시스템 라이브러리
+        # 4-4-6. Windows 시스템 라이브러리
         if(WIN32)
             target_link_libraries(${EXE_NAME} PRIVATE ws2_32 iphlpapi)
             target_compile_definitions(${EXE_NAME} PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)

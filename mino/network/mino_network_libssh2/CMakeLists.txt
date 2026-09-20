@@ -62,9 +62,9 @@ target_link_libraries(
 )
 
 if(TARGET Libssh2::libssh2)
-    target_link_libraries(mino_network_libssh2 PRIVATE Libssh2::libssh2)
+    target_link_libraries(mino_network_libssh2 PUBLIC Libssh2::libssh2)
 elseif(TARGET PkgConfig::LIBSSH2)
-    target_link_libraries(mino_network_libssh2 PRIVATE PkgConfig::LIBSSH2)
+    target_link_libraries(mino_network_libssh2 PUBLIC PkgConfig::LIBSSH2)
 endif()
 
 # Install Rules

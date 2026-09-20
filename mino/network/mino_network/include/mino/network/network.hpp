@@ -9,13 +9,10 @@
 #include "mino/network/memory_store/memory_store.hpp"
 #include "mino/network/message_broker/message_broker.hpp"
 #include "mino/network/mqtt/mqtt.hpp"
-#include "mino/network/redis/redis.hpp"
 #include "mino/network/rest/rest.hpp"
 #include "mino/network/rpc/rpc.hpp"
 #include "mino/network/sftp/sftp.hpp"
-#include "mino/network/socket-io/socket-io.hpp"
 #include "mino/network/tcp/tcp.hpp"
-#include "mino/network/tls/tls.hpp"
 #include "mino/network/udp/udp.hpp"
 #include "mino/network/util/util.hpp"
 

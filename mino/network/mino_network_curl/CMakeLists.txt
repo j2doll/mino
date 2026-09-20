@@ -12,7 +12,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Dependencies
 find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
- 
+find_package(OpenSSL REQUIRED)
+
 set(MINO_BROTLI_AVAILABLE FALSE)
 if(DEFINED VCPKG_ROOT OR (DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg"))
     find_package(unofficial-brotli CONFIG REQUIRED)
@@ -73,6 +74,8 @@ target_link_libraries(
         CURL::libcurl
         mino_core
         mino_network
+    PRIVATE
+        OpenSSL::Crypto
 )
 
 if(MINO_BROTLI_AVAILABLE AND TARGET unofficial::brotli::brotlidec)

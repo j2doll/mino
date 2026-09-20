@@ -20,7 +20,7 @@ public:
             << current_local
             << " [Class Listener] Connected!" << std::endl;
     }
-    void on_message(const std::string& message, mino::network::ws::ws_frame_type) override {
+    void on_message(const std::string& message, mino::network_curl::ws::ws_frame_type) override {
         namespace dtutil = mino::core::datetime::util;
         auto current_local = dtutil::current_time_string();
         std::cout
@@ -112,7 +112,7 @@ int main() {
             std::cout
                 << current_local  << " [Callback] Connected!" << std::endl;
         };
-        callbacks.on_message = [](const std::string& msg, mino::network::ws::ws_frame_type) {
+        callbacks.on_message = [](const std::string& msg, mino::network_curl::ws::ws_frame_type) {
             namespace dtutil = mino::core::datetime::util;
             auto current_local = dtutil::current_time_string();
             std::cout

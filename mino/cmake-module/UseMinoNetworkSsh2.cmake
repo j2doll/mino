@@ -27,14 +27,14 @@ function(use_mino_network_ssh2 EXE_NAME MINO_DIR)
         # 4-1. 라이브러리 및 헤더 경로 검색
         if(MINO_DIR)
             find_path(MINO_SSH2_INCLUDE_DIR 
-                NAMES "mino/network/libssh2.hpp" "mino/network/ssh2.hpp" "mino/network/ssh.hpp" "mino/network/network.hpp"
+                NAMES "mino/network_libssh2/ls2.hpp"  
                 PATHS "${MINO_DIR}/include" "${MINO_DIR}" NO_DEFAULT_PATH)
             find_library(MINO_NETWORK_LIBSSH2_LIBRARY 
                 NAMES mino_network_libssh2 mino_network_ssh2
                 PATHS "${MINO_DIR}/lib" "${MINO_DIR}" NO_DEFAULT_PATH)
         else()
             find_path(MINO_SSH2_INCLUDE_DIR 
-                NAMES "mino/network/libssh2.hpp" "mino/network/ssh2.hpp" "mino/network/ssh.hpp" "mino/network/network.hpp")
+                NAMES "mino/network_libssh2/ls2.hpp")
             find_library(MINO_NETWORK_LIBSSH2_LIBRARY 
                 NAMES mino_network_libssh2 mino_network_ssh2)
         endif()

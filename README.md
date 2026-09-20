@@ -174,14 +174,12 @@
 <br />
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
-    - [tcp](example/network/ftp/tcp/main.cpp) <sub> `ssh` </sub>
+    - [ftp/tcp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `ssh` </sub>
 - 🔀 네트워크 인터페이스 정보 조회
     - [interface](example/network/interface/main.cpp)
 - 🔀 로깅 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub>
-   - [manager](example/network/log/manager/main.cpp)
+   - [log/manager](example/network/log/manager/main.cpp)
    - 로깅 환경 파일 예제: [logger_manager_config.ini](example/network/log/manager/logger_manager_config.ini)
 - 🔀 `memory_store` : 네트워크 기반 메모리 저장소
     - ```
@@ -236,8 +234,8 @@
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
-- 🔀 [`Redis`](https://github.com/redis/redis) 클라이언트
-    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
+- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
+    - [httplib](example/network/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `REST API` 클라이언트
     - [httplib](example/network_curl/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
@@ -267,9 +265,6 @@
 - 🔀 `tcp` 소켓 예제
     - [server](example/network/tcp/server/main.cpp) : `tcp` 서버
     - [client](example/network/tcp/client/main.cpp) : `tcp` 클라이언트
-- 🔀 `tls` 서버 및 클라이언트
-    - [server](example/network/tls/server/main.cpp) : `tls` 서버
-    - [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
 - 🔀 `udp` 소켓 예제
     - [receiver](example/network/udp/receiver/main.cpp) : `udp` 수신
     - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
@@ -295,7 +290,16 @@
     - [rest](example/network_curl/rest/main.cpp) 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network_curl/ws/main.cpp)
-        
+
+<br />
+
+##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 </sub>
+- 🔀 [`Redis`](https://github.com/redis/redis) 클라이언트
+    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
+ - 🔀 `TLS` 서버 및 클라이언트
+    - [server](example/network/tls/server/main.cpp) : `tls` 서버
+    - [client](example/network/tls/client/main.cpp) : `tls` 클라이언트
+
 <br />
 
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
