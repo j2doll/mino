@@ -239,8 +239,7 @@
 - 🔀 `redis` 클라이언트
     - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
 - 🔀 `REST API` 클라이언트
-    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
+    - [httplib](example/network_curl/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
@@ -292,9 +291,11 @@
     - [ftp](example/network_curl/ftp/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
+- 🔀 `REST API` 클라이언트
+    - [rest](example/network_curl/rest/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network_curl/ws/main.cpp)
-    
+        
 <br />
 
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
