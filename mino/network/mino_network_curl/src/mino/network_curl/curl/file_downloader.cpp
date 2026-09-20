@@ -1,11 +1,12 @@
 #ifdef USE_CURL
 
-#include "mino/network/downloader/curl/file_downloader.hpp"
+#include "mino/network_curl/downloader/file_downloader.hpp"
 
 #include <fstream>
 #include <algorithm>
 
-namespace mino::network::downloader::curl {
+namespace mino::network_curl::downloader
+{
 
     file_downloader::file_downloader() : ssl_verify_(false) {
         curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -137,6 +138,6 @@ namespace mino::network::downloader::curl {
         return {};
     }
 
-} // namespace mino::network::downloader::curl
+}  
 
 #endif // USE_CURL

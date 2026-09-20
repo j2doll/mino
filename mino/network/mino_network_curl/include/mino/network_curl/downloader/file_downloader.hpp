@@ -8,7 +8,8 @@
 
 #include <curl/curl.h>
 
-namespace mino::network::downloader::curl {
+namespace mino::network_curl::downloader
+{
 
     class file_downloader {
     public:
@@ -41,6 +42,6 @@ namespace mino::network::downloader::curl {
         std::string extract_filename_from_url(const std::string& url);
     };
 
-} // namespace mino::network::downloader::curl
+} // namespace mino::network_curl::downloader
 
 #endif // USE_CURL

@@ -8,7 +8,8 @@
 #include "mino/core/string/string.hpp"
 
 #include "mino/network/ethernet.hpp"
-#include "mino/network/downloader/curl/multipart_downloader.hpp"
+
+#include "mino/network_curl/downloader/multipart_downloader.hpp"
 
 // 출력 헬퍼 정의
 const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -18,7 +19,7 @@ auto tce = mino::core::string::to_console_encoding;
 
 // 진행률 콜백 인터페이스 구현
 class console_progress_callback
-    : public mino::network::downloader::curl::multipart_progress_callback
+    : public mino::network_curl::downloader::multipart_progress_callback
 {
 public:
     bool on_progress(long long total_bytes, long long now_bytes) override
@@ -65,7 +66,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    namespace mndcurl = mino::network::downloader::curl;
+    namespace mndcurl = mino::network_curl::downloader; 
     using multipart_downloader = mndcurl::multipart_downloader;
 
     multipart_downloader downloader;

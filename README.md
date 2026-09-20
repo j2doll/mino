@@ -174,8 +174,6 @@
 <br />
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [download-file](example/network/download-file/main.cpp)
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
     - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
@@ -289,9 +287,13 @@
 <br />
 
 ##### 🔀 [network_curl](example/network_curl) : `libcurl` 관련 예제    
+- 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
+    - [download-file](example/network_curl/file-downloader/main.cpp)
+- 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
+    - [curl](example/network_curl/multipart-download/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network_curl/ws/main.cpp)
-    - 
+    
 <br />
 
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트

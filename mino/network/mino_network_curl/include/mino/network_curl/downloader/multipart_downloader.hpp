@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace mino::network::downloader::curl
+namespace mino::network_curl::downloader
 {
 
     // 진행 현황 콜백 인터페이스
@@ -58,6 +58,6 @@ namespace mino::network::downloader::curl
         multipart_downloader& operator=(const multipart_downloader&) = delete;
     };
 
-}  
+}  // namespace mino::network_curl::downloader
 
 #endif

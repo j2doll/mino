@@ -2,13 +2,16 @@
 #include <filesystem>
 
 #include "mino/core/string/string.hpp"
+
 #include "mino/network/ethernet.hpp"
-#include "mino/network/downloader/curl/file_downloader.hpp"
+
+#include "mino/network_curl/downloader/file_downloader.hpp"
 
 int main(int argc, char* argv[]) {
     namespace mcs = mino::core::string;
     namespace mn = mino::network;
-    namespace mndc = mino::network::downloader::curl;
+
+    namespace mndc = mino::network_curl::downloader;
 
     using file_downloader = mndc::file_downloader;
     auto tce = mino::core::string::to_console_encoding;

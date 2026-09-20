@@ -10,10 +10,11 @@
 
 #include <curl/curl.h>
 
-#include "mino/network/downloader/curl/multipart_downloader.hpp"
+#include "mino/network_curl/downloader/multipart_downloader.hpp"
 
-namespace mino::network::downloader::curl
+namespace mino::network_curl::downloader
 {
+
     namespace
     {
         std::once_flag g_curl_global_init_flag;

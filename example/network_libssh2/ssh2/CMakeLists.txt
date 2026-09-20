@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(network_ssh2_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "network_ssh2_example")
+project(networkssh2_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "networkssh2_example")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)

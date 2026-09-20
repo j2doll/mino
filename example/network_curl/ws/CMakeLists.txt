@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(network_curl_ws_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "network_curl_ws_example")
+project(networkcurl_ws_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "networkcurl_ws_example")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
