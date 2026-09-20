@@ -291,8 +291,8 @@
     - [ftp](example/network_curl/ftp/main.cpp)  
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
-- 🔀 `REST API` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [rest](example/network_curl/rest/main.cpp) : `GET`/`POST` 클라이언트 
+- 🔀 `REST API` `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
+    - [rest](example/network_curl/rest/main.cpp) 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network_curl/ws/main.cpp)
         
