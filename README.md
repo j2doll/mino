@@ -287,8 +287,8 @@
 ##### 🔀 [network_curl](example/network_curl) : `libcurl` 관련 예제    
 - 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
     - [file-downloader](example/network_curl/file-downloader/main.cpp)
-- 🔀 `ftp`/`sftp` 클라이언트
-    - [ftp](example/network_curl/ftp/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
+- 🔀 `ftp`/`sftp` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
+    - [ftp](example/network_curl/ftp/main.cpp)  
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
 - 🔀 `REST API` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
