@@ -253,21 +253,19 @@ bool ftp_client::download(const std::string& remote_file, const std::string& loc
     auto data_client = establish_data_connection();
     if (!data_client) return false;
 
-    if (!send_command("RETR", remote_file)) return false;
-    std::string resp = read_control_response();
-    if (resp.rfind("150", 0) != 0 && resp.rfind("125", 0) != 0) {
-        last_error = "RETR command rejected: " + resp;
+    std::ofstream ofs(local_file, std::ios::binary);
+    if (!ofs.is_open()) {
+        last_error = "Failed to open local file for writing: " + local_file;
+        data_client->stop();
         return false;
     }
-
-    std::ofstream ofs(local_file, std::ios::binary);
-    if (!ofs.is_open()) { last_error = "Failed to open local file for writing."; return false; }
 
     std::mutex data_mutex;
     std::condition_variable data_cv;
     bool data_finished = false;
     std::int64_t dlnow = 0;
 
+    // 1. [레이스 컨디션 방지] RETR 명령 전송 전에 수신/종료 콜백 등록
     data_client->set_on_receive([&](const std::string& data) {
         std::lock_guard<std::mutex> lock(data_mutex);
         ofs.write(data.data(), data.size());
@@ -283,12 +281,42 @@ bool ftp_client::download(const std::string& remote_file, const std::string& loc
         data_cv.notify_one();
         });
 
-    std::unique_lock<std::mutex> data_lock(data_mutex);
-    data_cv.wait(data_lock, [&] { return data_finished; });
+    // 2. RETR 명령 전송
+    if (!send_command("RETR", remote_file)) {
+        data_client->stop();
+        return false;
+    }
+
+    std::string resp = read_control_response();
+    if (resp.rfind("150", 0) != 0 && resp.rfind("125", 0) != 0) {
+        last_error = "RETR command rejected: " + resp;
+        data_client->stop();
+        return false;
+    }
+
+    // 3. 연결 상태 사전 검사 및 wait_for(타임아웃) 수행
+    {
+        std::unique_lock<std::mutex> data_lock(data_mutex);
+        if (!data_client->is_connected()) {
+            data_finished = true;
+        }
+
+        bool completed = data_cv.wait_for(data_lock, std::chrono::seconds(60), [&] {
+            return data_finished;
+            });
+
+        if (!completed) {
+            last_error = "Data channel download timed out.";
+            data_client->stop();
+            return false;
+        }
+    }
 
     data_client->stop();
-    read_control_response();
-    return true;
+    ofs.close();
+
+    resp = read_control_response();
+    return (resp.rfind("226", 0) == 0 || resp.rfind("250", 0) == 0);
 }
 
 bool ftp_client::upload(const std::string& local_file, const std::string& remote_file) {
@@ -341,27 +369,53 @@ std::vector<file_info> ftp_client::list_directory(const std::string& path) {
     auto data_client = establish_data_connection();
     if (!data_client) return {};
 
-    if (!send_command("LIST", path)) return {};
-    std::string resp = read_control_response();
-    if (resp.rfind("150", 0) != 0 && resp.rfind("125", 0) != 0) return {};
-
     std::mutex data_mutex;
     std::condition_variable data_cv;
     std::string raw_list;
     bool data_finished = false;
 
+    // 1. [레이스 컨디션 방지] LIST 명령 전에 콜백 등록
     data_client->set_on_receive([&](const std::string& data) {
         std::lock_guard<std::mutex> lock(data_mutex);
         raw_list += data;
         });
+
     data_client->set_on_close([&]() {
         std::lock_guard<std::mutex> lock(data_mutex);
         data_finished = true;
         data_cv.notify_one();
         });
 
-    std::unique_lock<std::mutex> data_lock(data_mutex);
-    data_cv.wait(data_lock, [&] { return data_finished; });
+    // 2. LIST 명령 전송
+    if (!send_command("LIST", path)) {
+        data_client->stop();
+        return {};
+    }
+
+    std::string resp = read_control_response();
+    if (resp.rfind("150", 0) != 0 && resp.rfind("125", 0) != 0) {
+        data_client->stop();
+        return {};
+    }
+
+    // 3. 타임아웃 및 조기 종료 검사
+    {
+        std::unique_lock<std::mutex> data_lock(data_mutex);
+        if (!data_client->is_connected()) {
+            data_finished = true;
+        }
+
+        bool completed = data_cv.wait_for(data_lock, std::chrono::seconds(10), [&] {
+            return data_finished;
+            });
+
+        if (!completed) {
+            last_error = "Timeout waiting for directory listing completion.";
+            data_client->stop();
+            return {};
+        }
+    }
+
     data_client->stop();
     read_control_response();
 
@@ -370,6 +424,7 @@ std::vector<file_info> ftp_client::list_directory(const std::string& path) {
     std::string line;
     while (std::getline(iss, line)) {
         if (line.empty()) continue;
+
         file_info info;
         info.is_directory = (line[0] == 'd');
 
@@ -381,8 +436,13 @@ std::vector<file_info> ftp_client::list_directory(const std::string& path) {
             if (!name.empty() && name.back() == '\r') name.pop_back();
 
             info.name = name;
-            try { info.size = info.is_directory ? 0 : std::stoll(size_str); }
-            catch (...) { info.size = 0; }
+            try {
+                info.size = info.is_directory ? 0 : std::stoll(size_str);
+            }
+            catch (...) {
+                info.size = 0;
+            }
+
             if (!info.name.empty() && info.name != "." && info.name != "..") {
                 results.push_back(info);
             }
@@ -592,7 +652,7 @@ bool sftp_client::download(const std::string& remote_file, const std::string& lo
     }
 
     uint64_t offset = 0;
-    const uint32_t chunk_size = 32768; // 32KB chunk
+    const uint32_t chunk_size = 16384; // 16KB 표준 청크
     std::int64_t dlnow = 0;
     bool ok = true;
 
@@ -606,7 +666,7 @@ bool sftp_client::download(const std::string& remote_file, const std::string& lo
         req.write_uint32(chunk_size);
         send_sftp_packet(req);
 
-        auto resp = recv_sftp_packet();
+        auto resp = recv_sftp_packet(std::chrono::milliseconds(15000));
         if (resp.size() == 0) { ok = false; break; }
 
         uint8_t type = resp.read_byte();
@@ -667,7 +727,10 @@ bool sftp_client::upload(const std::string& local_file, const std::string& remot
 
     uint64_t offset = 0;
     std::int64_t ulnow = 0;
-    std::vector<char> buf(32768);
+
+    // SSH 채널 최대 패킷 크기(32KB) 한도 초과 방지를 위한 16KB 표준 청크
+    const size_t chunk_size = 16384;
+    std::vector<char> buf(chunk_size);
     bool ok = true;
 
     while (ifs.good() && ulnow < ultotal) {
@@ -684,8 +747,10 @@ bool sftp_client::upload(const std::string& local_file, const std::string& remot
         req.write_bytes(reinterpret_cast<const uint8_t*>(buf.data()), static_cast<size_t>(bytes));
         send_sftp_packet(req);
 
-        auto resp = recv_sftp_packet();
+        // 여유 있는 15초 타임아웃
+        auto resp = recv_sftp_packet(std::chrono::milliseconds(15000));
         if (resp.size() == 0 || resp.read_byte() != SSH_FXP_STATUS) {
+            last_error = "SFTP WRITE response timeout or invalid packet.";
             ok = false;
             break;
         }

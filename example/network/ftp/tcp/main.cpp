@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
     run_client_test("FTP", ftp, "127.0.0.1", 50021, "test_user", "test_password");
 
     // --- [2] SFTP 테스트 ---
+    // sftp_server.py [paramiko], xlight sftp 3.9.4, Rocky 8.10 sftp
     sftp_client sftp;
     run_client_test("SFTP", sftp, "127.0.0.1", 50022, "sftp_user", "sftp_pass");
 
@@ -121,7 +122,11 @@ void run_client_test(
 
     // 3. 디렉터리 목록 조회
     print(tce("\n>> [2] Listing directory (.)..."));
+
     auto files = client.list_directory(".");
+
+    print(tce("[+] Directory listing:"));
+
     for (const auto& item : files) {
         std::ostringstream oss;
         oss << "  - " << (item.is_directory ? "[DIR] " : "[FILE]")
@@ -129,12 +134,16 @@ void run_client_test(
         print(tce(oss.str()));
     }
 
+    print(tce("[+] Directory listing completed."));
+
     // 4. 업로드용 임시 파일 생성 (진행률 확인을 위해 크기 상향: 50000 라인)
     std::string local_file = "test_data_" + label + ".txt";
     std::string remote_file = "remote_" + label + ".txt";
     std::string downloaded_file = "downloaded_" + label + ".txt";
 
     {
+        print(tce("\n>> [2.5] Creating test file: " + local_file));
+
         // 50000 라인짜리 테스트 파일 생성
         std::ofstream ofs(local_file);
         for (int i = 0; i < 50000; ++i) {

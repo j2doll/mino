@@ -199,7 +199,7 @@ bool ftp_client::connect(const std::string& host, int p, const std::string& user
     last_error.clear();
 
     if (!curl_handle) {
-        last_error = "CURL 핸들 초기화 실패";
+        last_error = "Failed to init CURL handle";
         return false;
     }
 
@@ -223,7 +223,7 @@ bool ftp_client::upload(const std::string& local_file, const std::string& remote
     last_error.clear();
     std::ifstream file(local_file, std::ios::binary);
     if (!file.is_open()) {
-        last_error = "로컬 파일을 열 수 없습니다: " + local_file;
+        last_error = "Failed to open local file: " + local_file;
         return false;
     }
 
@@ -260,7 +260,7 @@ bool ftp_client::download(const std::string& remote_file, const std::string& loc
     last_error.clear();
     std::ofstream file(local_file, std::ios::binary);
     if (!file.is_open()) {
-        last_error = "로컬 파일을 생성할 수 없습니다: " + local_file;
+        last_error = "Failed to create local file: " + local_file;
         return false;
     }
 
@@ -417,7 +417,7 @@ bool sftp_client::connect(const std::string& host, int p, const std::string& use
     last_error.clear();
 
     if (!curl_handle) {
-        last_error = "CURL 핸들 초기화 실패";
+        last_error = "Failed to init CURL hadle";
         return false;
     }
 
@@ -451,7 +451,7 @@ bool sftp_client::upload(const std::string& local_file, const std::string& remot
     last_error.clear();
     std::ifstream file(local_file, std::ios::binary);
     if (!file.is_open()) {
-        last_error = "로컬 파일을 열 수 없습니다: " + local_file;
+        last_error = "Failed to open local file: " + local_file;
         return false;
     }
 
@@ -493,7 +493,7 @@ bool sftp_client::download(const std::string& remote_file, const std::string& lo
     last_error.clear();
     std::ofstream file(local_file, std::ios::binary);
     if (!file.is_open()) {
-        last_error = "로컬 파일을 생성할 수 없습니다: " + local_file;
+        last_error = "Failed to open local file: " + local_file;
         return false;
     }
 

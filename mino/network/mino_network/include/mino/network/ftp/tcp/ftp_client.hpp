@@ -22,10 +22,10 @@ namespace mino::network::ssh {
 
 namespace mino::network::ftp::tcp {
 
-    // 파일 정보 구조체
+    // 파일 정보 구조체 (64비트 파일 크기 지원)
     struct file_info {
         std::string name;
-        std::int64_t size{ 0 };   // 64비트 파일 크기
+        std::int64_t size{ 0 };
         bool is_directory{ false };
     };
 
@@ -110,7 +110,7 @@ namespace mino::network::ftp::tcp {
         virtual bool remove_directory(const std::string& path) = 0;
     };
 
-    // FTP client class
+    // FTP client class (Active/Passive FTP)
     class ftp_client : public ftp_client_base {
     private:
         std::string read_control_response(std::chrono::seconds timeout = std::chrono::seconds(5));
@@ -134,7 +134,41 @@ namespace mino::network::ftp::tcp {
         bool remove_directory(const std::string& path) override;
     };
 
-    // Pure C++ SFTP client class (No libssh2)
+    // Pure C++ SFTP client class (No libssh, libssh2)
+    //
+    // ============================================================================
+    // SSH Client 지원 알고리즘 사양 및 OpenSSH (Rocky 8) 호환성 매트릭스
+    // ============================================================================
+    //
+    // 1. 키 교환 알고리즘 (Key Exchange, KEX)
+    //    - diffie-hellman-group-exchange-sha256 : RFC 4419 가변 그룹 교환 (1024~4096 bit 지원)
+    //    - diffie-hellman-group14-sha256        : RFC 4253 / RFC 8268 고정 2048-bit MODP 그룹
+    //    - curve25519-sha256                   : RFC 8731 X25519 고속 타원곡선
+    //    - curve25519-sha256@libssh.org        : OpenSSH 호환 Curve25519 별칭
+    //
+    // 2. 대칭키 암호화 알고리즘 (Ciphers)
+    //    - aes128-ctr                          : AES 128-bit Counter Mode (C2S 및 S2C 동일)
+    //
+    // 3. 메시지 무결성 인증 (MAC)
+    //    - hmac-sha2-256                       : SHA-256 기반 HMAC (32바이트 다이제스트)
+    //
+    // 4. 서버 호스트 키 검증 (Host Key Type)
+    //    - ssh-ed25519
+    //    - rsa-sha2-256
+    //    - rsa-sha2-512
+    //    - ssh-rsa
+    //
+    // 5. 데이터 압축 (Compression)
+    //    - none                                : 비압축 전송
+    //
+    // ----------------------------------------------------------------------------
+    // Rocky 8 Linux OpenSSH 서버와의 실제 자동 협상 결과
+    // ----------------------------------------------------------------------------
+    // [KEX]      diffie-hellman-group-exchange-sha256 (클라이언트 1순위 일치)
+    // [Cipher]   aes128-ctr
+    // [MAC]      hmac-sha2-256
+    // [HostKey]  ssh-ed25519 또는 ssh-rsa (서버에 설치된 호스트 키에 따름)
+    // ============================================================================
     class sftp_client : public ftp_client_base {
     private:
         std::unique_ptr<mino::network::ssh::ssh_client> ssh_;
@@ -142,7 +176,7 @@ namespace mino::network::ftp::tcp {
 
         uint32_t next_id() { return req_id_++; }
         void send_sftp_packet(const mino::network::ssh::ssh_buffer& payload);
-        mino::network::ssh::ssh_buffer recv_sftp_packet(std::chrono::milliseconds timeout = std::chrono::milliseconds(5000));
+        mino::network::ssh::ssh_buffer recv_sftp_packet(std::chrono::milliseconds timeout = std::chrono::milliseconds(15000));
         std::string sftp_open(const std::string& path, uint32_t flags, uint32_t mode);
         bool sftp_close(const std::string& handle);
         std::int64_t sftp_fstat_size(const std::string& handle);
