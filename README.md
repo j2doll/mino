@@ -279,8 +279,6 @@
     - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 네트워크 인터페이스 목록 얻기, `IP` 주소 검증 
     - [util](example/network/util/main.cpp)
-- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
-    - [ws](example/network/ws/main.cpp)
 
 <br />
 
@@ -288,6 +286,12 @@
 - 🔀 `ssh` 클라이언트 <sub> 🔑 `libssh2` </sub> 
     - [ssh2](example/network_libssh2/ssh2/main.cpp)
 
+<br />
+
+##### 🔀 [network_curl](example/network_curl) : `libcurl` 관련 예제    
+- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
+    - [ws](example/network_curl/ws/main.cpp)
+    - 
 <br />
 
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
