@@ -174,14 +174,14 @@
 <br />
 
 ##### 🔀 [network](example/network) : 네트워크 관련 예제
-- 🔀 `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub> 
+- 🔀 `http`/`https` 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [download-file](example/network/download-file/main.cpp)
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더
-    - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub>
+    - [curl](example/network/download-multi/curl/main.cpp) <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
     - [httplib](example/network/download-multi/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `ftp`/`sftp` 클라이언트
     - [curl](example/network/ftp/curl/main.cpp) <sub> 🌐 `libcurl` </sub> 
-    - [tcp](example/network/ftp/tcp/main.cpp) <sub> 🔒 `openssl` </sub> 
+    - [tcp](example/network/ftp/tcp/main.cpp) 
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
 - 🔀 `logging` 환경 정보 `hard/soft/hot reloading` 관리자 <sub> `udp` </sub> : [manager](example/network/log/manager/main.cpp) 
@@ -240,10 +240,10 @@
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
     - [`sub`](example/network/mqtt/sub/main.cpp) : `MQTT` 구독자 <sub> `tcp` </sub>
 - 🔀 `redis` 클라이언트
-    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp/client` `tls/client` </sub>
+    - [`redis`](example/network/redis/main.cpp) : `redis` 클라이언트 <sub> `tcp` `tls` </sub>
 - 🔀 `REST API` 클라이언트
-    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub>
-    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
+    - [curl](example/network/rest/curl/main.cpp) : `GET`/`POST` 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
+    - [httplib](example/network/rest/httplib/main.cpp) : `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub> <sub> 🔒 `openssl` </sub> 
 - 🔀 `RPC`(`Remote Procedure Call`) 클라이언트/서버
     - ```
         +--------------+           +--------------+          +--------------+
@@ -279,7 +279,7 @@
     - [sender](example/network/udp/sender/main.cpp) : `udp` 송신
 - 🔀 네트워크 인터페이스 목록 얻기, `IP` 주소 검증 
     - [util](example/network/util/main.cpp)
-- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> 
+- 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network/ws/main.cpp)
 
 <br />
