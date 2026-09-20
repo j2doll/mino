@@ -289,7 +289,7 @@
 - 🔀 파일 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>
     - [file-downloader](example/network_curl/file-downloader/main.cpp)
 - 🔀 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub> 
-    - [multipart-download](example/network_curl/multipart-download/main.cpp) 
+    - [multipart-downloader](example/network_curl/multipart-downloader/main.cpp) 
 - 🔀 웹소켓(`ws:`,`wss:`) 클라이언트 <sub> 🌐 `libcurl` </sub> <sub> 🔒 `openssl` </sub>  
     - [ws](example/network_curl/ws/main.cpp)
     
