@@ -4,138 +4,161 @@
 #include <vector>
 
 #include "mino/core/string/string.hpp"
+#include "mino/core/log/log.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/sftp/sftp.hpp"
 
+// 진행률 표시 바 길이 설정
 void print_progress_bar(int percent) {
     int bar_width = 30;
     std::cout << "\r[";
     int pos = bar_width * percent / 100;
     for (int i = 0; i < bar_width; ++i) {
-        if (i < pos) std::cout << "=";
-        else if (i == pos) std::cout << ">";
-        else std::cout << " ";
+        if (i < pos)
+            std::cout << "=";
+        else if (i == pos)
+            std::cout << ">";
+        else
+            std::cout << " ";
     }
     std::cout << "] " << percent << "% " << std::flush;
 }
 
-// NOTICE:
-//  Windows 인 경우 main을 구동하기 전에 실행 프로그램이 있는 경로에 psftp.exe가 있어야 함.
-//  Linux 인 경우 psftp가 필요하며, chmod +x ./psftp 를 설정해야 함.
+// 바를 표시할 필요가 없는 경우, percent 값만을 로깅 처리
+void print_percent_log(int percent) {
+    // 레지스트리에 등록된 "main" 로거를 가져와 퍼센트 출력
+    auto logger = mino::core::log::tinylog::logger::get("main");
+    if (logger) {
+        logger->info("Transfer progress: {}%", percent);
+    }
+}
+
 int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
     namespace mcs = mino::core::string;
-
+    namespace mlog = mino::core::log::tinylog;
     namespace mnsp = mino::network::sftp::putty;
     using psftp_client = mnsp::psftp_client;
-    psftp_client client;
+    using console_sink_config = mlog::console_sink_config;
 
-    std::cout << "[1] Connecting to SFTP server..." << std::endl;
+    // 1. 메인 어플리케이션 로거 구성
+    auto main_logger = std::make_shared<mlog::logger>("main");
+    console_sink_config console_config;
+#ifdef _WIN32
+    console_config.encoding = mlog::encoding_type::cp949;
+    console_config.eol = mlog::eol_type::crlf;
+#else
+    console_config.encoding = mlog::encoding_type::utf8;
+    console_config.eol = mlog::eol_type::lf;
+#endif
+    auto console_sink = std::make_shared<mlog::console_sink>("console", console_config);
+    main_logger->add_sink(console_sink);
+    mlog::logger::register_logger(main_logger);
+
+    // 2. psftp 클라이언트 초기화 (생성된 로거 전달)
+    psftp_client client(main_logger);
+
+    main_logger->info("Target PSFTP Path: {}", client.get_psftp_path());
+    main_logger->info("[1] Connecting to SFTP server...");
 
     auto sftp_ip = "127.0.0.1";
-    // auto sftp_port = 8022;
     auto sftp_port = 9022;
 
     auto sftp_user = "testuser";
     auto sftp_password_or_key = "testpass";
     auto is_key = false;
 
-    // std::string fingerprint = "y6CIn2/HAPNl+OfRXmrmKJvgINcXy5wCampYqfC3Szw"; // 8022
-    std::string fingerprint = "QXtzSnrG1m4bXyK9qL1fiPLV6Trgu5gFnjT6PNMEixk"; // 9022
+    // Set your host key fingerprint here (SHA256 or MD5)
+    std::string fingerprint = "QXtzSnrG1m4bXyK9qL1fiPLV6Trgu5gFnjT6PNMEixk";
     std::string hostkey_fingerprint = "SHA256:" + fingerprint;
 
     if (!client.connect(
-        sftp_ip, sftp_port, // SFTP 서버 IP와 포트
-        sftp_user, sftp_password_or_key, is_key, // 사용자명과 비밀번호 또는 키 경로(키 사용 시)
-        hostkey_fingerprint)) // 호스트 키 핑거프린트 (배치 모드 연결 시 필요)
+        sftp_ip, sftp_port,
+        sftp_user, sftp_password_or_key, is_key,
+        hostkey_fingerprint))
     {
-        std::cerr << ">> Connection failed." << std::endl;
+        main_logger->error("<red>Connection failed.</red>");
         return 1;
     }
-    std::cout << ">> Connected successfully!\n" << std::endl;
+    main_logger->info("<green>Connected successfully!</green>");
 
     std::string response;
 
-    // 3. 디렉터리 확인/생성 및 진입 (/hello 로 이동됨)
-    std::string remote_dir = "/hello"; // Remote dir 
-    if (!client.cd_remote_directory(remote_dir)) { // 원격 경로로 이동
-        std::cerr << ">> Directory setup failed." << std::endl;
+    // 3. 디렉터리 확인/생성 및 진입
+    std::string remote_dir = "/hello";
+    if (!client.cd_remote_directory(remote_dir)) {
+        main_logger->error("<red>Directory setup failed for: {}</red>", remote_dir);
         client.disconnect();
         return 1;
     }
-    std::cout << ">> Directory verified & entered: " << remote_dir << std::endl;
+    main_logger->info("Directory verified & entered: {}", remote_dir);
 
-    // 4. 업로드 실행 (로컬 경로는 슬래시 기반 절대 경로, 원격은 파일명만 전달)
-    std::string local_tmp_dir = "C:/tmp"; // Local dir
-    std::string local_file_name = "large_file.zip"; // Local file name
-    std::cout << "\n[2] Uploading " << local_file_name << " ..." << std::endl;
-    auto lcd_cmd = "lcd " + local_tmp_dir; // local cd
-    auto idle_timeout = 15; // idle timeout in seconds
-    if (!client.execute(lcd_cmd, response, idle_timeout)) { // 로컬 작업 디렉터리 변경 (C:/tmp)
-        std::cerr << ">> Failed to change local directory:\n" << response << std::endl;
+    // 4. 업로드 실행
+    std::string local_tmp_dir = "C:/tmp";
+    std::string local_file_name = "large_file.zip";
+    main_logger->info("[2] Uploading {} ...", local_file_name);
+
+    auto lcd_cmd = "lcd " + local_tmp_dir;
+    auto idle_timeout = 15;
+    if (!client.execute(lcd_cmd, response, idle_timeout)) {
+        main_logger->error("<red>Failed to change local directory:</red>\n{}", response);
         client.disconnect();
         return 1;
     }
-    // NOTE: 경로에 공란(space)가 있는 경우, \" 로 감싸야 함. 예: lcd "C:/My Documents"
-    // 가능하면 경로에 공란이 없는 경로를 사용하는 것이 좋음.
 
-    // 현재 작업 디렉터리 확인
-    std::cout << "------------------------\n";
     client.execute("pwd", response);
-    std::cout << mcs::replace(response, "\n", " ") << std::endl;
+    main_logger->info("Remote pwd: {}", mcs::replace(response, "\n", " "));
     client.execute("lpwd", response);
-    std::cout << mcs::replace(response, "\n", " ") << std::endl;
-    std::cout << "------------------------\n";
+    main_logger->info("Local lpwd: {}", mcs::replace(response, "\n", " "));
 
-    // 업로드 명령 (put)
-    std::string put_cmd = "put " + local_file_name; // "put large_file.zip"
+    std::string put_cmd = "put " + local_file_name;
     bool up_success = client.execute_with_progress(
         put_cmd,
         response,
         [](int percent) { print_progress_bar(percent); },
         idle_timeout
     );
-    std::cout << std::endl;
+    std::cout << std::endl; // 진행 바 개행
 
     if (up_success) {
-        std::cout << ">> Upload complete." << std::endl;
+        main_logger->info("<green>Upload complete.</green>");
     }
     else {
-        std::cerr << ">> Upload failed:\n" << response << std::endl;
+        main_logger->error("<red>Upload failed:</red>\n{}", response);
     }
 
-    // 현재 작업 디렉터리 확인
-    std::cout << "------------------------\n";
     client.execute("pwd", response);
-    std::cout << mcs::replace(response, "\n", " ") << std::endl;
+    main_logger->info("Remote pwd: {}", mcs::replace(response, "\n", " "));
     client.execute("lpwd", response);
-    std::cout << mcs::replace(response, "\n", " ") << std::endl;
-    std::cout << "------------------------\n";
+    main_logger->info("Local lpwd: {}", mcs::replace(response, "\n", " "));
 
-    // 5. 다운로드 실행 (원격은 파일명, 로컬은 슬래시 기반 절대 경로)
+    // 5. 다운로드 실행
     std::string remote_file = "large_file.zip";
-    std::cout << "\n[3] Downloading " << remote_file << " ..." << std::endl;
+    main_logger->info("[3] Downloading {} ...", remote_file);
 
-    bool resume_download = false; // 이어받기 여부 (true: 이어받기, false: 새로 다운로드)
-    std::string download_dst = local_tmp_dir + "/other_download.zip"; // 다운로드 대상 경로 (C:/tmp/other_download.zip)
-    bool down_success = client.download_file( // 다운로드 실행
+    bool resume_download = false;
+    std::string download_dst = local_tmp_dir + "/other_download.zip";
+    bool down_success = client.download_file(
         remote_file,
         download_dst,
         [](int percent) { print_progress_bar(percent); },
         resume_download,
         idle_timeout
     );
-    std::cout << std::endl;
+    std::cout << std::endl; // 진행 바 개행
+
     if (down_success) {
-        std::cout << ">> Download complete." << std::endl;
-    } else {
-        std::cerr << ">> Download failed." << std::endl;
+        main_logger->info("<green>Download complete.</green>");
+    }
+    else {
+        main_logger->error("<red>Download failed.</red>");
     }
 
+    // 6. 연결 종료
     client.disconnect();
-    std::cout << "\n[4] Session disconnected." << std::endl;
+    main_logger->info("[4] Session disconnected.");
 
     return 0;
 }

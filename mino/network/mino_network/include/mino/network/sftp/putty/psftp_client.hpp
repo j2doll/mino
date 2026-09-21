@@ -5,6 +5,8 @@
 #include <functional>
 #include <memory>
 
+#include "mino/core/log/log.hpp"
+
 namespace mino::network::sftp::putty {
 
     using progress_callback_t = std::function<void(int)>;
@@ -12,13 +14,26 @@ namespace mino::network::sftp::putty {
     class psftp_client {
     public:
         psftp_client();
+        explicit psftp_client(std::shared_ptr<mino::core::log::tinylog::logger> logger);
         ~psftp_client();
 
         // 복사 방지 (리소스 관리)
         psftp_client(const psftp_client&) = delete;
         psftp_client& operator=(const psftp_client&) = delete;
 
-        // SFTP 접속 (현재 프로그램 디렉터리의 psftp 바이너리 구동)
+        // 로거 설정 및 조회
+        void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger);
+        std::shared_ptr<mino::core::log::tinylog::logger> get_logger() const;
+
+        // psftp 실행 파일 경로 수동 지정
+        // - 디렉터리 경로("C:/putty" 등) 또는 실행 파일 전체 경로("C:/putty/psftp.exe") 모두 지정 가능
+        // - 빈 문자열("") 전달 시 현재 실행 프로그램 디렉터리 기준으로 자동 탐색
+        void set_psftp_path(const std::string& path);
+
+        // 현재 설정되었거나 탐색된 psftp 실행 파일의 전체 경로 반환
+        std::string get_psftp_path() const;
+
+        // SFTP 접속 (설정된 경로 또는 현재 프로그램 디렉터리의 psftp 바이너리 구동)
         // hostkey_fingerprint: 배치 모드 연결 시 호스트 키 승인을 위한 SHA256 또는 MD5 핑거프린트
         bool connect(const std::string& host, int port,
             const std::string& user, const std::string& password_or_key_path,
@@ -57,14 +72,17 @@ namespace mino::network::sftp::putty {
             progress_callback_t on_progress,
             int idle_timeout_seconds);
 
-        std::string to_lower(const std::string& str);
-        std::string get_executable_dir();
+        std::string to_lower(const std::string& str) const;
+        std::string get_executable_dir() const;
+        std::string resolve_psftp_path() const;
         std::vector<std::string> split_path(const std::string& path);
 
         // OS별 핸들 및 프로세스 정보 은닉을 위한 내부 구조체 포인터 (PIMPL 패턴)
         struct platform_context;
         std::unique_ptr<platform_context> context_;
 
+        std::shared_ptr<mino::core::log::tinylog::logger> logger_;
+        std::string custom_psftp_path_;
         const std::vector<std::string> error_patterns_;
     };
 

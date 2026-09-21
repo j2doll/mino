@@ -1,21 +1,22 @@
-#include <iostream>
 #include <sstream>
 #include <chrono>
 #include <thread>
 #include <algorithm>
 #include <regex>
 #include <cstdio>
+#include <filesystem>
 
 #ifdef _WIN32
-#include <windows.h>
+#   include <windows.h>
 #else
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <limits.h>
+#   include <unistd.h>
+#   include <sys/types.h>
+#   include <sys/wait.h>
+#   include <fcntl.h>
+#   include <limits.h>
 #endif
 
+#include "mino/core/log/log.hpp"
 #include "mino/network/sftp/putty/psftp_client.hpp"
 
 namespace mino::network::sftp::putty {
@@ -38,7 +39,13 @@ namespace mino::network::sftp::putty {
     };
 
     psftp_client::psftp_client()
+        : psftp_client(nullptr) {
+    }
+
+    psftp_client::psftp_client(std::shared_ptr<mino::core::log::tinylog::logger> logger)
         : context_(std::make_unique<platform_context>()),
+        logger_(std::move(logger)),
+        custom_psftp_path_(""),
         error_patterns_({
             "unable to open",
             "cannot open",
@@ -50,19 +57,36 @@ namespace mino::network::sftp::putty {
             "access denied",
             "command not recognized"
             }) {
+        // 로거가 설정되지 않은 경우(nullptr) 별도 로거를 자동 생성하지 않음 (로깅 비활성화)
     }
 
     psftp_client::~psftp_client() {
         disconnect();
     }
 
-    std::string psftp_client::to_lower(const std::string& str) {
+    void psftp_client::set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
+        logger_ = std::move(logger);
+    }
+
+    std::shared_ptr<mino::core::log::tinylog::logger> psftp_client::get_logger() const {
+        return logger_;
+    }
+
+    void psftp_client::set_psftp_path(const std::string& path) {
+        custom_psftp_path_ = path;
+    }
+
+    std::string psftp_client::get_psftp_path() const {
+        return resolve_psftp_path();
+    }
+
+    std::string psftp_client::to_lower(const std::string& str) const {
         std::string lower = str;
         std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
         return lower;
     }
 
-    std::string psftp_client::get_executable_dir() {
+    std::string psftp_client::get_executable_dir() const {
 #ifdef _WIN32
         char buffer[MAX_PATH];
         GetModuleFileNameA(NULL, buffer, MAX_PATH);
@@ -81,6 +105,36 @@ namespace mino::network::sftp::putty {
 #endif
     }
 
+    std::string psftp_client::resolve_psftp_path() const {
+        std::string target = custom_psftp_path_;
+
+#ifdef _WIN32
+        const std::string binary_name = "psftp.exe";
+        const char sep = '\\';
+#else
+        const std::string binary_name = "psftp";
+        const char sep = '/';
+#endif
+
+        // 수동 설정이 없거나 비워둔 경우 현재 실행 프로그램 디렉터리 기준
+        if (target.empty()) {
+            std::string exe_dir = get_executable_dir();
+            return exe_dir.empty() ? binary_name : (exe_dir + sep + binary_name);
+        }
+
+        // 사용자가 파일명이 아닌 디렉터리 경로만 전달한 경우 바이너리 파일명 덧붙임
+        std::string lower_target = to_lower(target);
+        if (lower_target.length() < binary_name.length() ||
+            lower_target.substr(lower_target.length() - binary_name.length()) != binary_name) {
+            if (!target.empty() && target.back() != '/' && target.back() != '\\') {
+                target += sep;
+            }
+            target += binary_name;
+        }
+
+        return target;
+    }
+
     std::vector<std::string> psftp_client::split_path(const std::string& path) {
         std::vector<std::string> parts;
         std::stringstream ss(path);
@@ -94,7 +148,24 @@ namespace mino::network::sftp::putty {
     }
 
     bool psftp_client::connect(const std::string& host, int port, const std::string& user, const std::string& password_or_key_path, bool is_key, const std::string& hostkey_fingerprint) {
-        std::string exe_dir = get_executable_dir();
+        std::string psftp_path = resolve_psftp_path();
+
+        // 1. psftp 실행 바이너리가 실제로 존재하는 일반 파일인지 검증
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(psftp_path, ec)) {
+            if (logger_) logger_->error("<red>psftp binary not found: {}</red>", psftp_path);
+            return false;
+        }
+
+#ifndef _WIN32
+        // Linux 환경인 경우 실행 권한(X_OK) 사전 확인
+        if (access(psftp_path.c_str(), X_OK) != 0) {
+            if (logger_) logger_->error("<red>psftp binary is not executable (chmod +x required): {}</red>", psftp_path);
+            return false;
+        }
+#endif
+
+        if (logger_) logger_->debug("Spawning psftp process: {}", psftp_path);
 
 #ifdef _WIN32
         SECURITY_ATTRIBUTES sa_attr;
@@ -105,18 +176,24 @@ namespace mino::network::sftp::putty {
         HANDLE child_stdin_read = NULL;
         HANDLE child_stdout_write = NULL;
 
-        if (!CreatePipe(&context_->child_stdout_read, &child_stdout_write, &sa_attr, 0)) return false;
+        if (!CreatePipe(&context_->child_stdout_read, &child_stdout_write, &sa_attr, 0)) {
+            if (logger_) logger_->error("Failed to create stdout pipe.");
+            return false;
+        }
         SetHandleInformation(context_->child_stdout_read, HANDLE_FLAG_INHERIT, 0);
 
-        if (!CreatePipe(&child_stdin_read, &context_->child_stdin_write, &sa_attr, 0)) return false;
+        if (!CreatePipe(&child_stdin_read, &context_->child_stdin_write, &sa_attr, 0)) {
+            if (logger_) logger_->error("Failed to create stdin pipe.");
+            CloseHandle(child_stdout_write);
+            CloseHandle(context_->child_stdout_read);
+            return false;
+        }
         SetHandleInformation(context_->child_stdin_write, HANDLE_FLAG_INHERIT, 0);
 
-        std::string psftp_path = exe_dir.empty() ? "psftp.exe" : (exe_dir + "\\psftp.exe");
         std::string cmd = "\"" + psftp_path + "\" " + host + " -P " + std::to_string(port) + " -l " + user + " -batch";
 
-        // 호스트 키 핑거프린트 지정 시 옵션 추가
-        if (hostkey_fingerprint.empty()) {
-        } else {
+        // 호스트 키 핑거프린트 옵션 추가
+        if (!hostkey_fingerprint.empty()) {
             cmd += " -hostkey \"" + hostkey_fingerprint + "\"";
         }
 
@@ -143,14 +220,20 @@ namespace mino::network::sftp::putty {
         CloseHandle(child_stdout_write);
         CloseHandle(child_stdin_read);
         if (!success) {
-            std::cerr << "[Error] Failed to execute psftp.exe at: " << psftp_path << std::endl;
+            if (logger_) logger_->error("<red>Failed to create process for psftp: {}</red>", psftp_path);
             return false;
         }
 #else
-        if (pipe(context_->pipe_stdin) < 0 || pipe(context_->pipe_stdout) < 0) return false;
+        if (pipe(context_->pipe_stdin) < 0 || pipe(context_->pipe_stdout) < 0) {
+            if (logger_) logger_->error("Failed to create standard pipes.");
+            return false;
+        }
 
         context_->pid = fork();
-        if (context_->pid < 0) return false;
+        if (context_->pid < 0) {
+            if (logger_) logger_->error("Failed to fork child process.");
+            return false;
+        }
 
         if (context_->pid == 0) {
             close(context_->pipe_stdin[1]);
@@ -161,7 +244,6 @@ namespace mino::network::sftp::putty {
             close(context_->pipe_stdin[0]);
             close(context_->pipe_stdout[1]);
 
-            std::string psftp_path = exe_dir + "/psftp";
             std::string port_str = std::to_string(port);
             std::vector<const char*> args = { psftp_path.c_str(), host.c_str(), "-P", port_str.c_str(), "-l", user.c_str(), "-batch" };
 
@@ -190,7 +272,11 @@ namespace mino::network::sftp::putty {
 #endif
 
         std::string init_response;
-        return wait_for_prompt(init_response, nullptr, 15);
+        bool connected = wait_for_prompt(init_response, nullptr, 15);
+        if (!connected) {
+            if (logger_) logger_->error("<red>Failed to connect (prompt wait timed out or connection refused).</red>");
+        }
+        return connected;
     }
 
     bool psftp_client::send_command(const std::string& command) {
@@ -239,12 +325,7 @@ namespace mino::network::sftp::putty {
         while (true) {
             std::string chunk = read_output();
 
-             // std::cout << chunk; // DEBUG
-
             if (!chunk.empty()) {
-
-                 // std::cout << chunk; // 실시간 터미널 출력 // DEBUG
-
                 out_response += chunk;
                 last_active_time = std::chrono::steady_clock::now();
 
@@ -273,6 +354,7 @@ namespace mino::network::sftp::putty {
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>(now - last_active_time).count() > idle_timeout_seconds) {
                 out_response += "\n[ERROR: Operation timed out due to inactivity]";
+                if (logger_) logger_->warn("<yellow>Operation timed out after {} seconds of inactivity.</yellow>", idle_timeout_seconds);
                 return false;
             }
 
@@ -298,6 +380,7 @@ namespace mino::network::sftp::putty {
 
         if (!send_command(cmd)) {
             out_response = "[ERROR: Failed to write to process pipe]";
+            if (logger_) logger_->error("<red>Failed to send command through pipe: {}</red>", cmd);
             return false;
         }
 
@@ -307,10 +390,9 @@ namespace mino::network::sftp::putty {
 
         std::string lower_resp = to_lower(out_response);
 
-        // std::cout << lower_resp; // DEBUG
-
         for (const auto& pattern : error_patterns_) {
             if (lower_resp.find(pattern) != std::string::npos) {
+                if (logger_) logger_->warn("<bright_yellow>Command error pattern detected ('{}') for cmd: {}</bright_yellow>", pattern, cmd);
                 return false;
             }
         }
@@ -323,15 +405,16 @@ namespace mino::network::sftp::putty {
 
         auto mk_dir_string = "mkdir " + remote_path;
         if (!execute(mk_dir_string, response, timeout_sec)) {
-            // return false; 
+            if (logger_) logger_->debug("Remote mkdir failed or directory already exists: {}", remote_path);
         }
 
         auto cd_dir_string = "cd " + remote_path;
         if (!execute(cd_dir_string, response, timeout_sec)) {
+            if (logger_) logger_->error("<red>Failed to change remote directory to: {}</red>", remote_path);
             return false;
         }
 
-        return true; 
+        return true;
     }
 
     bool psftp_client::download_file(const std::string& remote_file, const std::string& local_file, progress_callback_t on_progress, bool resume, int idle_timeout) {
@@ -339,8 +422,11 @@ namespace mino::network::sftp::putty {
         std::string cmd = (resume ? "reget \"" : "get \"") + remote_file + "\" \"" + local_file + "\"";
 
         bool success = execute_with_progress(cmd, response, on_progress, idle_timeout);
-        if (!success && !resume) {
-            std::remove(local_file.c_str());
+        if (!success) {
+            if (logger_) logger_->error("<red>Failed to download file '{}' to '{}'</red>", remote_file, local_file);
+            if (!resume) {
+                std::remove(local_file.c_str());
+            }
         }
         return success;
     }
@@ -365,6 +451,7 @@ namespace mino::network::sftp::putty {
             context_->pid = -1;
         }
 #endif
+        if (logger_) logger_->debug("psftp session disconnected.");
     }
 
 } // namespace mino::network::sftp::putty

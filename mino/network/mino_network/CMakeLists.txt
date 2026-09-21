@@ -34,6 +34,7 @@ if(MSVC)
     target_compile_options(mino_network PRIVATE "/utf-8")
 endif()
 
+# filesystem library is required for C++17 filesystem support on GCC < 9
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(mino_network PUBLIC -Wno-free-nonheap-object -Wno-deprecated-literal-operator)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
@@ -43,7 +44,7 @@ endif()
 
 if(WIN32)
     target_compile_definitions(mino_network PUBLIC WIN32_LEAN_AND_MEAN NOMINMAX)
-    target_link_libraries(mino_network PRIVATE ws2_32 iphlpapi)
+    target_link_libraries(mino_network PRIVATE ws2_32 iphlpapi)  
 endif()
 
 # 6. Target Linking
