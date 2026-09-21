@@ -11,7 +11,6 @@
 #include <condition_variable>
 
 #include "mino/core/log/tinylog/tinylog_fwd.hpp"
-
 #include "mino/core/schedule/task/period_strategy.hpp"
 
 namespace mino::core::schedule::task {

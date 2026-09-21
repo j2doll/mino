@@ -1,20 +1,64 @@
+#include <cctype>
+#include <algorithm>
+
 #include "mino/core/schedule/task/period_strategy.hpp"
 
 namespace mino::core::schedule::task {
 
-    date_time_parts date_time_parts::from_time_point(std::chrono::system_clock::time_point tp) {
+    std::optional<weekday> weekday_from_string(std::string_view str) {
+        if (str.empty()) return std::nullopt;
+
+        char lower_buf[16];
+        if (str.size() >= sizeof(lower_buf)) return std::nullopt;
+
+        for (size_t i = 0; i < str.size(); ++i) {
+            lower_buf[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(str[i])));
+        }
+        std::string_view lower(lower_buf, str.size());
+
+        // 1. smart_enum 리플렉션을 통한 전체 이름 매칭 ("sunday", "monday", ...)
+        auto full_match = mino::core::enums::enum_cast<weekday>(lower);
+        if (full_match.has_value()) {
+            return full_match;
+        }
+
+        // 2. 약어 이름 매칭 ("sun", "mon", ...)
+        if (lower == "sun") return weekday::sunday;
+        if (lower == "mon") return weekday::monday;
+        if (lower == "tue") return weekday::tuesday;
+        if (lower == "wed") return weekday::wednesday;
+        if (lower == "thu") return weekday::thursday;
+        if (lower == "fri") return weekday::friday;
+        if (lower == "sat") return weekday::saturday;
+
+        return std::nullopt;
+    }
+
+    date_time_parts date_time_parts::from_time_point(std::chrono::system_clock::time_point tp, time_base base) {
         std::time_t t = std::chrono::system_clock::to_time_t(tp);
         std::tm tm_info{};
+
 #if defined(_WIN32) || defined(_WIN64)
-        localtime_s(&tm_info, &t);
+        if (base == time_base::utc) {
+            gmtime_s(&tm_info, &t);
+        }
+        else {
+            localtime_s(&tm_info, &t);
+        }
 #else
-        localtime_r(&t, &tm_info);
+        if (base == time_base::utc) {
+            gmtime_r(&t, &tm_info);
+        }
+        else {
+            localtime_r(&t, &tm_info);
+        }
 #endif
+
         return {
             tm_info.tm_year + 1900,
             tm_info.tm_mon + 1,
             tm_info.tm_mday,
-            tm_info.tm_wday,
+            static_cast<task::weekday>(tm_info.tm_wday),
             tm_info.tm_hour,
             tm_info.tm_min,
             tm_info.tm_sec
@@ -72,8 +116,12 @@ namespace mino::core::schedule::task {
     }
 
     // Weekly
-    weekly_strategy::weekly_strategy(int weekday, int hour, int minute, int second)
-        : target_weekday_(weekday), target_hour_(hour), target_minute_(minute), target_second_(second) {
+    weekly_strategy::weekly_strategy(weekday wd, int hour, int minute, int second)
+        : target_weekday_(wd), target_hour_(hour), target_minute_(minute), target_second_(second) {
+    }
+
+    weekly_strategy::weekly_strategy(int weekday_val, int hour, int minute, int second)
+        : weekly_strategy(static_cast<task::weekday>(weekday_val), hour, minute, second) {
     }
 
     std::chrono::system_clock::time_point weekly_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
@@ -89,7 +137,7 @@ namespace mino::core::schedule::task {
         std::time_t target_t = std::mktime(&target_tm);
         auto target_tp = std::chrono::system_clock::from_time_t(target_t);
 
-        int days_diff = target_weekday_ - parts.weekday;
+        int days_diff = static_cast<int>(target_weekday_) - static_cast<int>(parts.weekday);
         if (days_diff < 0 || (days_diff == 0 && target_tp <= current_time)) {
             days_diff += 7;
         }
@@ -143,4 +191,4 @@ namespace mino::core::schedule::task {
         return target_tp;
     }
 
-}  
+}
