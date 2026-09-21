@@ -1,23 +1,23 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <sstream>
 
 #include "mino/core/string/to_console_encoding.hpp"
 
 // NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
+//
+// #include "mino/core/string/string.hpp"
+// namespace {
+//     auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+//     auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+//     std::ostream& (*endl)(std::ostream&) = std::endl;
+//     auto tce = mino::core::string::to_console_encoding;
+//     auto tcev = [](std::string_view sv) { return mino::core::string::to_console_encoding(std::string(sv)); };
+// }
 // 
-// namespace mcsp = ::mino::core::string::print;
-// auto print = [](std::string_view fmt, auto&&... args) {
-//     mcsp::print(fmt, std::forward<decltype(args)>(args)...);
-//     };
-// auto println = [](std::string_view fmt, auto&&... args) {
-//     mcsp::println(fmt, std::forward<decltype(args)>(args)...);
-//     };
-// 
-// 람다로 간단하게 호출   println("TEST");
-// 또는 직접 호출도 가능  mcsp::println("TEST");
 
 namespace mino::core::string::print {
 

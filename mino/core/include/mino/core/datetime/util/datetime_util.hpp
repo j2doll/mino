@@ -125,6 +125,22 @@ namespace mino::core::datetime {
             const std::chrono::system_clock::time_point& tp,
             time_zone_mode tzmode = time_zone_mode::local_time,
             const std::string& format = "YYYY-MM-DD hh:mm:ss.SSS");
+         // 다음과 같은 간단한 람도로도 사용 가능
+         // namespace {
+         //     namespace mdtu = mino::core::datetime::util;
+         // 
+         //     // 공통 날짜/시간 포맷 상수 (초 단위)
+         //     constexpr const char* DATETIME_FORMAT = "YYYY-MM-DD hh:mm:ss";
+         // 
+         //     // 자주 쓰는 타임존(local_time)과 포맷을 기본값으로 바인딩한 auto 람다
+         //     auto fdt = [](
+         //         const auto& tp,
+         //         mdtu::time_zone_mode tz = mdtu::time_zone_mode::local_time,
+         //         const std::string& fmt = DATETIME_FORMAT)
+         //         {
+         //             return mdtu::format_datetime(tp, tz, fmt);
+         //         };
+         // }
 
         // (4) epoch_ms + tzmode + format
         // 인자:

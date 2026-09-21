@@ -6,7 +6,7 @@
 
 #include "mino/core/schedule/task/task.hpp"
 #include "mino/core/datetime/util/util.hpp" 
-#include "mino/core/string/to_console_encoding.hpp"
+#include "mino/core/string/string.hpp"
 #include "mino/core/enum/enum.hpp"
 
 namespace {
@@ -25,6 +25,14 @@ namespace {
         };
 }
 
+namespace {
+    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+    std::ostream& (*endl)(std::ostream&) = std::endl;
+    auto tce = mino::core::string::to_console_encoding;
+    auto tcev = [](std::string_view sv) { return mino::core::string::to_console_encoding(std::string(sv)); };
+}
+
 // 1. 주기 전략 계산 로직 단위 테스트
 void test_strategy_calculations() {
     namespace mcst = mino::core::schedule::task;
@@ -38,11 +46,6 @@ void test_strategy_calculations() {
     using hourly_strategy = mcst::hourly_strategy;
     using minutely_strategy = mcst::minutely_strategy;
 
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
-    auto tce = mino::core::string::to_console_encoding;
-
     print(tce("========================================"));
     print(tce("[Test 1] 주기 전략 다음 실행 시간 계산 검증"));
     print(tce("========================================"));
@@ -53,8 +56,8 @@ void test_strategy_calculations() {
     // format_datetime 단축 람다(fdt)를 사용하여 Local 및 UTC 시간 출력
     print(tce("현재 시각(Local): "), tce(fdt(now)));
     print(tce("현재 시각(UTC)  : "), tce(fdt(now, mdtu::time_zone_mode::utc)));
-    print(tce("요일: "), tce(std::string(mcst::to_string(now_parts.weekday))),
-        tce(" ["), tce(std::string(mcst::to_short_string(now_parts.weekday))), tce("]"),
+    print(tce("요일: "), tcev(mcst::to_string(now_parts.weekday)),
+        tce(" ["), tcev(mcst::to_short_string(now_parts.weekday)), tce("]"),
         tce(" / 코드: "), static_cast<int>(now_parts.weekday), endl);
 
     // 1-1. Minutely 전략 (매 분 30초)
@@ -87,9 +90,9 @@ void test_strategy_calculations() {
     for (const char* name_candidate : { "Sunday", "mon", "WEDNESDAY", "fri", "unknown" }) {
         auto parsed = mcst::weekday_from_string(name_candidate);
         if (parsed.has_value()) {
-            print(tce("파싱 성공: '"), name_candidate, tce("' -> "),
-                tce(std::string(mcst::to_string(*parsed))),
-                tce(" (약어: "), tce(std::string(mcst::to_short_string(*parsed))),
+            print(tce("파싱 성공: '"), name_candidate,
+                tce("' -> "), tcev( mcst::to_string(*parsed) ),
+                tce(" (약어: "), tcev( mcst::to_short_string(*parsed) ),
                 tce(", 코드: "), static_cast<int>(*parsed), tce(")"));
         }
         else {
@@ -107,11 +110,6 @@ void test_scheduler_execution() {
     using task_scheduler = mcst::task_scheduler;
     using date_time_parts = mcst::date_time_parts;
     using minutely_strategy = mcst::minutely_strategy;
-
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
-    auto tce = mino::core::string::to_console_encoding;
 
     print(tce("========================================"));
     print(tce("[Test 2] Task Scheduler 실시간 동작 테스트"));
@@ -211,11 +209,7 @@ void test_scheduler_execution() {
 }
 
 int main() {
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
-    auto tce = mino::core::string::to_console_encoding;
-
+ 
     test_strategy_calculations();
     test_scheduler_execution();
 
