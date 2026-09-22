@@ -173,8 +173,8 @@
 <br />
 
 ##### 🔀 [network](example/network) <sub> 네트워크 </sub>
-- 🔀 [ftp](example/network/ftp/tcp/main.cpp) <sub> `tcp` `ssh` </sub>
-    - `ftp`/`sftp` 클라이언트
+- 🔀 [ftp](example/network/ftp/tcp/main.cpp) 
+    - `ftp`/`sftp` 클라이언트 <sub> `tcp` `ssh` </sub>
 - 🔀 [interface](example/network/interface/main.cpp)
     - 네트워크 인터페이스 정보 조회
 - 🔀 [log/manager](example/network/log/manager/main.cpp)
@@ -258,15 +258,11 @@
 - 🔀 [ssh](example/network/ssh/main.cpp)
     - 독립형 `ssh` 클라이언트 
 - 🔀 `tcp` 
-    - [server](example/network/tcp/server/main.cpp)
-       - `TCP` 서버
-    - [client](example/network/tcp/client/main.cpp)
-       - `TCP` 클라이언트
+    - [server](example/network/tcp/server/main.cpp) : `TCP` 서버
+    - [client](example/network/tcp/client/main.cpp) : `TCP` 클라이언트
 - 🔀 `udp`
-    - [receiver](example/network/udp/receiver/main.cpp)
-       - `UDP` 수신
-    - [sender](example/network/udp/sender/main.cpp)
-       - `UDP` 송신 
+    - [receiver](example/network/udp/receiver/main.cpp) : `UDP` 수신
+    - [sender](example/network/udp/sender/main.cpp) : `UDP` 송신
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기 및 `IP` 주소 검증 
 
@@ -302,10 +298,8 @@
 - 🔀 [rest](example/network_openssl/rest/httplib/main.cpp)
     - `REST API` `GET`/`POST` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
 - 🔀 `tls`
-    - [server](example/network_openssl/tls/server/main.cpp) 
-	   - `TLS` 서버 <sub> 🔒 `openssl` </sub>
-    - [client](example/network_openssl/tls/client/main.cpp) 
-	   - `TLS` 클라이언트 <sub> 🔒 `openssl` </sub>
+    - [server](example/network_openssl/tls/server/main.cpp) : `TLS` 서버 <sub> 🔒 `openssl` </sub>
+    - [client](example/network_openssl/tls/client/main.cpp) : `TLS` 클라이언트 <sub> 🔒 `openssl` </sub>
 
 <br />
 
