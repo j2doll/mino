@@ -11,11 +11,18 @@
 //
 // #include "mino/core/string/string.hpp"
 // namespace {
+//     namespace mcs = mino::core::string;
+//     namespace mcsp = mino::core::string::print;
+// 
+//     auto tce = mcs::to_console_encoding;
+//     auto tcev = [](std::string_view sv) { return mcs::to_console_encoding(std::string(sv)); };
+// 
 //     auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
 //     auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
 //     std::ostream& (*endl)(std::ostream&) = std::endl;
-//     auto tce = mino::core::string::to_console_encoding;
-//     auto tcev = [](std::string_view sv) { return mino::core::string::to_console_encoding(std::string(sv)); };
+// 
+//     auto println = [](std::string_view fmt, auto&&... args) { mcsp::println(fmt, std::forward<decltype(args)>(args)...); };
+//     auto eprintln = [](std::string_view fmt, auto&&... args) { mcsp::eprintln(fmt, std::forward<decltype(args)>(args)...); };
 // }
 // 
 

@@ -1,415 +1,362 @@
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <cassert>
 
 #include "mino/core/string/string.hpp"
-
 #include "mino/network/ethernet.hpp"
 
-#include "mino/network_curl/rest/get_client.hpp"
-#include "mino/network_curl/rest/post_client.hpp"
+#include "mino/network_curl/rest/rest.hpp"
+
+namespace {
+    namespace mcs = mino::core::string;
+    namespace mcsp = mino::core::string::print;
+
+    auto tce = mcs::to_console_encoding;
+    auto tcev = [](std::string_view sv) { return mcs::to_console_encoding(std::string(sv)); };
+
+    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
+    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
+    std::ostream& (*endl)(std::ostream&) = std::endl;
+
+    auto println = [](std::string_view fmt, auto&&... args) { mcsp::println(fmt, std::forward<decltype(args)>(args)...); };
+    auto eprintln = [](std::string_view fmt, auto&&... args) { mcsp::eprintln(fmt, std::forward<decltype(args)>(args)...); };
+}
 
 namespace rest_namespace = mino::network_curl::rest;
 
 using get_client = rest_namespace::get_client;
-void test_get_no_except();
-void test_get_except();
-
 using post_client = rest_namespace::post_client;
-void test_post_no_except();
-void test_post_except();
+using put_client = rest_namespace::put_client;
+using patch_client = rest_namespace::patch_client;
+using delete_client = rest_namespace::delete_client;
+using head_client = rest_namespace::head_client;
+using options_client = rest_namespace::options_client;
+using trace_client = rest_namespace::trace_client;
+using connect_client = rest_namespace::connect_client;
 
-void print_response_body(
-    const std::vector<std::string>& headers,
-    const std::string& content_type,
-    const std::string& body);
+void test_get();
+void test_post();
+void test_put();
+void test_patch();
+void test_delete();
+void test_head();
+void test_options();
+void test_trace();
+void test_connect();
 
-// NOTE:
-//  main을 구동하기 전에 다음을 수행한다.
-//    python get_server.py
-//    python post_server.py
 int main(int argc, char* argv[])
 {
     mino::network::sock mnsock;
 
-    namespace mcsp = ::mino::core::string::print;
-    auto print = [](std::string_view fmt, auto&&... args) {
-        mcsp::print(fmt, std::forward<decltype(args)>(args)...);
-    };
-    auto println = [](std::string_view fmt, auto&&... args) {
-        mcsp::println(fmt, std::forward<decltype(args)>(args)...);
-    };
-
     println("==============================");
-    println("=== GET Request (noexcept) ===");
-    test_get_no_except(); // REST API GET 요청 (noexcept 버전)
+    println("=== 1. GET Request (20011) ===");
+    test_get();
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== GET Request (exception) ===\n";
-    test_get_except(); // REST API GET 요청 (exception 버전)
+    println("\n==============================");
+    println("=== 2. POST Request (20012) ===");
+    test_post();
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== POST Request (noexcept) ===\n";
-    test_post_no_except(); // REST API POST 요청 (noexcept 버전)
+    println("\n==============================");
+    println("=== 3. PUT Request (20013) ===");
+    test_put();
 
-    std::cout << "\n==============================\n";
-    std::cout << "=== POST Request (exception) ===\n";
-    test_post_except(); // REST API POST 요청 (exception 버전)
+    println("\n==============================");
+    println("=== 4. PATCH Request (20014) ===");
+    test_patch();
+
+    println("\n==============================");
+    println("=== 5. DELETE Request (20015) ===");
+    test_delete();
+
+    println("\n==============================");
+    println("=== 6. HEAD Request (20016) ===");
+    test_head();
+
+    println("\n==============================");
+    println("=== 7. OPTIONS Request (20017) ===");
+    test_options();
+
+    println("\n==============================");
+    println("=== 8. TRACE Request (20018) ===");
+    test_trace();
+
+    println("\n==============================");
+    println("=== 9. CONNECT Request (20019) ===");
+    test_connect();
 
     return 0;
 }
 
-//----------------------------------------------------------------
+// ---------------------------------------------------
+// 공통 응답 출력 함수
+// ---------------------------------------------------
 void print_response_body(
     const std::vector<std::string>& headers,
     const std::string& content_type,
     const std::string& body)
 {
-    std::cout << "[Response Headers]\n";
+    print("[Response Headers]");
     for (const auto& h : headers) {
-        std::cout << h << "\n";
+        print(h);
     }
-    std::cout << "[Body Content-Type: " << content_type << "]\n";
+    print("[Body Content-Type: ", content_type, "]");
     if (content_type.find("application/json") != std::string::npos) {
-        std::cout << "[JSON Body]\n" << body << "\n";
+        print("[JSON Body]\n", body);
     }
     else if (content_type.find("application/xml") != std::string::npos ||
         content_type.find("text/xml") != std::string::npos) {
-        std::cout << "[XML Body]\n" << body << "\n";
+        print("[XML Body]\n", body);
     }
     else {
-        std::cout << "[Raw Body]\n" << body << "\n";
+        print("[Raw Body]\n", body);
     }
 }
 
-void test_get_no_except()
+// ---------------------------------------------------
+// 1. GET 예제 (Port: 20011)
+// ---------------------------------------------------
+void test_get()
 {
     get_client client;
-
-    // Modified to match the Python server address
-    client.set_server("http", "127.0.0.1", 50011, "/get");
-    client.set_timeout_ms(5000);
-
+    assert(client.set_server("http", "127.0.0.1", 20011, "/get"));
+    assert(client.set_timeout_ms(5000));
     client.set_headers({
         {"User-Agent", "CurlRestClient/1.0"},
         {"Accept",     "application/json"}
         });
 
-    // Ignore SSL certificate errors if needed
-    // client.set_ignore_ssl_errors(true);
-
-    get_client::query_params params = {
-        {"query", "test"}
-    };
-
+    // GET 요청 시 Query Parameter를 포함하는 방법
+    get_client::query_params params = { {"query", "test"} };
     get_client::response resp;
-    auto rc = client.get(params, resp); // noexcept version
+    auto rc = client.get(params, resp);
 
-    std::cout << "ResultCode = " << static_cast<int>(rc) << "\n";
+    // Body에 JSON 데이터를 포함하여 GET 요청하는 방법
+    // std::string json_body = "{\"filter\": {\"keyword\": \"libcurl\", \"limit\": 10}}";
+    // 
+    // 1. noexcept 버전 호출
+    // get_client::response resp;
+    // auto rc = client.get({}, json_body, resp);
+    // 
+    // 2. 예외 버전 호출
+    // get_client::response resp = client.get({}, json_body);
+    // 
 
-    using result_code = get_client::result_code;
-    switch (rc) {
-    case result_code::ok:
-        std::cout << "[OK] Request succeeded.\n";
-        break;
-    case result_code::curl_timeout:
-        std::cout << "[CURL TIMEOUT] The request timed out.\n";
-        break;
-    case result_code::curl_ssl_error:
-        std::cout << "[CURL SSL ERROR] SSL certificate error.\n";
-        break;
-    case result_code::curl_network_error:
-        std::cout << "[CURL NETWORK ERROR] Network error (host not found or connection failed).\n";
-        break;
-    case result_code::curl_other_error:
-        std::cout << "[CURL OTHER ERROR] Other CURL error.\n";
-        break;
-    case result_code::http_client_error_4xx:
-        std::cout << "[HTTP 4xx] Client error (4xx).\n";
-        break;
-    case result_code::http_not_found:
-        std::cout << "[HTTP 404] Not found.\n";
-        break;
-    case result_code::http_server_error_5xx:
-        std::cout << "[HTTP 5xx] Server error (5xx).\n";
-        break;
-    case result_code::http_redirect_3xx:
-        std::cout << "[HTTP 3xx] Redirect (3xx).\n";
-        break;
-    case result_code::http_other_error:
-        std::cout << "[HTTP OTHER ERROR] Other HTTP error.\n";
-        break;
-    case result_code::unknown_error:
-        std::cout << "[UNKNOWN ERROR] Unknown error occurred.\n";
-        break;
-    default:
-        std::cout << "[UNEXPECTED] Unhandled result code.\n";
-        break;
-    }
-
+    print("ResultCode = ", static_cast<int>(rc));
     if (resp.is_success()) {
         print_response_body(resp.headers, resp.content_type, resp.body);
     }
     else {
-        std::cout << "[Error] status=" << resp.raw_status_code
-            << ", message=" << resp.error << "\n";
-        // [Error] status=0, message=Could not connect to server 
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
     }
 }
 
-void test_get_except()
+// ---------------------------------------------------
+// 2. POST 예제 (Port: 20012)
+// ---------------------------------------------------
+void test_post()
 {
-    get_client client;
+    post_client client;
+    assert(client.set_server("http", "127.0.0.1", 20012, "/post"));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent",   "CurlRestClient/1.0"},
+        {"Content-Type", "application/json"},
+        {"Accept",       "application/json"}
+        });
 
-    // Modified to match the Python server address
-    client.set_server("http", "127.0.0.1", 50011, "/get");
-    client.set_timeout_ms(5000);
+    std::string json_body = "{\"message\": \"hello from POST\", \"value\": 100}";
+    post_client::response resp;
+    auto rc = client.post(json_body, resp);
 
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
+
+// ---------------------------------------------------
+// 3. PUT 예제 (Port: 20013)
+// ---------------------------------------------------
+void test_put()
+{
+    put_client client;
+    assert(client.set_server("http", "127.0.0.1", 20013, "/resource/1"));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent",   "CurlRestClient/1.0"},
+        {"Content-Type", "application/json"},
+        {"Accept",       "application/json"}
+        });
+
+    std::string json_body = "{\"id\": 1, \"name\": \"updated item\"}";
+    put_client::response resp;
+    auto rc = client.put(json_body, resp);
+
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
+
+// ---------------------------------------------------
+// 4. PATCH 예제 (Port: 20014)
+// ---------------------------------------------------
+void test_patch()
+{
+    patch_client client;
+    assert(client.set_server("http", "127.0.0.1", 20014, "/resource/1"));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent",   "CurlRestClient/1.0"},
+        {"Content-Type", "application/json"},
+        {"Accept",       "application/json"}
+        });
+
+    std::string json_patch = "{\"name\": \"partially updated item\"}";
+    patch_client::response resp;
+    auto rc = client.patch(json_patch, resp);
+
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
+
+// ---------------------------------------------------
+// 5. DELETE 예제 (Port: 20015)
+// ---------------------------------------------------
+void test_delete()
+{
+    delete_client client;
+    assert(client.set_server("http", "127.0.0.1", 20015, "/resource/1"));
+    assert(client.set_timeout_ms(5000));
     client.set_headers({
         {"User-Agent", "CurlRestClient/1.0"},
         {"Accept",     "application/json"}
         });
 
-    // Ignore SSL certificate errors if needed
-    // client.set_ignore_ssl_errors(true);
+    delete_client::query_params params = { {"cascade", "true"} };
+    delete_client::response resp;
+    auto rc = client.del(params, /*body=*/"", resp);
 
-    get_client::query_params params = {
-        {"query", "test"}
-    };
-
-    try {
-        // This version may throw exceptions
-        get_client::response resp = client.get(params);
-
-        using http_status = get_client::http_status;
-        std::cout << "[EXCEPT] Request succeeded.\n";
-        std::cout << "HTTP " << resp.raw_status_code << "\n";
-
-        switch (resp.status) {
-        case http_status::ok:
-            std::cout << "[HTTP 200 OK] Success.\n";
-            break;
-        case http_status::created:
-            std::cout << "[HTTP 201 Created] Resource created.\n";
-            break;
-        case http_status::no_content:
-            std::cout << "[HTTP 204 No Content] Success, no content.\n";
-            break;
-        case http_status::bad_request:
-            std::cout << "[HTTP 400 Bad Request] Client error.\n";
-            break;
-        case http_status::unauthorized:
-            std::cout << "[HTTP 401 Unauthorized] Authentication required.\n";
-            break;
-        case http_status::forbidden:
-            std::cout << "[HTTP 403 Forbidden] Access denied.\n";
-            break;
-        case http_status::not_found:
-            std::cout << "[HTTP 404 Not Found] Resource not found.\n";
-            break;
-        case http_status::internal_server_error:
-            std::cout << "[HTTP 500 Internal Server Error] Server error.\n";
-            break;
-        case http_status::bad_gateway:
-            std::cout << "[HTTP 502 Bad Gateway] Bad gateway.\n";
-            break;
-        case http_status::service_unavailable:
-            std::cout << "[HTTP 503 Service Unavailable] Service unavailable.\n";
-            break;
-        case http_status::unknown:
-        default:
-            std::cout << "[HTTP UNKNOWN] Unknown HTTP status.\n";
-            break;
-        }
-
-        if (resp.is_success()) {
-            print_response_body(resp.headers, resp.content_type, resp.body);
-        }
-        else {
-            std::cout << "[Error] status=" << resp.raw_status_code
-                << ", message=" << resp.error << "\n";
-        }
-    }
-    catch (const std::exception& ex) {
-        std::cout << "[EXCEPT] Exception: " << ex.what() << "\n";
-    }
-    catch (...) {
-        std::cout << "[EXCEPT] Unknown exception occurred.\n";
-    }
-}
-
-
-
-//---------------------------------------------------
- 
-
-// ---------------------------------------------------
-// POST example (noexcept version)
-//  - Handles all result_code cases
-// ---------------------------------------------------
-void test_post_no_except()
-{
-    post_client client;
-
-    // Example: Assume /post endpoint of a Python server
-    client.set_server("http", "127.0.0.1", 50012, "/post");
-    client.set_timeout_ms(5000);
-
-    client.set_headers({
-        {"User-Agent",   "CurlRestClient/1.0"},
-        {"Content-Type", "application/json"},
-        {"Accept",       "application/json"}
-        });
-
-    // JSON data to send
-    std::string json_body =
-        "{"
-        "\"message\": \"hello from POST (escape)\","
-        "\"value\": 123"
-        "}";
-
-    post_client::response resp;
-    auto rc = client.post(json_body, resp); // Use noexcept version
-
-    std::cout << "ResultCode = " << static_cast<int>(rc) << "\n";
-
-    using result_code = post_client::result_code;
-
-    switch (rc) {
-    case result_code::ok:
-        std::cout << "[OK] POST request succeeded.\n";
-        break;
-    case result_code::curl_timeout:
-        std::cout << "[CURL TIMEOUT] The request timed out.\n";
-        break;
-    case result_code::curl_ssl_error:
-        std::cout << "[CURL SSL ERROR] SSL certificate error occurred.\n";
-        break;
-    case result_code::curl_network_error:
-        std::cout << "[CURL NETWORK ERROR] Network error such as host not found or connection failed.\n";
-        break;
-    case result_code::curl_other_error:
-        std::cout << "[CURL OTHER ERROR] Other CURL error.\n";
-        break;
-    case result_code::http_client_error_4xx:
-        std::cout << "[HTTP 4xx] Client-side error (4xx).\n";
-        break;
-    case result_code::http_not_found:
-        std::cout << "[HTTP 404] Endpoint not found.\n";
-        break;
-    case result_code::http_server_error_5xx:
-        std::cout << "[HTTP 5xx] Server-side error (5xx).\n";
-        break;
-    case result_code::http_redirect_3xx:
-        std::cout << "[HTTP 3xx] Redirect response (3xx).\n";
-        break;
-    case result_code::http_other_error:
-        std::cout << "[HTTP OTHER ERROR] Other HTTP error.\n";
-        break;
-    case result_code::unknown_error:
-        std::cout << "[UNKNOWN ERROR] An unknown error occurred.\n";
-        break;
-    default:
-        std::cout << "[UNEXPECTED] Unhandled result code.\n";
-        break;
-    }
-
+    print("ResultCode = ", static_cast<int>(rc));
     if (resp.is_success()) {
         print_response_body(resp.headers, resp.content_type, resp.body);
     }
     else {
-        std::cout << "[Error] status=" << resp.raw_status_code
-            << ", message=" << resp.error << "\n";
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
     }
 }
 
 // ---------------------------------------------------
-// POST example (exception version)
-//  - Handles all http_status cases
+// 6. HEAD 예제 (Port: 20016)
 // ---------------------------------------------------
-void test_post_except()
+void test_head()
 {
-    post_client client;
-
-    // Example: Assume /post endpoint of a Python server
-    client.set_server("http", "127.0.0.1", 50012, "/post");
-    client.set_timeout_ms(5000);
-
+    head_client client;
+    assert(client.set_server("http", "127.0.0.1", 20016, "/check"));
+    assert(client.set_timeout_ms(5000));
     client.set_headers({
-        {"User-Agent",   "CurlRestClient/1.0"},
-        {"Content-Type", "application/json"},
-        {"Accept",       "application/json"}
+        {"User-Agent", "CurlRestClient/1.0"}
         });
 
-    std::string json_body =
-        "{"
-        "\"message\": \"hello from POST (except)\","
-        "\"value\": 123"
-        "}";
+    head_client::response resp;
+    auto rc = client.head({}, resp);
 
-    try {
-        // POST version that throws exceptions
-        post_client::response resp = client.post(json_body);
-
-        using http_status = post_client::http_status;
-
-        std::cout << "[EXCEPT] POST request completed successfully.\n";
-        std::cout << "HTTP " << resp.raw_status_code << "\n";
-
-        switch (resp.status) {
-        case http_status::ok:
-            std::cout << "[HTTP 200 OK] Success.\n";
-            break;
-        case http_status::created:
-            std::cout << "[HTTP 201 Created] Resource created.\n";
-            break;
-        case http_status::no_content:
-            std::cout << "[HTTP 204 No Content] Success but no response body.\n";
-            break;
-        case http_status::bad_request:
-            std::cout << "[HTTP 400 Bad Request] Bad request.\n";
-            break;
-        case http_status::unauthorized:
-            std::cout << "[HTTP 401 Unauthorized] Authentication required.\n";
-            break;
-        case http_status::forbidden:
-            std::cout << "[HTTP 403 Forbidden] Access denied.\n";
-            break;
-        case http_status::not_found:
-            std::cout << "[HTTP 404 Not Found] Resource not found.\n";
-            break;
-        case http_status::internal_server_error:
-            std::cout << "[HTTP 500 Internal Server Error] Internal server error.\n";
-            break;
-        case http_status::bad_gateway:
-            std::cout << "[HTTP 502 Bad Gateway] Gateway error.\n";
-            break;
-        case http_status::service_unavailable:
-            std::cout << "[HTTP 503 Service Unavailable] Service unavailable.\n";
-            break;
-        case http_status::unknown:
-        default:
-            std::cout << "[HTTP UNKNOWN] Unknown HTTP status code.\n";
-            break;
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print("[HEAD Response Headers]");
+        for (const auto& h : resp.headers) {
+            print(h);
         }
-
-        if (resp.is_success()) {
-            print_response_body(resp.headers, resp.content_type, resp.body);
-        }
-        else {
-            std::cout << "[Error] status=" << resp.raw_status_code
-                << ", message=" << resp.error << "\n";
-        }
+        print("[Content-Type: ", resp.content_type, "]");
     }
-    catch (const std::exception& ex) {
-        std::cout << "[EXCEPT] Exception occurred: " << ex.what() << "\n";
-    }
-    catch (...) {
-        std::cout << "[EXCEPT] An unknown exception occurred.\n";
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
     }
 }
 
+// ---------------------------------------------------
+// 7. OPTIONS 예제 (Port: 20017)
+// ---------------------------------------------------
+void test_options()
+{
+    options_client client;
+    assert(client.set_server("http", "127.0.0.1", 20017, "/api"));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent", "CurlRestClient/1.0"}
+        });
 
+    options_client::response resp;
+    auto rc = client.options({}, resp);
 
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
 
+// ---------------------------------------------------
+// 8. TRACE 예제 (Port: 20018)
+// ---------------------------------------------------
+void test_trace()
+{
+    trace_client client;
+    assert(client.set_server("http", "127.0.0.1", 20018, "/trace"));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent",    "CurlRestClient/1.0"},
+        {"X-Custom-Echo", "TestingTrace"}
+        });
+
+    trace_client::response resp;
+    auto rc = client.trace({}, resp);
+
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
+
+// ---------------------------------------------------
+// 9. CONNECT 예제 (Port: 20019)
+// ---------------------------------------------------
+void test_connect()
+{
+    connect_client client;
+    assert(client.set_server("http", "127.0.0.1", 20019, ""));
+    assert(client.set_timeout_ms(5000));
+    client.set_headers({
+        {"User-Agent", "CurlRestClient/1.0"}
+        });
+
+    connect_client::response resp;
+    auto rc = client.connect({}, resp);
+
+    print("ResultCode = ", static_cast<int>(rc));
+    if (resp.is_success()) {
+        print_response_body(resp.headers, resp.content_type, resp.body);
+    }
+    else {
+        eprint("[Error] status=", resp.raw_status_code, ", message=", resp.error);
+    }
+}
 

@@ -6,7 +6,7 @@
 #include <curl/curl.h>
 
 #include "mino/network_curl/rest/util.hpp" 
-#include "mino/network_curl/rest/post_client.hpp"
+#include "mino/network_curl/rest/patch_client.hpp"
 
 namespace {
     std::once_flag g_curl_global_init_flag;
@@ -14,14 +14,14 @@ namespace {
 
 namespace mino::network_curl::rest {
 
-    void post_client::global_init()
+    void patch_client::global_init()
     {
         std::call_once(g_curl_global_init_flag, []() {
             curl_global_init(CURL_GLOBAL_DEFAULT);
             });
     }
 
-    size_t post_client::write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
+    size_t patch_client::write_callback(char* ptr, size_t size, size_t nmemb, void* userdata)
     {
         size_t real_size = size * nmemb;
         auto* body = static_cast<std::string*>(userdata);
@@ -29,13 +29,12 @@ namespace mino::network_curl::rest {
         return real_size;
     }
 
-    size_t post_client::header_callback(char* buffer, size_t size, size_t nitems, void* userdata)
+    size_t patch_client::header_callback(char* buffer, size_t size, size_t nitems, void* userdata)
     {
         size_t real_size = size * nitems;
         auto* resp = static_cast<response*>(userdata);
         std::string header_line(buffer, real_size);
 
-        // Remove trailing CRLF (simple handling)
         if (header_line.size() >= 2) {
             header_line.erase(std::remove(header_line.end() - 2, header_line.end(), '\r'), header_line.end());
         }
@@ -43,11 +42,9 @@ namespace mino::network_curl::rest {
             header_line.erase(std::remove(header_line.end() - 1, header_line.end(), '\n'), header_line.end());
         }
 
-        // Store only headers in "Key: Value" format
         if (!header_line.empty() && header_line.find(':') != std::string::npos) {
             resp->headers.push_back(header_line);
 
-            // Extract Content-Type header
             const std::string key = "Content-Type:";
             if (header_line.size() > key.size() &&
                 std::equal(key.begin(), key.end(), header_line.begin(),
@@ -60,13 +57,13 @@ namespace mino::network_curl::rest {
         return real_size;
     }
 
-    post_client::post_client()
+    patch_client::patch_client()
     {
         global_init();
         curl_ = curl_easy_init();
     }
 
-    post_client::~post_client()
+    patch_client::~patch_client()
     {
         if (curl_) {
             curl_easy_cleanup(curl_);
@@ -74,7 +71,7 @@ namespace mino::network_curl::rest {
         }
     }
 
-    bool post_client::set_server(const std::string& scheme,
+    bool patch_client::set_server(const std::string& scheme,
         const std::string& host,
         long port,
         const std::string& path)
@@ -103,12 +100,12 @@ namespace mino::network_curl::rest {
         return true;
     }
 
-    void post_client::set_headers(const headers& headers)
+    void patch_client::set_headers(const headers& headers)
     {
         headers_ = headers;
     }
 
-    bool post_client::set_timeout_ms(long timeout_ms)
+    bool patch_client::set_timeout_ms(long timeout_ms)
     {
         if (timeout_ms <= 0)
             return false;
@@ -116,25 +113,23 @@ namespace mino::network_curl::rest {
         return true;
     }
 
-    void post_client::set_ignore_ssl_errors(bool ignore)
+    void patch_client::set_ignore_ssl_errors(bool ignore)
     {
         ignore_ssl_errors_ = ignore;
     }
 
-    std::vector<std::string> post_client::build_header_lines(const headers& headers)
+    std::vector<std::string> patch_client::build_header_lines(const headers& headers)
     {
         std::vector<std::string> lines;
         lines.reserve(headers.size());
-
         for (const auto& kv : headers) {
             if (!kv.first.empty())
                 lines.push_back(kv.first + ": " + kv.second);
         }
-
         return lines;
     }
 
-    post_client::http_status post_client::to_http_status(long code)
+    patch_client::http_status patch_client::to_http_status(long code)
     {
         switch (code) {
         case 200: return http_status::ok;
@@ -151,64 +146,49 @@ namespace mino::network_curl::rest {
         }
     }
 
-    std::string post_client::build_url(const query_params& query_params)
+    std::string patch_client::build_url(const query_params& query_params)
     {
-        if (host_.empty())
-            return "";
+        if (host_.empty()) return "";
 
         std::ostringstream oss;
-
         oss << scheme_ << "://" << host_;
-
-        if (port_ > 0)
-            oss << ":" << port_;
-
+        if (port_ > 0) oss << ":" << port_;
         if (!path_.empty()) {
-            if (path_.front() != '/')
-                oss << "/";
+            if (path_.front() != '/') oss << "/";
             oss << path_;
         }
 
         if (!query_params.empty()) {
             oss << "?";
             bool first = true;
-
             for (const auto& kv : query_params) {
                 char* k = curl_easy_escape(curl_, kv.first.c_str(), static_cast<int>(kv.first.size()));
                 char* v = curl_easy_escape(curl_, kv.second.c_str(), static_cast<int>(kv.second.size()));
-
                 if (!k || !v) {
                     if (k) curl_free(k);
                     if (v) curl_free(v);
                     return "";
                 }
-
                 if (!first) oss << "&";
                 first = false;
-
                 oss << k << "=" << v;
-
                 curl_free(k);
                 curl_free(v);
             }
         }
-
         return oss.str();
     }
 
-    post_client::response post_client::post(const std::string& body_str)
+    patch_client::response patch_client::patch(const std::string& body_str, const query_params& query_params)
     {
         response resp;
-
         if (!curl_) {
             resp.error = "CURL handle is not initialized.";
             return resp;
         }
 
         std::string body;
-
-        query_params empty_params;
-        std::string url = build_url(empty_params);
+        std::string url = build_url(query_params);
         if (url.empty()) {
             resp.error = "Failed to build URL (host is empty or URL encoding failed).";
             return resp;
@@ -222,7 +202,9 @@ namespace mino::network_curl::rest {
         curl_easy_reset(curl_);
 
         curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl_, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, body_str.c_str());
+        curl_easy_setopt(curl_, CURLOPT_POSTFIELDSIZE, static_cast<long>(body_str.size()));
         curl_easy_setopt(curl_, CURLOPT_TIMEOUT_MS, timeout_ms_);
         curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, 1L);
 
@@ -235,9 +217,6 @@ namespace mino::network_curl::rest {
         if (header_list)
             curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list);
 
-        curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, body_str.c_str());
-        curl_easy_setopt(curl_, CURLOPT_POSTFIELDSIZE, static_cast<long>(body_str.size()));
-
         if (ignore_ssl_errors_) {
             curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 0L);
             curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -248,7 +227,6 @@ namespace mino::network_curl::rest {
         }
 
         CURLcode code = curl_easy_perform(curl_);
-
         if (header_list) curl_slist_free_all(header_list);
 
         if (code != CURLE_OK) {
@@ -259,7 +237,6 @@ namespace mino::network_curl::rest {
 
         long http_code = 0;
         curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &http_code);
-
         resp.raw_status_code = http_code;
         resp.status = to_http_status(http_code);
         resp.body = std::move(body);
@@ -267,48 +244,29 @@ namespace mino::network_curl::rest {
         return resp;
     }
 
-    post_client::result_code post_client::classify(const response& r)
+    patch_client::result_code patch_client::classify(const response& r)
     {
         if (!r.error.empty()) {
-            if (r.curl_error_code == CURLE_OPERATION_TIMEDOUT)
-                return result_code::curl_timeout;
-
-            if (r.curl_error_code == CURLE_PEER_FAILED_VERIFICATION ||
-                r.curl_error_code == CURLE_SSL_CONNECT_ERROR)
+            if (r.curl_error_code == CURLE_OPERATION_TIMEDOUT) return result_code::curl_timeout;
+            if (r.curl_error_code == CURLE_PEER_FAILED_VERIFICATION || r.curl_error_code == CURLE_SSL_CONNECT_ERROR)
                 return result_code::curl_ssl_error;
-
-            if (r.curl_error_code == CURLE_COULDNT_RESOLVE_HOST ||
-                r.curl_error_code == CURLE_COULDNT_CONNECT)
+            if (r.curl_error_code == CURLE_COULDNT_RESOLVE_HOST || r.curl_error_code == CURLE_COULDNT_CONNECT)
                 return result_code::curl_network_error;
-
             return result_code::curl_other_error;
         }
-
-        if (r.raw_status_code >= 200 && r.raw_status_code < 300)
-            return result_code::ok;
-
-        if (r.raw_status_code == 404)
-            return result_code::http_not_found;
-
-        if (r.raw_status_code >= 400 && r.raw_status_code < 500)
-            return result_code::http_client_error_4xx;
-
-        if (r.raw_status_code >= 500 && r.raw_status_code < 600)
-            return result_code::http_server_error_5xx;
-
-        if (r.raw_status_code >= 300 && r.raw_status_code < 400)
-            return result_code::http_redirect_3xx;
-
-        if (r.raw_status_code > 0)
-            return result_code::http_other_error;
-
+        if (r.raw_status_code >= 200 && r.raw_status_code < 300) return result_code::ok;
+        if (r.raw_status_code == 404) return result_code::http_not_found;
+        if (r.raw_status_code >= 400 && r.raw_status_code < 500) return result_code::http_client_error_4xx;
+        if (r.raw_status_code >= 500 && r.raw_status_code < 600) return result_code::http_server_error_5xx;
+        if (r.raw_status_code >= 300 && r.raw_status_code < 400) return result_code::http_redirect_3xx;
+        if (r.raw_status_code > 0) return result_code::http_other_error;
         return result_code::unknown_error;
     }
 
-    post_client::result_code
-        post_client::post(const std::string& body_str, response& out_resp) noexcept
+    patch_client::result_code
+        patch_client::patch(const std::string& body_str, response& out_resp, const query_params& query_params) noexcept
     {
-        out_resp = post(body_str);
+        out_resp = patch(body_str, query_params);
         return classify(out_resp);
     }
 

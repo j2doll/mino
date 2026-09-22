@@ -74,7 +74,7 @@ namespace mino::network_curl::rest {
         ~get_client();
 
         // REST API 서버 정보 설정
-        void set_server(const std::string& scheme,
+        bool set_server(const std::string& scheme,
             const std::string& host,
             long port,
             const std::string& path);
@@ -83,16 +83,22 @@ namespace mino::network_curl::rest {
         void set_headers(const headers& headers);
 
         // HTTP 요청 타임아웃 설정 (ms 단위)
-        void set_timeout_ms(long timeout_ms);
+        bool set_timeout_ms(long timeout_ms);
 
         // SSL 인증서 오류 무시 여부 설정
         void set_ignore_ssl_errors(bool ignore);
 
-        // GET 요청 실행
+        // [1] GET 요청 실행 (기본)
         response get(const query_params& query_params = {});
 
-        // GET 요청 실행 (결과 코드로 반환)        
+        // [2] GET 요청 실행 (결과 코드로 반환)        
         result_code get(const query_params& query_params, response& out_resp) noexcept;
+
+        // [3] GET 요청 실행 (Body 본문 포함)
+        response get(const query_params& query_params, const std::string& body);
+
+        // [4] GET 요청 실행 (Body 본문 포함, 결과 코드로 반환)
+        result_code get(const query_params& query_params, const std::string& body, response& out_resp) noexcept;
 
         // 응답 결과 분류
         static result_code classify(const response& resp);
@@ -118,7 +124,6 @@ namespace mino::network_curl::rest {
         static std::vector<std::string> build_header_lines(const headers& headers);
         static http_status to_http_status(long code);
     };
-
 
 }
 

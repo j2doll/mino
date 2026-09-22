@@ -74,7 +74,7 @@ namespace mino::network_curl::rest {
         ~post_client();
 
         // REST API 서버 정보 설정
-        void set_server(const std::string& scheme,
+        bool set_server(const std::string& scheme,
             const std::string& host,
             long port,
             const std::string& path);
@@ -83,7 +83,7 @@ namespace mino::network_curl::rest {
         void set_headers(const headers& headers);
 
         // REST API 요청 타임아웃 설정 (밀리초 단위)
-        void set_timeout_ms(long timeout_ms);
+        bool set_timeout_ms(long timeout_ms);
 
         // SSL 인증서 오류 무시 여부 설정
         void set_ignore_ssl_errors(bool ignore);

@@ -5,6 +5,7 @@
 
 #include <curl/curl.h>
 
+#include "mino/network_curl/rest/util.hpp" 
 #include "mino/network_curl/rest/get_client.hpp"
 
 namespace {
@@ -71,17 +72,33 @@ namespace mino::network_curl::rest {
         }
     }
 
-    void get_client::set_server(const std::string& scheme,
+    bool get_client::set_server(const std::string& scheme,
         const std::string& host,
         long port,
         const std::string& path)
     {
-        if (scheme.empty() || host.empty()) return;
+        if (host.empty() || port < 0 || port > 65535) {
+            return false;
+        }
 
-        scheme_ = scheme;
+        std::string lower_scheme = scheme;
+        std::transform(lower_scheme.begin(), lower_scheme.end(), lower_scheme.begin(),
+            [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+        if (lower_scheme != "http" && lower_scheme != "https") {
+            return false;
+        }
+
+        if (!path.empty() && !is_valid_url_path(path)) {
+            return false;
+        }
+
+        scheme_ = std::move(lower_scheme);
         host_ = host;
         port_ = port;
         path_ = path;
+
+        return true;
     }
 
     void get_client::set_headers(const headers& headers)
@@ -89,10 +106,12 @@ namespace mino::network_curl::rest {
         headers_ = headers;
     }
 
-    void get_client::set_timeout_ms(long timeout_ms)
+    bool get_client::set_timeout_ms(long timeout_ms)
     {
-        if (timeout_ms <= 0) return;
+        if (timeout_ms <= 0)
+            return false;
         timeout_ms_ = timeout_ms;
+        return true;
     }
 
     void get_client::set_ignore_ssl_errors(bool ignore)
@@ -175,7 +194,14 @@ namespace mino::network_curl::rest {
         return oss.str();
     }
 
+    // 기본 GET 요청 (본문 없음)
     get_client::response get_client::get(const query_params& query_params)
+    {
+        return get(query_params, "");
+    }
+
+    // ★ [추가 구현] Body 본문을 함께 전송하는 GET 요청
+    get_client::response get_client::get(const query_params& query_params, const std::string& body_str)
     {
         response resp;
 
@@ -200,7 +226,17 @@ namespace mino::network_curl::rest {
         curl_easy_reset(curl_);
 
         curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
+
+        // Body가 있는 경우 libcurl이 본문을 무시하지 않도록 CUSTOMREQUEST와 POSTFIELDS 설정
+        if (!body_str.empty()) {
+            curl_easy_setopt(curl_, CURLOPT_CUSTOMREQUEST, "GET");
+            curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, body_str.c_str());
+            curl_easy_setopt(curl_, CURLOPT_POSTFIELDSIZE, static_cast<long>(body_str.size()));
+        }
+        else {
+            curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1L);
+        }
+
         curl_easy_setopt(curl_, CURLOPT_TIMEOUT_MS, timeout_ms_);
         curl_easy_setopt(curl_, CURLOPT_FOLLOWLOCATION, 1L);
 
@@ -214,7 +250,7 @@ namespace mino::network_curl::rest {
         if (header_list)
             curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, header_list);
 
-        // ★ SSL certificate verification ON/OFF
+        // SSL certificate verification ON/OFF
         if (ignore_ssl_errors_) {
             curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYPEER, 0L);
             curl_easy_setopt(curl_, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -285,7 +321,14 @@ namespace mino::network_curl::rest {
     get_client::result_code
         get_client::get(const query_params& query_params, response& out_resp) noexcept
     {
-        out_resp = get(query_params);
+        return get(query_params, "", out_resp);
+    }
+
+    // ★ [추가 구현] Body 본문을 포함하는 noexcept 버전
+    get_client::result_code
+        get_client::get(const query_params& query_params, const std::string& body, response& out_resp) noexcept
+    {
+        out_resp = get(query_params, body);
         return classify(out_resp);
     }
 
