@@ -45,7 +45,7 @@ endif()
 
 # 4-4. nlohmann::json library setting
 # gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
     target_compile_definitions(mino_external PRIVATE JSON_HAS_CPP_20=0)
     # NOTE: It will always run in non-C++20 mode (C++17 or earlier version)
 endif()
@@ -62,18 +62,18 @@ target_include_directories(
 )
 
 # 5-2. Specify the header file path for third-party libraries used by mino_external
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-  # gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
-  target_include_directories(mino_external SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-    $<INSTALL_INTERFACE:include/mino/external/third-party>
-  )
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    # gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
+    target_include_directories(mino_external SYSTEM PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+      $<INSTALL_INTERFACE:include/mino/external/third-party>
+    )
 else()
-  # gcc 9 or higher version supports C++20, so we can use the default settings.
-  target_include_directories(mino_external PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-    $<INSTALL_INTERFACE:include/mino/external/third-party>
-  )
+    # gcc 9 or higher version supports C++20, so we can use the default settings.
+    target_include_directories(mino_external PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+      $<INSTALL_INTERFACE:include/mino/external/third-party>
+    )
 endif()
 
 # 6. Link the external libraries being used
