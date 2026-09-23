@@ -11,13 +11,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. External dependency configuration
-
-# 3-1. Threads
 find_package(Threads REQUIRED)
- 
-# 4. Create a library and configure the source code
 
-# 4-1. Create a library
+# 4. Create a library and configure the source code
 file(
   GLOB_RECURSE SRC_FILES
   CONFIGURE_DEPENDS
@@ -28,32 +24,28 @@ file(
 )
 add_library(mino_external STATIC ${SRC_FILES})
 
-# 4-2. Visual Studio setting
+# 4-1. Visual Studio setting
 if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
 
-# 4-3. gcc setting
+# 4-2. GCC specific fixes
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
+  target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
 
-    # gcc 8.x filesystem library fix for std::filesystem
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-        target_link_libraries(mino_core PUBLIC stdc++fs)
-    endif()      
+  # gcc 9 미만 버전 지원 (std::filesystem 링크 및 C++20 char8_t 문제 회피)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    # [수정 1] mino_core가 아니라 mino_external에 링크
+    target_link_libraries(mino_external PUBLIC stdc++fs)
+
+    # [수정 2] PUBLIC으로 지정하여 이 라이브러리를 참조하는 헤더들까지 매크로 전파
+    target_compile_definitions(mino_external PUBLIC JSON_HAS_CPP_20=0)
+  endif()
 endif()
 
-# 4-4. nlohmann::json library setting
-# gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    target_compile_definitions(mino_external PRIVATE JSON_HAS_CPP_20=0)
-    # NOTE: It will always run in non-C++20 mode (C++17 or earlier version)
-endif()
+# 5. Specify header file paths
 
-# 5. Specify the header file path
-# Distinguish the environment at build from the environment when it is installed and deployed later.
-
-# 5-1. Specify the header file path for mino_external
+# 5-1. mino_external 자체 헤더 경로 (일반 PUBLIC)
 target_include_directories(
   mino_external
   PUBLIC
@@ -61,40 +53,26 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-# 5-2. Specify the header file path for third-party libraries used by mino_external
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    # gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
-    target_include_directories(mino_external SYSTEM PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-      $<INSTALL_INTERFACE:include/mino/external/third-party>
-    )
-else()
-    # gcc 9 or higher version supports C++20, so we can use the default settings.
-    target_include_directories(mino_external PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-      $<INSTALL_INTERFACE:include/mino/external/third-party>
-    )
-endif()
+# 5-2. 서드파티 라이브러리 헤더 경로 (SYSTEM PUBLIC: 경고 억제)
+# target_include_directories(<target> SYSTEM <INTERFACE|PUBLIC|PRIVATE> [items1...])
+target_include_directories(
+  mino_external
+  SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+    $<INSTALL_INTERFACE:include/mino/external/third-party>
+)
 
-# 6. Link the external libraries being used
-
-# 6-1. Threads link settings
+# 6. Link libraries
 target_link_libraries(mino_external PRIVATE Threads::Threads)
-
-# 7. [Dependency] If external uses core, link it here.
 target_link_libraries(mino_external PUBLIC mino_core)
 
-# 8. Define install rules
+# 7. Define install rules
 install(
   TARGETS mino_external
-  EXPORT
-    minoTargets # Important: Manage all submodules under a single bundle of exports (minoTargets)
+  EXPORT minoTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
 
-# 9. Install public header files (copy the entire folder)
-# Set the mino folder inside include/ as the target to maintain the include/mino/core/ structure.
 install(DIRECTORY include/mino DESTINATION include)
-
