@@ -44,6 +44,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 # 4-4. nlohmann::json library setting
+# NOTE: It will always run in non-C++20 mode (C++17 or earlier version)
 target_compile_definitions(mino_external PUBLIC JSON_HAS_CPP_20=0)
 
 # 5. Specify the header file path
