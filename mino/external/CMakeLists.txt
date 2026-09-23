@@ -44,8 +44,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 # 4-4. nlohmann::json library setting
-# NOTE: It will always run in non-C++20 mode (C++17 or earlier version)
-target_compile_definitions(mino_external PUBLIC JSON_HAS_CPP_20=0)
+# gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_compile_definitions(mino_external PRIVATE JSON_HAS_CPP_20=0)
+    # NOTE: It will always run in non-C++20 mode (C++17 or earlier version)
+endif()
 
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
@@ -59,10 +62,19 @@ target_include_directories(
 )
 
 # 5-2. Specify the header file path for third-party libraries used by mino_external
-target_include_directories(mino_external SYSTEM PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-  $<INSTALL_INTERFACE:include/mino/external/third-party>
-)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+  # gcc 8 or lower version does not support C++20, so we need to define JSON_HAS_CPP_20=0 to avoid compilation errors.
+  target_include_directories(mino_external SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+    $<INSTALL_INTERFACE:include/mino/external/third-party>
+  )
+else()
+  # gcc 9 or higher version supports C++20, so we can use the default settings.
+  target_include_directories(mino_external PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
+    $<INSTALL_INTERFACE:include/mino/external/third-party>
+  )
+endif()
 
 # 6. Link the external libraries being used
 
