@@ -58,7 +58,7 @@ target_include_directories(
 )
 
 # 5-2. Specify the header file path for third-party libraries used by mino_external
-target_include_directories(mino_external PUBLIC
+target_include_directories(mino_external SYSTEM PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
   $<INSTALL_INTERFACE:include/mino/external/third-party>
 )
