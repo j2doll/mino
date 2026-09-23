@@ -33,19 +33,15 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
 
-  # gcc 9 미만 버전 지원 (std::filesystem 링크 및 C++20 char8_t 문제 회피)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    # [수정 1] mino_core가 아니라 mino_external에 링크
     target_link_libraries(mino_external PUBLIC stdc++fs)
-
-    # [수정 2] PUBLIC으로 지정하여 이 라이브러리를 참조하는 헤더들까지 매크로 전파
     target_compile_definitions(mino_external PUBLIC JSON_HAS_CPP_20=0)
   endif()
 endif()
 
 # 5. Specify header file paths
 
-# 5-1. mino_external 자체 헤더 경로 (일반 PUBLIC)
+# 5-1. mino_external PUBLIC header path
 target_include_directories(
   mino_external
   PUBLIC
@@ -53,7 +49,7 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-# 5-2. 서드파티 라이브러리 헤더 경로 (SYSTEM PUBLIC: 경고 억제)
+# 5-2. Third-party library header path (SYSTEM PUBLIC: suppress warnings)
 # target_include_directories(<target> SYSTEM <INTERFACE|PUBLIC|PRIVATE> [items1...])
 target_include_directories(
   mino_external
