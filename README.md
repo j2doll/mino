@@ -291,11 +291,11 @@
 <br />
 
 ##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 네트워크 </sub>
-- 🔀 [multipart-downloader](example/network_openssl/multipart-downloader/httplib/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
+- 🔀 [multipart-downloader](example/network_openssl/multipart-downloader/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
     - 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 
 - 🔀 [redis](example/network_openssl/redis/main.cpp) 
     -  [`Redis`](https://github.com/redis/redis) 클라이언트 <sub> 🔒 `openssl` </sub>
-- 🔀 [rest](example/network_openssl/rest/httplib/main.cpp)
+- 🔀 [rest](example/network_openssl/rest/main.cpp)
     - `REST API` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
 - 🔀 `tls`
     - [server](example/network_openssl/tls/server/main.cpp) : `TLS` 서버 <sub> 🔒 `openssl` </sub>
