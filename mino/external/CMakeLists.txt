@@ -43,6 +43,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()      
 endif()
 
+# 4-4. nlohmann::json library setting
+target_compile_definitions(mino_external PRIVATE JSON_HAS_CPP_20=0)
+
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
 
