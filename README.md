@@ -296,7 +296,7 @@
 - 🔀 [redis](example/network_openssl/redis/main.cpp) 
     -  [`Redis`](https://github.com/redis/redis) 클라이언트 <sub> 🔒 `openssl` </sub>
 - 🔀 [rest](example/network_openssl/rest/main.cpp)
-    - `REST API` `GET`/`POST`클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
+    - `REST API` 클라이언트 <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
 - 🔀 `tls`
     - [server](example/network_openssl/tls/server/main.cpp) : `TLS` 서버 <sub> 🔒 `openssl` </sub>
     - [client](example/network_openssl/tls/client/main.cpp) : `TLS` 클라이언트 <sub> 🔒 `openssl` </sub>
