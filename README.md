@@ -65,7 +65,11 @@
     - 상주형 데몬 
 - 🏛️ `datetime` : 날짜·시간 처리 
     - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
-    - [util](example/core/datetime/util/main.cpp) : 포맷/파싱, `ISO` 표기, 타임존 보정 등
+    - `util`
+       - [test_conversion_functions.cpp](example/core/datetime/util/test_conversion_functions.cpp) : 날짜/시간 변환 함수)
+       - [test_formatting_functions.cpp](example/core/datetime/util/test_formatting_functions.cpp) : 날짜/시간 포맷팅 함수)
+       - [test_parsing_functions.cpp](example/core/datetime/util/test_parsing_functions.cpp) : 날짜/시간 파싱 함수)
+       - [test_current_time_functions.cpp](example/core/datetime/util/test_current_time_functions.cpp) : 현재 날짜/시간 함수)
 - 🏛️ [dispatch](example/core/dispatch/main.cpp)
     - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
