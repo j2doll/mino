@@ -1,8 +1,6 @@
 // connect_client.cpp
 #include <sstream>
 #include <algorithm>
-#include <map>
-#include <chrono>
 #include <cctype>
 
 #ifdef USE_OPENSSL
@@ -32,12 +30,6 @@ namespace mino::network_openssl::rest {
             return out;
         }
     };
-
-    static constexpr int CURL_CODE_OPERATION_TIMEDOUT = 28;
-    static constexpr int CURL_CODE_PEER_FAILED_VERIFICATION = 60;
-    static constexpr int CURL_CODE_SSL_CONNECT_ERROR = 35;
-    static constexpr int CURL_CODE_COULDNT_RESOLVE_HOST = 6;
-    static constexpr int CURL_CODE_COULDNT_CONNECT = 7;
 
     connect_client::connect_client() : impl_(std::make_unique<impl>()) {}
     connect_client::~connect_client() = default;
@@ -93,23 +85,6 @@ namespace mino::network_openssl::rest {
 #endif
     }
 
-    connect_client::http_status connect_client::to_http_status(long code)
-    {
-        switch (code) {
-        case 200: return http_status::ok;
-        case 201: return http_status::created;
-        case 204: return http_status::no_content;
-        case 400: return http_status::bad_request;
-        case 401: return http_status::unauthorized;
-        case 403: return http_status::forbidden;
-        case 404: return http_status::not_found;
-        case 500: return http_status::internal_server_error;
-        case 502: return http_status::bad_gateway;
-        case 503: return http_status::service_unavailable;
-        default:  return http_status::unknown;
-        }
-    }
-
     connect_client::response connect_client::connect(const std::string& target_authority)
     {
         response resp;
@@ -138,31 +113,7 @@ namespace mino::network_openssl::rest {
         auto result = impl_->client_impl->send(req);
         if (!result) {
             resp.error = ::httplib::to_string(result.error());
-            switch (result.error()) {
-            case ::httplib::Error::Connection:
-            case ::httplib::Error::BindIPAddress:
-            case ::httplib::Error::Write:
-            case ::httplib::Error::ExceedRedirectCount:
-            case ::httplib::Error::Canceled:
-            case ::httplib::Error::UnsupportedMultipartBoundaryChars:
-            case ::httplib::Error::Compression:
-                resp.curl_error_code = CURL_CODE_COULDNT_CONNECT;
-                break;
-            case ::httplib::Error::Read:
-            case ::httplib::Error::ConnectionTimeout:
-                resp.curl_error_code = CURL_CODE_OPERATION_TIMEDOUT;
-                break;
-            case ::httplib::Error::SSLConnection:
-                resp.curl_error_code = CURL_CODE_SSL_CONNECT_ERROR;
-                break;
-            case ::httplib::Error::SSLLoadingCerts:
-            case ::httplib::Error::SSLServerVerification:
-                resp.curl_error_code = CURL_CODE_PEER_FAILED_VERIFICATION;
-                break;
-            default:
-                resp.curl_error_code = 1;
-                break;
-            }
+            resp.error_code = static_cast<int>(result.error());
             return resp;
         }
 
@@ -179,24 +130,6 @@ namespace mino::network_openssl::rest {
         }
 
         return resp;
-    }
-
-    connect_client::result_code connect_client::classify(const response& r)
-    {
-        if (!r.error.empty()) {
-            if (r.curl_error_code == CURL_CODE_OPERATION_TIMEDOUT) return result_code::curl_timeout;
-            if (r.curl_error_code == CURL_CODE_PEER_FAILED_VERIFICATION || r.curl_error_code == CURL_CODE_SSL_CONNECT_ERROR) return result_code::curl_ssl_error;
-            if (r.curl_error_code == CURL_CODE_COULDNT_RESOLVE_HOST || r.curl_error_code == CURL_CODE_COULDNT_CONNECT) return result_code::curl_network_error;
-            return result_code::curl_other_error;
-        }
-
-        if (r.raw_status_code >= 200 && r.raw_status_code < 300) return result_code::ok;
-        if (r.raw_status_code == 404) return result_code::http_not_found;
-        if (r.raw_status_code >= 400 && r.raw_status_code < 500) return result_code::http_client_error_4xx;
-        if (r.raw_status_code >= 500 && r.raw_status_code < 600) return result_code::http_server_error_5xx;
-        if (r.raw_status_code >= 300 && r.raw_status_code < 400) return result_code::http_redirect_3xx;
-        if (r.raw_status_code > 0) return result_code::http_other_error;
-        return result_code::unknown_error;
     }
 
     connect_client::result_code connect_client::connect(response& out_resp) noexcept

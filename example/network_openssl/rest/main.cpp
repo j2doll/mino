@@ -42,79 +42,20 @@ void print_response_body(
     const std::string& content_type,
     const std::string& body);
 
-template <typename ResultCodeType>
-void print_result_code(ResultCodeType rc)
+// rest_types.hpp의 to_string(result_code)을 호출하여 출력
+void print_result_code(rest_ns::result_code rc)
 {
     std::cout << "ResultCode = " << static_cast<int>(rc) << "\n";
-    switch (rc) {
-    case ResultCodeType::ok:
-        std::cout << "[OK] Request succeeded.\n";
-        break;
-    case ResultCodeType::curl_timeout:
-        std::cout << "[CURL TIMEOUT] The request timed out.\n";
-        break;
-    case ResultCodeType::curl_ssl_error:
-        std::cout << "[CURL SSL ERROR] SSL certificate error.\n";
-        break;
-    case ResultCodeType::curl_network_error:
-        std::cout << "[CURL NETWORK ERROR] Network error (host not found or connection failed).\n";
-        break;
-    case ResultCodeType::curl_other_error:
-        std::cout << "[CURL OTHER ERROR] Other CURL error.\n";
-        break;
-    case ResultCodeType::http_client_error_4xx:
-        std::cout << "[HTTP 4xx] Client error (4xx).\n";
-        break;
-    case ResultCodeType::http_not_found:
-        std::cout << "[HTTP 404] Not found.\n";
-        break;
-    case ResultCodeType::http_server_error_5xx:
-        std::cout << "[HTTP 5xx] Server error (5xx).\n";
-        break;
-    case ResultCodeType::http_redirect_3xx:
-        std::cout << "[HTTP 3xx] Redirect (3xx).\n";
-        break;
-    case ResultCodeType::http_other_error:
-        std::cout << "[HTTP OTHER ERROR] Other HTTP error.\n";
-        break;
-    case ResultCodeType::unknown_error:
-    default:
-        std::cout << "[UNKNOWN ERROR] Unknown or unhandled error occurred.\n";
-        break;
-    }
+    std::cout << rest_ns::to_string(rc) << "\n";
 }
 
-template <typename StatusType>
-void print_http_status(StatusType status, long raw_code)
+// rest_types.hpp의 to_string(http_status)을 호출하여 출력
+void print_http_status(rest_ns::http_status status, long raw_code)
 {
     std::cout << "[EXCEPT] HTTP Status: " << raw_code << "\n";
-    switch (status) {
-    case StatusType::ok:                    std::cout << "[HTTP 200 OK] Success.\n"; break;
-    case StatusType::created:               std::cout << "[HTTP 201 Created] Resource created.\n"; break;
-    case StatusType::no_content:             std::cout << "[HTTP 204 No Content] Success, no content.\n"; break;
-    case StatusType::bad_request:            std::cout << "[HTTP 400 Bad Request] Client error.\n"; break;
-    case StatusType::unauthorized:           std::cout << "[HTTP 401 Unauthorized] Authentication required.\n"; break;
-    case StatusType::forbidden:              std::cout << "[HTTP 403 Forbidden] Access denied.\n"; break;
-    case StatusType::not_found:              std::cout << "[HTTP 404 Not Found] Resource not found.\n"; break;
-    case StatusType::internal_server_error:  std::cout << "[HTTP 500 Internal Server Error] Server error.\n"; break;
-    case StatusType::bad_gateway:            std::cout << "[HTTP 502 Bad Gateway] Bad gateway.\n"; break;
-    case StatusType::service_unavailable:    std::cout << "[HTTP 503 Service Unavailable] Service unavailable.\n"; break;
-    case StatusType::unknown:
-    default:                                 std::cout << "[HTTP UNKNOWN] Unknown HTTP status.\n"; break;
-    }
+    std::cout << rest_ns::to_string(status) << "\n";
 }
 
-// NOTE:
-//  main 실행 전 다음 모의 서버들을 각각 실행합니다:
-//    python get_server.py      (Port: 20011, Path: /get)
-//    python post_server.py     (Port: 20012, Path: /post)
-//    python put_server.py      (Port: 20013, Path: /resource/1)
-//    python patch_server.py    (Port: 20014, Path: /resource/1)
-//    python delete_server.py   (Port: 20015, Path: /resource/1)
-//    python head_server.py     (Port: 20016, Path: /check)
-//    python options_server.py  (Port: 20017, Path: /api)
-//    python trace_server.py    (Port: 20018, Path: /trace)
-//    python connect_server.py  (Port: 20019)
 int main(int argc, char* argv[])
 {
     mino::network::sock mnsock;
@@ -584,7 +525,7 @@ void test_trace_no_except()
     client.set_server("http", "127.0.0.1", 20018, "/trace");
     client.set_timeout_ms(5000);
     client.set_headers({
-        {"User-Agent",   "RestClient/1.0"},
+        {"User-Agent",    "RestClient/1.0"},
         {"X-Custom-Echo", "TraceVerificationHeader"}
         });
 
@@ -607,7 +548,7 @@ void test_trace_except()
     client.set_server("http", "127.0.0.1", 20018, "/trace");
     client.set_timeout_ms(5000);
     client.set_headers({
-        {"User-Agent",   "RestClient/1.0"},
+        {"User-Agent",    "RestClient/1.0"},
         {"X-Custom-Echo", "TraceVerificationHeader"}
         });
 
