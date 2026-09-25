@@ -7,7 +7,6 @@ class SimpleGetHandler(BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         if parsed_url.path == "/get":
             query_params = parse_qs(parsed_url.query)
-            # Check the "query" parameter as in the C++ example
             query_value = query_params.get("query", [""])[0]
             response = {
                 "args": {"query": query_value},
@@ -25,8 +24,11 @@ class SimpleGetHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Not Found")
 
 if __name__ == "__main__":
-    server_address = ("127.0.0.1", 50011)
+    server_address = ("127.0.0.1", 20011)
     httpd = HTTPServer(server_address, SimpleGetHandler)
     print(f"Serving HTTP GET on {server_address[0]}:{server_address[1]}")
-    httpd.serve_forever()
-
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down server.")
+        httpd.server_close()

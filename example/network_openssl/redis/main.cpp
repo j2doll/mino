@@ -150,7 +150,7 @@ bool test_tls_client() {
     }
 
     client.disconnect();
-    return true; 
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -208,5 +208,4 @@ bool test_tls_client() {
 //     return str_val.has_value() && *str_val == "OK";
 // }
 //////////////////////////////////////////////////
-
 
