@@ -208,8 +208,8 @@
        +---------------+                  +---------------+
       ```
         - [broker](example/network/message_broker/broker/main.cpp) <sub> `tcp` </sub>
-        - [Publisher](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
-        - [Subscriber](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
+        - [pub](example/network/message_broker/pub/main.cpp) <sub> `tcp` </sub>
+        - [sub](example/network/message_broker/sub/main.cpp) <sub> `tcp` </sub>
     - `python pub/sub`
         - [pub/message_publisher.py](example/network/message_broker/python/pub/message_publisher.py)
         - [sub/message_subscriber.py](example/network/message_broker/python/sub/message_subscriber.py)
