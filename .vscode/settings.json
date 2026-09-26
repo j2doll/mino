@@ -6,9 +6,13 @@
   "cmake.sourceDirectory": "${workspaceFolder}",
   // TODO: Configure include paths
   "C_Cpp.default.includePath": [
-    "${workspaceFolder}/mino/core/include/mino/core",
-    "${workspaceFolder}/mino/external/include/mino/external",
-    "${workspaceFolder}/mino/network/include/mino/network"
+	"${workspaceFolder}/mino/core/include/mino/core",
+	"${workspaceFolder}/mino/external/include/mino/external",
+	"${workspaceFolder}/mino/network/include/mino/network",
+	"${workspaceFolder}/mino/network/include/mino/mino_network",
+	"${workspaceFolder}/mino/network/include/mino/mino_network_curl",
+	"${workspaceFolder}/mino/network/include/mino/mino_network_libssh2",
+	"${workspaceFolder}/mino/network/include/mino/mino_network_openssl"
   ],
 
   // ==========================================
