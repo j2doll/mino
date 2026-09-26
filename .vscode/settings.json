@@ -1,10 +1,60 @@
 {
+  // ==========================================
+  // Existing project settings (CMake & C/C++)
+  // ==========================================
   "cmake.buildDirectory": "${workspaceFolder}/build",
   "cmake.sourceDirectory": "${workspaceFolder}",
-  // TODO: include 경로 설정
+  // TODO: Configure include paths
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/mino/core/include/mino/core",
     "${workspaceFolder}/mino/external/include/mino/external",
     "${workspaceFolder}/mino/network/include/mino/network"
-  ]
+  ],
+
+  // ==========================================
+  // Global defaults mapped from .editorconfig ([*])
+  // ==========================================
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.rulers": [80],
+
+  // ==========================================
+  // C / C++ source and header files ([*.{c,cpp,cxx,h,hpp}])
+  // ==========================================
+  "[c]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "files.encoding": "utf8",
+    "files.eol": "\n"
+  },
+  "[cpp]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "files.encoding": "utf8",
+    "files.eol": "\n"
+  },
+
+  // ==========================================
+  // CMake files ([CMakeLists.txt])
+  // ==========================================
+  "[cmake]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "files.encoding": "utf8",
+    "files.eol": "\n"
+  }
+
+  // Uncomment below if Windows-only files require CRLF line endings
+  // "files.associations": {
+  //   "*.sln": "visualstudio-solution",
+  //   "*.vcxproj": "xml"
+  // },
+  // "[visualstudio-solution]": {
+  //   "files.eol": "\r\n"
+  // },
+  // "[xml]": {
+  //   "files.eol": "\r\n"
+  // }
 }
