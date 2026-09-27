@@ -19,6 +19,7 @@ extern void test_to_string();
 extern void test_mutex_string();
 extern void test_u8string();
 extern void test_encodings();
+extern void test_print();
 
 int main() {
     const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -46,6 +47,7 @@ int main() {
         test_mutex_string();
         test_u8string();
         test_encodings();
+        test_print();
 
         print(endl, tce("========================================"));
         print(tce("[SUCCESS] All tests passed successfully!"));
