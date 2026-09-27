@@ -73,7 +73,7 @@
 - 🏛️ [dispatch](example/core/dispatch/main.cpp)
     - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
-    - `Base64` 인코딩/디코딩
+    - `Base64`, `URL`, `hex` 인코딩/디코딩
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
