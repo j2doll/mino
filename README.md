@@ -298,7 +298,7 @@
 
 ##### 🔀 [network_openssl](example/network_openssl) <sub> `openssl` 사용 네트워크 </sub>
 - 🔀 [ftps](example/network_openssl/ftps/main.cpp) 
-    - `FTPS` 클라이언트 <sub> 🔒 `openssl` </sub> <sub> `network/tls` </sub>>
+    - `FTPS` 클라이언트 <sub> 🔒 `openssl` </sub> <sub> `tls` `tcp` </sub>
 - 🔀 [multipart-downloader](example/network_openssl/multipart-downloader/main.cpp) <sub> 📡 `httplib` </sub> <sub> 🔒 `openssl` </sub>
     - 멀티파트 <sub> (`multipart/mixed`,`multipart/form-data`) </sub> 다운로더 
 - 🔀 [redis](example/network_openssl/redis/main.cpp) 
