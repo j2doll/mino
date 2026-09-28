@@ -38,20 +38,22 @@ struct CoutCapture {
 };
 
 struct CerrCapture {
-    std::stringstream buffer;
-    std::streambuf* old = nullptr;
+    std::ostringstream buffer;
+    std::streambuf* old_buf;
 
-    CerrCapture()
-        : old(std::cerr.rdbuf(buffer.rdbuf())) // std::cerr의 버퍼를 stringstream buffer로 리디렉션
-    {
-    }
+    CerrCapture() : old_buf(std::cerr.rdbuf(buffer.rdbuf())) {}
+    ~CerrCapture() { std::cerr.rdbuf(old_buf); }
 
-    ~CerrCapture() {
-        std::cerr.rdbuf(old); // std::cerr의 버퍼를 원래대로 복원
-    }
+    // ANSI 이스케이프 코드를 제거한 순수 텍스트 반환
+    std::string str() const {
+        std::string s = buffer.str();
+        const std::string red = "\033[31m";
+        const std::string reset = "\033[0m";
 
-    std::string str() const { // 캡처된 cerr 내용을 문자열로 반환
-        return buffer.str();
+        size_t pos = 0;
+        while ((pos = s.find(red)) != std::string::npos) s.erase(pos, red.length());
+        while ((pos = s.find(reset)) != std::string::npos) s.erase(pos, reset.length());
+        return s;
     }
 
     void clear() {

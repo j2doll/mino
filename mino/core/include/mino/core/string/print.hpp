@@ -8,6 +8,16 @@
 #include <utility>
 #include <memory>
 
+#if defined(_WIN32) || defined(_WIN64)
+#   ifndef WIN32_LEAN_AND_MEAN
+#      define WIN32_LEAN_AND_MEAN
+#   endif
+#   ifndef NOMINMAX
+#      define NOMINMAX
+#   endif
+#   include <windows.h>
+#endif
+
 #include "mino/core/string/to_console_encoding.hpp"
 
 // NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
@@ -35,6 +45,29 @@
 // 
 
 namespace mino::core::string::print {
+
+    // =========================================================================
+    // ANSI 이스케이프 색상 코드 및 콘솔 초기화 유틸리티
+    // =========================================================================
+    inline constexpr std::string_view COLOR_RED   = "\033[31m";
+    inline constexpr std::string_view COLOR_RESET = "\033[0m";
+
+    inline void enable_virtual_terminal_processing() {
+#if defined(_WIN32) || defined(_WIN64)
+        static const bool initialized = []() {
+            HANDLE hOut = GetStdHandle(STD_ERROR_HANDLE);
+            if (hOut == INVALID_HANDLE_VALUE)
+                return false;
+            DWORD dwMode = 0;
+            if (!GetConsoleMode(hOut, &dwMode))
+                return false;
+            dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            SetConsoleMode(hOut, dwMode);
+            return true;
+        }();
+        (void)initialized;
+#endif
+    }
 
     // =========================================================================
     // 1. 단일 인자를 스트림에 출력하는 헬퍼 및 타입별 특화 (인코딩 변환 포함)
@@ -157,8 +190,7 @@ namespace mino::core::string::print {
                     break;
                 }
 
-                // [수정된 부분] 닫는 괄호 '}' 전에 또 다른 '{'가 먼저 나온 경우
-                // 현재의 '{'는 닫히지 않은 불완전한 괄호이므로 문자 그대로 출력 후 계속 진행
+                // 닫는 괄호 '}' 전에 또 다른 '{'가 먼저 나온 경우
                 size_t next_open = fmt.find('{', i + 1);
                 if (next_open != std::string_view::npos && next_open < close_pos) {
                     os << '{';
@@ -244,13 +276,18 @@ namespace mino::core::string::print {
 
     template <typename... Args>
     void eprint(std::string_view fmt, const Args&... args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_to(std::cerr, to_console_encoding(std::string(fmt)), args...);
+        std::cerr << COLOR_RESET;
     }
 
     template <typename... Args>
     void eprintln(std::string_view fmt, const Args&... args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_to(std::cerr, to_console_encoding(std::string(fmt)), args...);
-        std::cerr << '\n';
+        std::cerr << COLOR_RESET << '\n';
     }
 
     // =========================================================================
@@ -268,12 +305,17 @@ namespace mino::core::string::print {
     }
 
     inline void eprintss(std::string_view fmt, named_args args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_named_to(std::cerr, to_console_encoding(std::string(fmt)), args);
+        std::cerr << COLOR_RESET;
     }
 
     inline void eprintlnss(std::string_view fmt, named_args args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_named_to(std::cerr, to_console_encoding(std::string(fmt)), args);
-        std::cerr << '\n';
+        std::cerr << COLOR_RESET << '\n';
     }
 
     // (2) 템플릿 지원 (std::map, std::unordered_map 등 컨테이너 직접 전달)
@@ -290,13 +332,18 @@ namespace mino::core::string::print {
 
     template <typename KeyValueContainer>
     void eprintss(std::string_view fmt, const KeyValueContainer& args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_named_to(std::cerr, to_console_encoding(std::string(fmt)), args);
+        std::cerr << COLOR_RESET;
     }
 
     template <typename KeyValueContainer>
     void eprintlnss(std::string_view fmt, const KeyValueContainer& args) {
+        enable_virtual_terminal_processing();
+        std::cerr << COLOR_RED;
         format_named_to(std::cerr, to_console_encoding(std::string(fmt)), args);
-        std::cerr << '\n';
+        std::cerr << COLOR_RESET << '\n';
     }
 
-}
+} // namespace mino::core::string::print
