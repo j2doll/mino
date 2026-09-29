@@ -25,6 +25,36 @@
 // - 동적 관리: INI 설정 기반 핫 리로드, 디스크 잔여 용량 감시(Disk Guard), UDP 임계치 알림 지원.
 //
 
+namespace {
+    const std::string hln = "hybrid_logger";
+
+    // 짧은 이름의 람다 함수를 만들어서 로그 레벨별로 메시지를 출력하도록 함.
+    auto ht = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->trace(fmt, std::forward<decltype(args)>(args)...); }
+        };
+    auto hd = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->debug(fmt, std::forward<decltype(args)>(args)...); }
+        };
+    auto hi = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->info(fmt, std::forward<decltype(args)>(args)...); }
+        };
+    auto hw = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->warn(fmt, std::forward<decltype(args)>(args)...); }
+        };
+    auto he = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->error(fmt, std::forward<decltype(args)>(args)...); }
+        };
+    auto hc = [](const char* fmt, auto&&... args) {
+        auto hlg = mino::core::log::tinylog::logger::get(hln);
+        if (hlg) { hlg->critical(fmt, std::forward<decltype(args)>(args)...); }
+        };
+} // namespace
+
 int main(int argc, char* argv[]) {
     mino::network::sock mnsock;
 
@@ -74,12 +104,12 @@ int main(int argc, char* argv[]) {
     }
 
     // 2-3. 로거 객체 가져오기 (tinylog 기반)
-    auto hybrid_logger = hybrid_mgr.getLogger();
-    if (!hybrid_logger) {
-        namespace mclt = mino::core::log::tinylog;
-        using logger = mclt::logger;
-        hybrid_logger = logger::get(hybrid_logger_name); // 로거 이름으로 로거 얻기
-    }
+    // auto hybrid_logger = hybrid_mgr.getLogger();
+    // if (!hybrid_logger) {
+    //     namespace mclt = mino::core::log::tinylog;
+    //     using logger = mclt::logger;
+    //     hybrid_logger = logger::get(hybrid_logger_name); // 로거 이름으로 로거 얻기
+    // }
 
     hybrid_mgr.reloadIfChanged();   // .ini 파일이 변경된 경우, 설정을 다시 읽어 적용하도록 시도
     hybrid_mgr.startAutoReload(60); // .ini 자동 읽기 (60초 주기로 .ini 파일을 다시 읽음)
@@ -90,39 +120,17 @@ int main(int argc, char* argv[]) {
     // 3. 로그 메시지 출력 루프 (레벨별 메시지 출력)
     // =========================================================================
 
-    // 짧은 이름의 람다 함수를 만들어서 로그 레벨별로 메시지를 출력하도록 함.
-    auto htrace = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->trace(fmt, std::forward<decltype(args)>(args)...);
-        };
-    auto hdebug = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->debug(fmt, std::forward<decltype(args)>(args)...);
-        };
-    auto hinfo = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->info(fmt, std::forward<decltype(args)>(args)...);
-        };
-    auto hwarn = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->warn(fmt, std::forward<decltype(args)>(args)...);
-        };
-    auto herror = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->error(fmt, std::forward<decltype(args)>(args)...);
-        };
-    auto hcritical = [hybrid_logger](const char* fmt, auto&&... args) {
-        hybrid_logger->critical(fmt, std::forward<decltype(args)>(args)...);
-        };
-
     int loopCount = 0;
     while (true) {
         ++loopCount;
 
         // Hybrid Logger (tinylog) 출력 (태그 서식 및 파일 인코딩 처리)
-        if (hybrid_logger) {
-            htrace("<gray>[Hybrid]</gray> Trace log: {}", loopCount);
-            hdebug("<cyan>[Hybrid]</cyan> Debug log: {}", loopCount);
-            hinfo("<bright_green>[Hybrid]</bright_green> <bold>Info</bold> log: {}", loopCount);
-            hwarn("<bright_yellow>[Hybrid]</bright_yellow> Warning log: {}", loopCount);
-            herror("<bright_red>[Hybrid]</bright_red> Error log (port: {}): {}", 10514, loopCount);
-            hcritical("<pink>[Hybrid]</pink> Critical alert log: {}", loopCount);
-        }
+        ht("<gray>[Hybrid]</gray> Trace log: {}", loopCount);
+        hd("<cyan>[Hybrid]</cyan> Debug log: {}", loopCount);
+        hi("<bright_green>[Hybrid]</bright_green> <bold>Info</bold> log: {}", loopCount);
+        hw("<bright_yellow>[Hybrid]</bright_yellow> Warning log: {}", loopCount);
+        he("<bright_red>[Hybrid]</bright_red> Error log (port: {}): {}", 10514, loopCount);
+        hc("<pink>[Hybrid]</pink> Critical alert log: {}", loopCount);
 
         std::cout << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
