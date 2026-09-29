@@ -24,12 +24,17 @@ file(
 )
 add_library(mino_external STATIC ${SRC_FILES})
 
-# 4-1. Visual Studio setting
+# 4-1. Include directories for third-party libraries (SYSTEM PRIVATE: suppress warnings)
+target_include_directories(mino_external SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party
+)
+
+# 4-2. Visual Studio setting
 if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
 endif()
 
-# 4-2. GCC specific fixes
+# 4-3. GCC specific fixes
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mino_external PUBLIC -Wno-free-nonheap-object)
 

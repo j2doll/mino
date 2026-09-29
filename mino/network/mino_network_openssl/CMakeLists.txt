@@ -27,6 +27,11 @@ file(
 # Create Library
 add_library(mino_network_openssl STATIC ${SRC_FILES})
 
+# Include Directories for Third-Party Libraries
+target_include_directories(mino_network_openssl SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/mino/network_openssl/third-party
+)
+
 # Include Directories & Compile Definitions
 target_include_directories(
     mino_network_openssl
