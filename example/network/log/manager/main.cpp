@@ -105,6 +105,7 @@ int main(int argc, char* argv[]) {
 
     // 2-3. 로거 객체 가져오기 (tinylog 기반)
     // auto hybrid_logger = hybrid_mgr.getLogger();
+    // 
     // if (!hybrid_logger) {
     //     namespace mclt = mino::core::log::tinylog;
     //     using logger = mclt::logger;
@@ -144,7 +145,8 @@ int main(int argc, char* argv[]) {
     // 4. 스레드 정리 및 종료
     // =========================================================================
     std::cout << "=== Stopping Auto Reload Thread ===" << std::endl;
-    hybrid_mgr.stopAutoReload();
+    hybrid_mgr.stopAutoReload(); // 안전하게 종료 (Close gracefully)
+    // 종료시까지 시간이 걸림
 
     std::cout << "=== Logger Manager Shutdown Complete ===" << std::endl;
 
