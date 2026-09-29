@@ -3,7 +3,7 @@
 | cpp-httplib | OpenSSL |
 | ----------- | ------- |
 | v0.14.x     | v1.1.1  |
-| v0.15.x     | v3      |
+| v0.15.x ~   | v3.x    |
 
 - Homepage: https://github.com/yhirose/cpp-httplib
  
