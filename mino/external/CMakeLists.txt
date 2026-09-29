@@ -24,11 +24,6 @@ file(
 )
 add_library(mino_external STATIC ${SRC_FILES})
 
-# 4-1. Include directories for third-party libraries (SYSTEM PRIVATE: suppress warnings)
-target_include_directories(mino_external SYSTEM PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party
-)
-
 # 4-2. Visual Studio setting
 if(MSVC)
   target_compile_options(mino_external PRIVATE "/utf-8")
