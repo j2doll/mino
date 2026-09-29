@@ -31,27 +31,41 @@ int main(int argc, char* argv[]) {
     // 1. INI 설정 파일 경로 구성
     namespace fs = std::filesystem;
 
+    // 1-1. 로거의 환경설정 정보가 저장된 .ini 파일 경로를 설정
     fs::path basePath(CMAKE_SOURCE_DIR_PATH);
     fs::path configPath = basePath / "logger_manager_config.ini";
     std::string configPathStr = configPath.string();
 
-    std::string sectionName = "Log"; // "logger_manager_config.ini"의 INI 섹션 이름
-    std::string envName = "";        // 환경 변수 미사용 시 빈 문자열 전달 (예: "LOG_CONFIG_PATH")
+    // 1-2. .ini 파일에 로거 정보가 설정된 섹션 이름을 지정
+    std::string sectionName = "Log"; 
+    // "... logger_manager_config.ini" 파일의 [Log] 섹션에서 로거 설정을 읽어옴.
+
+    // 1-3. 운영체제 환경변수에 특정한 값이 있는 경우,
+    // 해당 변수를 .ini 경로로 우선적으로 사용하도록 설정 가능.
+    std::string envName = ""; 
+    // 
+    // 예> envName = "MY_LOGGER_CONFIG_PATH"; 이고,
+    // OS 환경변수 "MY_LOGGER_CONFIG_PATH"가 "C:\test\my_logger_config.ini" 이면,
+    // 해당 경로의 .ini를 우선 사용함.
 
     std::cout << "=== Hybrid Logger Manager Initialization Start ===" << std::endl;
 
     // =========================================================================
     // 2. mino::network::log::manager::hybrid_logger_manager 초기화 (tinylog 기반)
     // =========================================================================
-    using hybrid_logger_manager = mino::network::log::manager::hybrid_logger_manager;
+    namespace mnlm = mino::network::log::manager;
+    using hybrid_logger_manager = mnlm::hybrid_logger_manager;
+
+    // 2-1. hybrid_logger_manager 객체 생성
     hybrid_logger_manager hybrid_mgr;
 
+    // 2-2. hybrid_logger_manager 초기화
     constexpr const char* hybrid_logger_name = "hybrid_logger";
     if (!hybrid_mgr.init(
-        configPathStr,      // INI 경로
-        sectionName,        // INI 섹션 이름 ("Log")
+        configPathStr,      // [1-1] 로거 설정정보가 있는 .ini 파일 경로
+        sectionName,        // [1-2] .ini 파일의 섹션 이름: [Log] 등
         hybrid_logger_name, // 생성할 로거 이름
-        envName))           // 환경 변수 이름
+        envName))           // [1-3] 환경 변수 이름 (없을 수도 있음)
     {
         std::cerr
             << "[Error] Failed to initialize hybrid_logger_manager with config: "
@@ -59,32 +73,55 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // [Public] getLogger() 호출 (mino::core::log::tinylog::logger 반환)
+    // 2-3. 로거 객체 가져오기 (tinylog 기반)
     auto hybrid_logger = hybrid_mgr.getLogger();
     if (!hybrid_logger) {
-        hybrid_logger = mino::core::log::tinylog::logger::get(hybrid_logger_name);
+        namespace mclt = mino::core::log::tinylog;
+        using logger = mclt::logger;
+        hybrid_logger = logger::get(hybrid_logger_name); // 로거 이름으로 로거 얻기
     }
 
-    hybrid_mgr.reloadIfChanged();   // INI 변경 감지 및 로거 설정 재적용
-    hybrid_mgr.startAutoReload(60); // INI 변경 감지 스레드 실행 (60초 주기)
+    hybrid_mgr.reloadIfChanged();   // .ini 파일이 변경된 경우, 설정을 다시 읽어 적용하도록 시도
+    hybrid_mgr.startAutoReload(60); // .ini 자동 읽기 (60초 주기로 .ini 파일을 다시 읽음)
 
     std::cout << "=== Logging Loop Start (Press Ctrl+C to terminate) ===" << std::endl;
 
     // =========================================================================
     // 3. 로그 메시지 출력 루프 (레벨별 메시지 출력)
     // =========================================================================
+
+    // 짧은 이름의 람다 함수를 만들어서 로그 레벨별로 메시지를 출력하도록 함.
+    auto htrace = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->trace(fmt, std::forward<decltype(args)>(args)...);
+        };
+    auto hdebug = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->debug(fmt, std::forward<decltype(args)>(args)...);
+        };
+    auto hinfo = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->info(fmt, std::forward<decltype(args)>(args)...);
+        };
+    auto hwarn = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->warn(fmt, std::forward<decltype(args)>(args)...);
+        };
+    auto herror = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->error(fmt, std::forward<decltype(args)>(args)...);
+        };
+    auto hcritical = [hybrid_logger](const char* fmt, auto&&... args) {
+        hybrid_logger->critical(fmt, std::forward<decltype(args)>(args)...);
+        };
+
     int loopCount = 0;
     while (true) {
         ++loopCount;
 
         // Hybrid Logger (tinylog) 출력 (태그 서식 및 파일 인코딩 처리)
         if (hybrid_logger) {
-            hybrid_logger->trace("<gray>[Hybrid]</gray> Trace log output: {}", loopCount);
-            hybrid_logger->debug("<cyan>[Hybrid]</cyan> Debug log output (iteration: {})", loopCount);
-            hybrid_logger->info("<bright_green>[Hybrid]</bright_green> Info log with <bold>tinylog</bold> formatting check");
-            hybrid_logger->warn("<bright_yellow>[Hybrid]</bright_yellow> Alert file targeted warning log");
-            hybrid_logger->error("<bright_red>[Hybrid]</bright_red> Alert file targeted error log (port: {})", 10514);
-            hybrid_logger->critical("<pink>[Hybrid]</pink> Critical alert log: Emergency system check required");
+            htrace("<gray>[Hybrid]</gray> Trace log: {}", loopCount);
+            hdebug("<cyan>[Hybrid]</cyan> Debug log: {}", loopCount);
+            hinfo("<bright_green>[Hybrid]</bright_green> <bold>Info</bold> log: {}", loopCount);
+            hwarn("<bright_yellow>[Hybrid]</bright_yellow> Warning log: {}", loopCount);
+            herror("<bright_red>[Hybrid]</bright_red> Error log (port: {}): {}", 10514, loopCount);
+            hcritical("<pink>[Hybrid]</pink> Critical alert log: {}", loopCount);
         }
 
         std::cout << std::endl;
