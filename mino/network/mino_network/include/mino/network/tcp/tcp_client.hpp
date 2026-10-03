@@ -19,9 +19,9 @@ namespace mino::network::tcp {
     // 재연결 설정 정보 구조체
     struct reconnect_config {
         std::chrono::milliseconds initial_interval{ 10000 }; // 최초 재연결 대기 시간 (기본 10초)
-        std::chrono::milliseconds max_interval{ 60000 }; // 최대 대기 시간 상한선 (기본 60초, 도달 후 이 간격으로 계속 유지)
-        int max_retries{ 0 }; // 처음 실패한 시점부터 누적된 '총 재시도 횟수' (0: 최대 시간에 도달해도 무제한 계속 재시도)
-        double backoff_multiplier{ 2.0 }; // 지수 증가 배수 (기본 2.0배) (10s -> 20s -> 40s -> 60s -> 60s ...)
+        std::chrono::milliseconds max_interval{ 60000 };     // 최대 대기 시간 상한선 (기본 60초, 도달 후 이 간격으로 계속 유지)
+        int max_retries{ 0 };                                // 처음 실패한 시점부터 누적된 '총 재시도 횟수' (0: 최대 시간에 도달해도 무제한 계속 재시도)
+        double backoff_multiplier{ 2.0 };                    // 지수 증가 배수 (기본 2.0배) (10s -> 20s -> 40s -> 60s -> 60s ...)
     };
 
     class tcp_client {
@@ -69,7 +69,9 @@ namespace mino::network::tcp {
         bool start();
         bool start(const reconnect_config& config);
         bool start(std::chrono::seconds sleep_time);
+
         bool is_connected() const;
+        bool is_running() const; // 재연결 스레드 동작 여부 조회
 
         int send_data(const std::string& data);
 

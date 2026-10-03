@@ -23,7 +23,6 @@ namespace mino::network_openssl::tls {
             return result.empty() ? "No OpenSSL error details" : result;
         }
 
-        // 크로스 플랫폼 논블로킹 설정
         bool set_socket_nonblocking(socket_t fd) {
 #ifdef _WIN32
             u_long mode = 1;
@@ -160,6 +159,14 @@ namespace mino::network_openssl::tls {
         return true;
     }
 
+    void tls_client::set_reconnect_config(const reconnect_config& config) {
+        recon_cfg = config;
+    }
+
+    const reconnect_config& tls_client::get_reconnect_config() const {
+        return recon_cfg;
+    }
+
     bool tls_client::init_ssl_context() {
         if (ssl_ctx) return true;
 
@@ -207,7 +214,7 @@ namespace mino::network_openssl::tls {
         }
     }
 
-    bool tls_client::start(std::chrono::seconds sleep_time) {
+    bool tls_client::start() {
         if (server_ip.empty() || server_port == 0) return false;
         if (!init_ssl_context()) return false;
 
@@ -220,12 +227,27 @@ namespace mino::network_openssl::tls {
             catch (...) {}
         }
 
-        client_thread = std::thread(&tls_client::connect_to_server, this, sleep_time);
+        client_thread = std::thread(&tls_client::connect_to_server, this);
         return true;
+    }
+
+    bool tls_client::start(const reconnect_config& config) {
+        set_reconnect_config(config);
+        return start();
+    }
+
+    bool tls_client::start(std::chrono::seconds sleep_time) {
+        reconnect_config cfg;
+        cfg.initial_interval = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_time);
+        cfg.max_interval = cfg.initial_interval;
+        cfg.max_retries = 0; // 고정 간격 무제한 재시도
+        cfg.backoff_multiplier = 1.0;
+        return start(cfg);
     }
 
     void tls_client::stop() {
         stop_flag = true;
+        stop_cv.notify_all(); // 대기 중인 sleep 즉시 깨우기
         close_connection();
 
         if (client_thread.joinable()) {
@@ -316,8 +338,14 @@ namespace mino::network_openssl::tls {
         return is_connected_flag;
     }
 
-    void tls_client::connect_to_server(std::chrono::seconds sleep_time) {
+    bool tls_client::is_running() const {
+        return thread_running.load();
+    }
+
+    void tls_client::connect_to_server() {
         thread_running = true;
+        uint64_t retry_count = 0;
+        auto current_interval = recon_cfg.initial_interval;
 
         while (!stop_flag) {
             socket_t tmp_fd = ::socket(address_family, SOCK_STREAM, 0);
@@ -326,7 +354,8 @@ namespace mino::network_openssl::tls {
 #else
             if (tmp_fd < 0) {
 #endif
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                std::unique_lock<std::mutex> lk(cv_mutex);
+                stop_cv.wait_for(lk, current_interval, [this] { return stop_flag.load(); });
                 continue;
             }
 
@@ -347,6 +376,17 @@ namespace mino::network_openssl::tls {
                 inet_pton(AF_INET6, server_ip.c_str(), &addr6->sin6_addr);
                 addr_len = sizeof(sockaddr_in6);
             }
+            else {
+                if (logger) logger->error("Undefined address family: {}", address_family);
+#ifdef _WIN32
+                closesocket(tmp_fd);
+#else
+                close(tmp_fd);
+#endif
+                break;
+            }
+
+            bool connection_successful = false;
 
             if (::connect(tmp_fd, reinterpret_cast<sockaddr*>(&server_addr_storage), addr_len) == 0) {
                 SSL* tmp_ssl = SSL_new(ssl_ctx);
@@ -356,67 +396,108 @@ namespace mino::network_openssl::tls {
 #else
                     close(tmp_fd);
 #endif
-                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                    continue;
                 }
+                else {
+                    SSL_set_fd(tmp_ssl, static_cast<int>(tmp_fd));
 
-                SSL_set_fd(tmp_ssl, static_cast<int>(tmp_fd));
-
-                if (!sni_hostname.empty()) {
-                    SSL_set_tlsext_host_name(tmp_ssl, sni_hostname.c_str());
-                    if (verify_peer) SSL_set1_host(tmp_ssl, sni_hostname.c_str());
-                }
-
-                // 핸드셰이크 수행
-                int handshake = SSL_connect(tmp_ssl);
-                if (handshake <= 0) {
-                    if (logger && !stop_flag) {
-                        logger->warn("[tls_client] SSL Handshake failed: <bright_yellow>{}</bright_yellow>", get_openssl_error_string());
+                    if (!sni_hostname.empty()) {
+                        SSL_set_tlsext_host_name(tmp_ssl, sni_hostname.c_str());
+                        if (verify_peer) SSL_set1_host(tmp_ssl, sni_hostname.c_str());
                     }
-                    SSL_free(tmp_ssl);
+
+                    int handshake = SSL_connect(tmp_ssl);
+                    if (handshake <= 0) {
+                        if (logger && !stop_flag) {
+                            logger->warn("[tls_client] SSL Handshake failed: <bright_yellow>{}</bright_yellow>", get_openssl_error_string());
+                        }
+                        SSL_free(tmp_ssl);
 #ifdef _WIN32
-                    closesocket(tmp_fd);
+                        closesocket(tmp_fd);
 #else
-                    close(tmp_fd);
+                        close(tmp_fd);
 #endif
-                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                    continue;
+                    }
+                    else {
+                        set_socket_nonblocking(tmp_fd);
+
+                        {
+                            std::lock_guard<std::mutex> lock(ssl_mutex);
+                            socket_fd = tmp_fd;
+                            ssl_handle = tmp_ssl;
+                            is_connected_flag = true;
+                        }
+
+                        if (logger) {
+                            logger->info("[tls_client] <bright_green>Connected</bright_green> to {}:{} (Cipher: {})",
+                                server_ip, server_port, SSL_get_cipher(ssl_handle));
+                        }
+
+                        // 성공 시 카운트 및 대기 간격 초기화
+                        retry_count = 0;
+                        current_interval = recon_cfg.initial_interval;
+                        connection_successful = true;
+
+                        if (on_connect) on_connect();
+
+                        receive_loop();
+                    }
                 }
-
-                // 핸드셰이크 완료 즉시 논블로킹 모드로 전환
-                set_socket_nonblocking(tmp_fd);
-
-                {
-                    std::lock_guard<std::mutex> lock(ssl_mutex);
-                    socket_fd = tmp_fd;
-                    ssl_handle = tmp_ssl;
-                    is_connected_flag = true;
-                }
-
-                if (logger) {
-                    logger->info("[tls_client] <bright_green>Connected</bright_green> to {}:{} (Cipher: {})",
-                        server_ip, server_port, SSL_get_cipher(ssl_handle));
-                }
-
-                if (on_connect) on_connect();
-
-                receive_loop();
             }
             else {
 #ifdef _WIN32
+                int err = WSAGetLastError();
+                std::string err_msg = std::system_category().message(err);
+                if (logger && !stop_flag) {
+                    logger->warn("[tls_client] <red>connect() failed</red>."
+                        " WSAGetLastError: <bright_yellow>{0}</bright_yellow> (<gray>{1}</gray>)",
+                        err, err_msg);
+                }
                 closesocket(tmp_fd);
 #else
+                int err = errno;
+                auto err_msg = std::strerror(err);
+                if (logger && !stop_flag) {
+                    logger->warn("[tls_client] <red>connect() failed</red>."
+                        " errno: <bright_yellow>{0}</bright_yellow> (<gray>{1}</gray>)",
+                        err, err_msg);
+                }
                 close(tmp_fd);
 #endif
             }
 
-            auto total_wait = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_time);
-            auto elapsed = std::chrono::milliseconds(0);
-            while (!stop_flag && elapsed < total_wait) {
-                auto chunk = std::min(std::chrono::milliseconds(100), total_wait - elapsed);
-                std::this_thread::sleep_for(chunk);
-                elapsed += chunk;
+            if (stop_flag) break;
+
+            // 재시도 횟수 제한 체크
+            retry_count++;
+            if (recon_cfg.max_retries > 0 && retry_count > static_cast<uint64_t>(recon_cfg.max_retries)) {
+                if (logger) {
+                    logger->warn("[tls_client] Maximum reconnection attempts ({}) reached. Stopping client thread.", recon_cfg.max_retries);
+                }
+                break;
             }
+
+            if (logger && !stop_flag) {
+                if (recon_cfg.max_retries > 0) {
+                    logger->info("[tls_client] Reconnecting in {}ms (attempt {}/{})",
+                        current_interval.count(), retry_count, recon_cfg.max_retries);
+                }
+                else {
+                    logger->info("[tls_client] Reconnecting in {}ms (attempt {})",
+                        current_interval.count(), retry_count);
+                }
+            }
+
+            // 조건 변수로 대기 (stop() 호출 시 즉각 탈출)
+            {
+                std::unique_lock<std::mutex> lk(cv_mutex);
+                stop_cv.wait_for(lk, current_interval, [this] { return stop_flag.load(); });
+            }
+
+            if (stop_flag) break;
+
+            // 지수 백오프 간격 계산 (최대 대기 시간 상한선 적용)
+            auto next_ms = static_cast<long long>(current_interval.count() * recon_cfg.backoff_multiplier);
+            current_interval = std::min(std::chrono::milliseconds(next_ms), recon_cfg.max_interval);
             }
 
         thread_running = false;
@@ -444,7 +525,6 @@ namespace mino::network_openssl::tls {
                 std::lock_guard<std::mutex> lock(ssl_mutex);
                 if (!ssl_handle || !is_connected_flag) break;
 
-                // 논블로킹이므로 제어 패킷 처리 후 데이터가 없으면 즉시 WANT_READ 반환
                 bytes = SSL_read(ssl_handle, buffer, sizeof(buffer) - 1);
                 if (bytes <= 0) {
                     ssl_err = SSL_get_error(ssl_handle, bytes);
@@ -456,7 +536,7 @@ namespace mino::network_openssl::tls {
             }
             else {
                 if (ssl_err == SSL_ERROR_WANT_READ || ssl_err == SSL_ERROR_WANT_WRITE) {
-                    continue; // 락을 해제하고 다음 폴링으로 진행
+                    continue;
                 }
                 break;
             }
@@ -467,6 +547,7 @@ namespace mino::network_openssl::tls {
 
     void tls_client::shutdown_by_force() {
         stop_flag = true;
+        stop_cv.notify_all(); // 대기 중인 재연결 sleep 즉시 깨우기
         {
             std::lock_guard<std::mutex> lock(ssl_mutex);
             is_connected_flag = false;
@@ -493,4 +574,4 @@ namespace mino::network_openssl::tls {
         if (on_close) on_close();
     }
 
-    }
+}

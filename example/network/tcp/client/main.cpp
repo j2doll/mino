@@ -106,6 +106,7 @@ int main() {
     recon_cfg4.initial_interval = std::chrono::seconds(10); // 최초 재연결 대기 시간 10초.
     recon_cfg4.max_interval = std::chrono::seconds(60); // 최대 재연결 대기 시간 60초.
     recon_cfg4.max_retries = 0; // 최대 실패 횟수. 0으로 설정하면 최대 시간에 도달해도 무제한 계속 재시도.
+    // recon_cfg4.max_retries = 5;
     recon_cfg4.backoff_multiplier = 2.0; // 지수 증가 배수 2.0배. (10s -> 20s -> 40s -> 60s -> 60s ...)
     // 연결이 되지 않는 경우, 10s -> 20s -> 40s -> 60s -> 60s ... 의 시간으로 연결 시도함.
 
@@ -132,10 +133,11 @@ int main() {
 
     // 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
     mino::network::tcp::reconnect_config recon_cfg6;
-    recon_cfg6.initial_interval = std::chrono::seconds(10);
-    recon_cfg6.max_interval = std::chrono::seconds(60);
-    recon_cfg6.max_retries = 0;
-    recon_cfg6.backoff_multiplier = 2.0;
+    recon_cfg6.initial_interval = std::chrono::seconds(10); // 최초 재연결 대기 시간 10초.
+    recon_cfg6.max_interval = std::chrono::seconds(60); // 최대 재연결 대기 시간 60초.
+    recon_cfg6.max_retries = 0; // 최대 실패 횟수. 0으로 설정하면 최대 시간에 도달해도 무제한 계속 재시도.
+    // recon_cfg6.max_retries = 5;
+    recon_cfg6.backoff_multiplier = 2.0; // 지수 증가 배수 2.0배. (10s -> 20s -> 40s -> 60s -> 60s ...)
 
     if (!client6.start(recon_cfg6)) {
         tcp6_logger->error("Failed to start IPv6 client");
@@ -145,7 +147,8 @@ int main() {
     // ----------- 2. 메인 모니터링 루프 -----------
     tcp4_logger->info("Both IPv4 & IPv6 clients are running (Press Ctrl+C to terminate)...");
 
-    while (true) {
+    bool isLoop = true;
+    while (isLoop) {
         std::this_thread::sleep_for(std::chrono::seconds(5));
 
         auto now = std::chrono::system_clock::now();
@@ -182,7 +185,23 @@ int main() {
                 tcp6_logger->info("<magenta>Sent</magenta>: <cyan>{}</cyan>", oss.str());
             }
         }
-    }
+
+        bool isRunning4 = client4.is_running();
+        if (!isRunning4) {
+            tcp4_logger->warn("tcp4 client thread is not running. Exit loop...");
+            break; // exit loop
+        }
+             
+        bool isRunning6 = client6.is_running();
+        if (!isRunning6) {
+            tcp6_logger->warn("tcp6 client thread is not running. Exit loop...");
+            break; // exit loop
+        }
+
+    } //  while (isLoop) ..
+
+    //client4.close_connection();
+    //client6.close_connection(); 
 
     return 0;
 }

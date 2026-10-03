@@ -205,6 +205,10 @@ namespace mino::network::tcp {
         return is_connected_flag;
     }
 
+    bool tcp_client::is_running() const {
+        return thread_running.load();
+    }
+
     void tcp_client::connect_to_server() {
         thread_running = true;
         uint64_t retry_count = 0;
@@ -272,8 +276,8 @@ namespace mino::network::tcp {
                 int err = WSAGetLastError();
                 std::string err_msg = std::system_category().message(err);
                 if (logger) logger->warn(
-                    "[tcp_client] connect() failed."
-                    " WSAGetLastError: <bright_yellow>{0}</bright_yellow> ({1})",
+                    "[tcp_client] <red>connect() failed</red>."
+                    " WSAGetLastError: <bright_yellow>{0}</bright_yellow> (<gray>{1}</gray>)",
                     err, err_msg
                 );
                 closesocket(tmp_fd);
@@ -281,8 +285,8 @@ namespace mino::network::tcp {
                 int err = errno;
                 auto err_msg = std::strerror(err);
                 if (logger) logger->warn(
-                    "[tcp_client] connect() failed."
-                    " errno: <bright_yellow>{0}</bright_yellow> ({1})",
+                    "[tcp_client] <red>connect() failed</red>."
+                    " errno: <bright_yellow>{0}</bright_yellow> (<gray>{1}</gray>)",
                     err, err_msg
                 );
                 close(tmp_fd);
@@ -456,4 +460,4 @@ namespace mino::network::tcp {
         }
     }
 
-} // namespace mino::network::tcp
+    } // namespace mino::network::tcp
