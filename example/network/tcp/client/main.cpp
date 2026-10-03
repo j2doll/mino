@@ -103,10 +103,11 @@ int main() {
 
     // 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
     mino::network::tcp::reconnect_config recon_cfg4;
-    recon_cfg4.initial_interval = std::chrono::seconds(10);
-    recon_cfg4.max_interval = std::chrono::seconds(60);
-    recon_cfg4.max_retries = 0;
-    recon_cfg4.backoff_multiplier = 2.0;
+    recon_cfg4.initial_interval = std::chrono::seconds(10); // 최초 재연결 대기 시간 10초.
+    recon_cfg4.max_interval = std::chrono::seconds(60); // 최대 재연결 대기 시간 60초.
+    recon_cfg4.max_retries = 0; // 최대 실패 횟수. 0으로 설정하면 최대 시간에 도달해도 무제한 계속 재시도.
+    recon_cfg4.backoff_multiplier = 2.0; // 지수 증가 배수 2.0배. (10s -> 20s -> 40s -> 60s -> 60s ...)
+    // 연결이 되지 않는 경우, 10s -> 20s -> 40s -> 60s -> 60s ... 의 시간으로 연결 시도함.
 
     if (!client4.start(recon_cfg4)) {
         tcp4_logger->error("Failed to start IPv4 client");
