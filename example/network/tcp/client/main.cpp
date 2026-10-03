@@ -54,7 +54,6 @@ void clean_up_resources(
     tcp6_client->stop();
 }
 
-// Example for both IPv4 and IPv6
 int main() {
     mino::network::sock mnsock;
 
@@ -65,121 +64,109 @@ int main() {
     tcp_client client4;
     tcp_client client6;
 
+    // Ctrl+C 또는 종료 시그널 수신 시 안전하게 리소스 해제
     handler.set_callback([&client4, &client6]() {
         clean_up_resources(&client4, &client6);
         std::exit(0);
-    });
+        });
 
     namespace mclt = mino::core::log::tinylog;
 
-    // ----------- IPv4 Example -----------
-    {
-        auto console_sink4 = std::make_shared<mclt::console_sink>("tcp4_console");
-        auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
-        tcp4_logger->add_sink(console_sink4);
-        mclt::logger::register_logger(tcp4_logger);
+    // ----------- 1. IPv4 Client 설정 및 시작 -----------
+    auto console_sink4 = std::make_shared<mclt::console_sink>("tcp4_console");
+    auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
+    tcp4_logger->add_sink(console_sink4);
+    mclt::logger::register_logger(tcp4_logger);
 
-        client4.set_logger(tcp4_logger);
+    client4.set_logger(tcp4_logger);
+    tcp4_logger->info("[IPv4 Example] Initializing...");
 
-        tcp4_logger->info("[IPv4 Example]");
+    client4.set_server("127.0.0.1", 12345, AF_INET);
 
-        client4.set_server("127.0.0.1", 12345, AF_INET); // Set server IP and port, IPv4
+    auto handler4 = std::make_shared<my_tcp_client_handler>("tcp4_handler");
+    client4.set_on_connect([handler4]() { handler4->on_connect(); });
+    client4.set_on_close([handler4]() { handler4->on_close(); });
+    client4.set_on_receive([handler4](const std::string& data) { handler4->on_receive(data); });
 
-        auto handler = std::make_shared<my_tcp_client_handler>("tcp4_handler");
-        client4.set_on_connect([handler]() { handler->on_connect(); });
-        client4.set_on_close([handler]() { handler->on_close(); });
-        client4.set_on_receive([handler](const std::string& data) { handler->on_receive(data); });
+    // IPv4 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
+    mino::network::tcp::reconnect_config recon_cfg4;
+    recon_cfg4.initial_interval = std::chrono::seconds(10);
+    recon_cfg4.max_interval = std::chrono::seconds(60);
+    recon_cfg4.max_retries = 0;
+    recon_cfg4.backoff_multiplier = 2.0;
 
-        // Sleep duration between connection attempts
-        auto sleep_duration = std::chrono::seconds(60);
-
-        if (!client4.start(sleep_duration)) {
-            tcp4_logger->error("Failed to start IPv4 client");
-            return 1;
-        }
-
-        // [Test 1] Simulate the main thread handling its own loop
-        for (int i = 0; i < 3; ++i) { // Run 3 times for demonstration
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            if (client4.is_connected()) {
-                // Get current time as string
-                auto now = std::chrono::system_clock::now();
-                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                std::tm tm;
-#ifdef _WIN32
-                localtime_s(&tm, &now_c);
-#else
-                localtime_r(&now_c, &tm);
-#endif
-                std::ostringstream oss;
-                oss << "Hello World (IPv4) " << std::put_time(&tm, "%H:%M:%S");
-                if (client4.send_data(oss.str()) < 0) { // Send data to server
-                    tcp4_logger->error("Failed to send data.");
-                }
-                else {
-                    tcp4_logger->info("  Sent: {}", oss.str());
-                }
-            }
-        }
-
-        tcp4_logger->info("Before stopping IPv4 client, waiting for a moment...");
-        client4.stop();
-        tcp4_logger->info("IPv4 client stopped.");
+    if (!client4.start(recon_cfg4)) {
+        tcp4_logger->error("Failed to start IPv4 client");
+        return 1;
     }
 
-    // ----------- IPv6 Example -----------
-    {
-        auto console_sink6 = std::make_shared<mclt::console_sink>("tcp6_console");
-        auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
-        tcp6_logger->add_sink(console_sink6);
-        mclt::logger::register_logger(tcp6_logger);
+    // ----------- 2. IPv6 Client 설정 및 시작 -----------
+    auto console_sink6 = std::make_shared<mclt::console_sink>("tcp6_console");
+    auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
+    tcp6_logger->add_sink(console_sink6);
+    mclt::logger::register_logger(tcp6_logger);
 
-        client6.set_logger(tcp6_logger);
+    client6.set_logger(tcp6_logger);
+    tcp6_logger->info("[IPv6 Example] Initializing...");
 
-        tcp6_logger->info("[IPv6 Example]");
+    client6.set_server("::1", 12346, AF_INET6);
 
-        client6.set_server("::1", 12346, AF_INET6); // Set server IP and port, IPv6
+    auto handler6 = std::make_shared<my_tcp_client_handler>("tcp6_handler");
+    client6.set_on_connect([handler6]() { handler6->on_connect(); });
+    client6.set_on_close([handler6]() { handler6->on_close(); });
+    client6.set_on_receive([handler6](const std::string& data) { handler6->on_receive(data); });
 
-        auto handler = std::make_shared<my_tcp_client_handler>("tcp6_handler");
-        client6.set_on_connect([handler]() { handler->on_connect(); });
-        client6.set_on_close([handler]() { handler->on_close(); });
-        client6.set_on_receive([handler](const std::string& data) { handler->on_receive(data); });
+    // IPv6 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
+    mino::network::tcp::reconnect_config recon_cfg6;
+    recon_cfg6.initial_interval = std::chrono::seconds(10);
+    recon_cfg6.max_interval = std::chrono::seconds(60);
+    recon_cfg6.max_retries = 0;
+    recon_cfg6.backoff_multiplier = 2.0;
 
-        // Sleep duration between connection attempts
-        auto sleep_duration = std::chrono::seconds(60);
+    if (!client6.start(recon_cfg6)) {
+        tcp6_logger->error("Failed to start IPv6 client");
+        return 1;
+    }
 
-        if (!client6.start(sleep_duration)) {
-            tcp6_logger->error("Failed to start IPv6 client");
-            return 1;
-        }
+    // ----------- 3. 메인 모니터링 루프 (두 클라이언트 동시 관찰) -----------
+    tcp4_logger->info("Both IPv4 & IPv6 clients are running.");
+    tcp4_logger->info("Observing reconnection loop (Press Ctrl+C to terminate)...");
 
-        // [Test 1] Simulate the main thread handling its own loop
-        for (int i = 0; i < 3; ++i) { // Run 3 times for demonstration
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            if (client6.is_connected()) {
-                // Get current time as string
-                auto now = std::chrono::system_clock::now();
-                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                std::tm tm;
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+        std::tm tm;
 #ifdef _WIN32
-                localtime_s(&tm, &now_c);
+        localtime_s(&tm, &now_c);
 #else
-                localtime_r(&now_c, &tm);
+        localtime_r(&now_c, &tm);
 #endif
-                std::ostringstream oss;
-                oss << "Hello World (IPv6) " << std::put_time(&tm, "%H:%M:%S");
-                if (client6.send_data(oss.str()) < 0) { // Send data to server
-                    tcp6_logger->error("Failed to send data.");
-                }
-                else {
-                    tcp6_logger->info("  Sent: {}", oss.str());
-                }
+
+        // IPv4 연결 시 데이터 전송
+        if (client4.is_connected()) {
+            std::ostringstream oss;
+            oss << "Hello World (IPv4) " << std::put_time(&tm, "%H:%M:%S");
+            if (client4.send_data(oss.str()) < 0) {
+                tcp4_logger->error("Failed to send IPv4 data.");
+            }
+            else {
+                tcp4_logger->info("  Sent: {}", oss.str());
             }
         }
 
-        tcp6_logger->info("Before stopping IPv6 client, waiting for a moment...");
-        client6.stop();
-        tcp6_logger->info("IPv6 client stopped.");
+        // IPv6 연결 시 데이터 전송
+        if (client6.is_connected()) {
+            std::ostringstream oss;
+            oss << "Hello World (IPv6) " << std::put_time(&tm, "%H:%M:%S");
+            if (client6.send_data(oss.str()) < 0) {
+                tcp6_logger->error("Failed to send IPv6 data.");
+            }
+            else {
+                tcp6_logger->info("  Sent: {}", oss.str());
+            }
+        }
     }
 
     return 0;

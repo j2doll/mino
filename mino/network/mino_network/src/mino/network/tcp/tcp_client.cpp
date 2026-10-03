@@ -2,13 +2,13 @@
 #include <cstring>
 #include <sstream>
 #include <system_error>
+#include <algorithm>
 
 #include "mino/core/log/tinylog/logger.hpp"
 #include "mino/network/tcp/tcp_client.hpp"
 
 namespace mino::network::tcp {
 
-    // Helper: 소켓을 TIME_WAIT 없이 즉시 종료(RST)하도록 SO_LINGER 설정 후 닫습니다.
     static void close_socket_without_timewait(socket_t fd) {
         if (fd
 #ifdef _WIN32
@@ -21,8 +21,8 @@ namespace mino::network::tcp {
         }
 
         struct linger so_linger;
-        so_linger.l_onoff = 1;    // linger 옵션 활성화
-        so_linger.l_linger = 0;   // 0초 -> 즉시 RST 전송
+        so_linger.l_onoff = 1;
+        so_linger.l_linger = 0;
 
 #ifdef _WIN32
         setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<const char*>(&so_linger), static_cast<int>(sizeof(so_linger)));
@@ -61,7 +61,15 @@ namespace mino::network::tcp {
         logger = std::move(logger_ptr);
     }
 
-    bool tcp_client::start(std::chrono::seconds sleep_time) {
+    void tcp_client::set_reconnect_config(const reconnect_config& config) {
+        recon_cfg = config;
+    }
+
+    const reconnect_config& tcp_client::get_reconnect_config() const {
+        return recon_cfg;
+    }
+
+    bool tcp_client::start() {
         if (server_ip.empty() || server_port == 0) return false;
         stop_flag = false;
 
@@ -75,12 +83,27 @@ namespace mino::network::tcp {
             catch (...) {
             }
         }
-        client_thread = std::thread(&tcp_client::connect_to_server, this, sleep_time);
+        client_thread = std::thread(&tcp_client::connect_to_server, this);
         return true;
+    }
+
+    bool tcp_client::start(const reconnect_config& config) {
+        set_reconnect_config(config);
+        return start();
+    }
+
+    bool tcp_client::start(std::chrono::seconds sleep_time) {
+        reconnect_config cfg;
+        cfg.initial_interval = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_time);
+        cfg.max_interval = cfg.initial_interval;
+        cfg.max_retries = 0; // 고정 간격 무제한 반복
+        cfg.backoff_multiplier = 1.0;
+        return start(cfg);
     }
 
     void tcp_client::stop() {
         stop_flag = true;
+        stop_cv.notify_all();
         close_connection();
 
         std::thread local_thread;
@@ -182,8 +205,11 @@ namespace mino::network::tcp {
         return is_connected_flag;
     }
 
-    void tcp_client::connect_to_server(std::chrono::seconds sleep_time) {
+    void tcp_client::connect_to_server() {
         thread_running = true;
+        uint64_t retry_count = 0;
+        auto current_interval = recon_cfg.initial_interval;
+
         while (!stop_flag) {
             socket_t tmp_fd = ::socket(address_family, SOCK_STREAM, 0);
 #ifdef _WIN32
@@ -191,7 +217,8 @@ namespace mino::network::tcp {
 #else
             if (tmp_fd < 0) {
 #endif
-                std::this_thread::sleep_for(sleep_time);
+                std::unique_lock<std::mutex> lk(cv_mutex);
+                stop_cv.wait_for(lk, current_interval, [this] { return stop_flag.load(); });
                 continue;
             }
 
@@ -214,8 +241,12 @@ namespace mino::network::tcp {
             }
             else {
                 if (logger) logger->error("Undefined address family: {}", address_family);
-                std::this_thread::sleep_for(sleep_time);
-                continue;
+#ifdef _WIN32
+                closesocket(tmp_fd);
+#else
+                close(tmp_fd);
+#endif
+                break;
             }
 
             if (::connect(tmp_fd, reinterpret_cast<sockaddr*>(&server_addr_storage), addr_len) == 0) {
@@ -225,6 +256,11 @@ namespace mino::network::tcp {
                     is_connected_flag = true;
                 }
                 if (logger) logger->info("[tcp_client] Connected to {}:{}", server_ip, server_port);
+
+                // 연결 성공 시 대기 간격 및 카운트 초기화
+                retry_count = 0;
+                current_interval = recon_cfg.initial_interval;
+
                 if (on_connect) {
                     on_connect();
                 }
@@ -253,8 +289,41 @@ namespace mino::network::tcp {
 #endif
             }
 
-            std::this_thread::sleep_for(sleep_time);
+            if (stop_flag) break;
+
+            retry_count++;
+            // max_retries > 0 인 경우에만 횟수 초과 탈출 적용, 0 이하는 무제한 계속 시도
+            if (recon_cfg.max_retries > 0 && retry_count > static_cast<uint64_t>(recon_cfg.max_retries)) {
+                if (logger) {
+                    logger->warn("[tcp_client] Maximum reconnection attempts ({}) reached. Stopping client thread.", recon_cfg.max_retries);
+                }
+                break;
             }
+
+            if (logger) {
+                if (recon_cfg.max_retries > 0) {
+                    logger->info("[tcp_client] Reconnecting in {}ms (attempt {}/{})",
+                        current_interval.count(), retry_count, recon_cfg.max_retries);
+                }
+                else {
+                    logger->info("[tcp_client] Reconnecting in {}ms (attempt {})",
+                        current_interval.count(), retry_count);
+                }
+            }
+
+            // stop() 신호 시 즉시 탈출할 수 있도록 조건 변수로 대기
+            {
+                std::unique_lock<std::mutex> lk(cv_mutex);
+                stop_cv.wait_for(lk, current_interval, [this] { return stop_flag.load(); });
+            }
+
+            if (stop_flag) break;
+
+            // 지수 백오프 계산: 상한선(max_interval) 초과 시 max_interval로 고정되어 계속 유지됨
+            auto next_ms = static_cast<long long>(current_interval.count() * recon_cfg.backoff_multiplier);
+            current_interval = std::min(std::chrono::milliseconds(next_ms), recon_cfg.max_interval);
+            }
+
         thread_running = false;
         }
 
@@ -278,7 +347,8 @@ namespace mino::network::tcp {
                     logger->warn(
                         "[tcp_client] recv returned {0}."
                         " WSAGetLastError: <bright_yellow>{1}</bright_yellow> ({2}) thread_id={3}",
-                        bytes_received, err, err_msg, thread_id
+                        bytes_received,
+                        err, err_msg, thread_id
                     );
 #else
                     int err = errno;
@@ -319,6 +389,7 @@ namespace mino::network::tcp {
     void tcp_client::shutdown_by_force() {
         try {
             stop_flag = true;
+            stop_cv.notify_all();
 
             {
                 std::lock_guard<std::mutex> lock(send_mutex);
@@ -385,4 +456,4 @@ namespace mino::network::tcp {
         }
     }
 
-    }
+} // namespace mino::network::tcp

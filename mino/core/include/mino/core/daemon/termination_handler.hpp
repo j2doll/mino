@@ -15,7 +15,7 @@ namespace mino::core::daemon {
         void set_callback(callback_t callback);
 
         // Initializes and registers the OS-specific signal/console handlers
-        void initialize();
+        bool initialize();
 
         // Delete copy and move operations
         termination_handler(const termination_handler&) = delete;

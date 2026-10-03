@@ -50,19 +50,28 @@ namespace mino::core::daemon {
     }
 #endif
 
-    void termination_handler::initialize() {
+    bool termination_handler::initialize() {
 #if defined(_WIN32) || defined(_WIN64)
-        // Register Windows console handler
-        SetConsoleCtrlHandler(reinterpret_cast<PHANDLER_ROUTINE>(windows_handler), 1);
+        // Windows: 성공 시 TRUE(0이 아닌 값), 실패 시 FALSE(0) 반환
+        if (!SetConsoleCtrlHandler(reinterpret_cast<PHANDLER_ROUTINE>(windows_handler), TRUE)) {
+            return false;
+        }
+        return true;
 #else
-        // Register Linux signal handler using sigaction
+        // POSIX: sigaction 성공 시 0, 실패 시 -1 반환
         struct sigaction action {};
         action.sa_handler = linux_handler;
         sigemptyset(&action.sa_mask);
         action.sa_flags = 0;
 
-        sigaction(SIGINT, &action, nullptr);  // Ctrl+C
-        sigaction(SIGTERM, &action, nullptr); // Termination request (e.g., kill)
+        if (sigaction(SIGINT, &action, nullptr) != 0) {
+            return false;
+        }
+        if (sigaction(SIGTERM, &action, nullptr) != 0) {
+            // 필요에 따라 앞서 등록한 SIGINT를 SIG_DFL로 롤백할 수도 있습니다.
+            return false;
+        }
+        return true;
 #endif
     }
 
