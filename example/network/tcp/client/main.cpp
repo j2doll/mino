@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
 
 #include "mino/core/string/string.hpp"
 #include "mino/core/daemon/termination_handler.hpp"
@@ -14,36 +15,43 @@
 // Custom handler class for TCP client events
 class my_tcp_client_handler {
 public:
-    my_tcp_client_handler(std::string name) {
-        std::string logger_name = name + "_logger";
-        auto console_sink = std::make_shared<mino::core::log::tinylog::console_sink>(name + "_console");
-        logger_ = std::make_shared<mino::core::log::tinylog::logger>(logger_name);
-        logger_->add_sink(console_sink);
-        mino::core::log::tinylog::logger::register_logger(logger_);
-    }
-
-    void set_logger(std::shared_ptr<mino::core::log::tinylog::logger> logger) {
-        logger_ = logger;
+    // 독자적인 싱크를 만들지 않고 외부에서 공유 로거를 주입받음
+    explicit my_tcp_client_handler(std::shared_ptr<mino::core::log::tinylog::logger> logger, std::string id)
+        : logger_(std::move(logger)) {
+        id_ = std::move(id);
     }
 
     void on_connect() {
         if (logger_)
-            logger_->info(" Connected to server!");
+            logger_->info("<green>Connected to server!</green>: <pink>{}</pink>", id_);
     }
 
     void on_close() {
         if (logger_)
-            logger_->info("Disconnected!");
+            logger_->info("<red>Disconnected!</red>: <pink>{}</pink>", id_);
     }
 
     void on_receive(const std::string& data) {
-        if (logger_)
-            logger_->info(" Received: {}", data);
-        std::vector<uint8_t> byte_array(data.begin(), data.end()); // Convert string to byte array
+        if (logger_) {
+            // 수신 데이터 끝에 개행(\r, \n)이 포함되어 콘솔이 꼬이는 현상 방지
+            std::string clean_data = data;
+            while (!clean_data.empty() && (clean_data.back() == '\r' || clean_data.back() == '\n')) {
+                clean_data.pop_back();
+            }
+
+            if (id_ == "tcp4") {
+                logger_->info("<yellow>Received</yellow>: <bright_green>{}</bright_green>: <gray>{}</gray>", id_, clean_data);
+            }
+            else {
+                logger_->info("<yellow>Received</yellow>: <cyan>{}</cyan>: <gray>{}</gray>", id_, clean_data);
+            }
+        }
+        std::vector<uint8_t> byte_array(data.begin(), data.end());
     }
 
 protected:
     std::shared_ptr<mino::core::log::tinylog::logger> logger_;
+    std::string id_;
 };
 
 void clean_up_resources(
@@ -72,10 +80,14 @@ int main() {
 
     namespace mclt = mino::core::log::tinylog;
 
-    // ----------- 1. IPv4 Client 설정 및 시작 -----------
-    auto console_sink4 = std::make_shared<mclt::console_sink>("tcp4_console");
+    // =========================================================================
+    // 1. 단일 공용 console_sink 생성 (모든 로거가 공유하여 스레드 동시 출력 충돌 방지)
+    // =========================================================================
+    auto shared_console_sink = std::make_shared<mclt::console_sink>("global_console");
+
+    // ----------- IPv4 Logger & Client 설정 -----------
     auto tcp4_logger = std::make_shared<mclt::logger>("tcp4_logger");
-    tcp4_logger->add_sink(console_sink4);
+    tcp4_logger->add_sink(shared_console_sink);
     mclt::logger::register_logger(tcp4_logger);
 
     client4.set_logger(tcp4_logger);
@@ -83,12 +95,13 @@ int main() {
 
     client4.set_server("127.0.0.1", 12345, AF_INET);
 
-    auto handler4 = std::make_shared<my_tcp_client_handler>("tcp4_handler");
+    // 핸들러에도 tcp4_logger를 공유 주입
+    auto handler4 = std::make_shared<my_tcp_client_handler>(tcp4_logger, "tcp4");
     client4.set_on_connect([handler4]() { handler4->on_connect(); });
     client4.set_on_close([handler4]() { handler4->on_close(); });
     client4.set_on_receive([handler4](const std::string& data) { handler4->on_receive(data); });
 
-    // IPv4 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
+    // 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
     mino::network::tcp::reconnect_config recon_cfg4;
     recon_cfg4.initial_interval = std::chrono::seconds(10);
     recon_cfg4.max_interval = std::chrono::seconds(60);
@@ -100,10 +113,9 @@ int main() {
         return 1;
     }
 
-    // ----------- 2. IPv6 Client 설정 및 시작 -----------
-    auto console_sink6 = std::make_shared<mclt::console_sink>("tcp6_console");
+    // ----------- IPv6 Logger & Client 설정 -----------
     auto tcp6_logger = std::make_shared<mclt::logger>("tcp6_logger");
-    tcp6_logger->add_sink(console_sink6);
+    tcp6_logger->add_sink(shared_console_sink);
     mclt::logger::register_logger(tcp6_logger);
 
     client6.set_logger(tcp6_logger);
@@ -111,12 +123,13 @@ int main() {
 
     client6.set_server("::1", 12346, AF_INET6);
 
-    auto handler6 = std::make_shared<my_tcp_client_handler>("tcp6_handler");
+    // 핸들러에도 tcp6_logger를 공유 주입
+    auto handler6 = std::make_shared<my_tcp_client_handler>(tcp6_logger, "tcp6");
     client6.set_on_connect([handler6]() { handler6->on_connect(); });
     client6.set_on_close([handler6]() { handler6->on_close(); });
     client6.set_on_receive([handler6](const std::string& data) { handler6->on_receive(data); });
 
-    // IPv6 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
+    // 재연결 설정: 초기 10초, 최대 60초 도달 후 60초 간격으로 무한 재시도 (max_retries = 0)
     mino::network::tcp::reconnect_config recon_cfg6;
     recon_cfg6.initial_interval = std::chrono::seconds(10);
     recon_cfg6.max_interval = std::chrono::seconds(60);
@@ -128,12 +141,11 @@ int main() {
         return 1;
     }
 
-    // ----------- 3. 메인 모니터링 루프 (두 클라이언트 동시 관찰) -----------
-    tcp4_logger->info("Both IPv4 & IPv6 clients are running.");
-    tcp4_logger->info("Observing reconnection loop (Press Ctrl+C to terminate)...");
+    // ----------- 2. 메인 모니터링 루프 -----------
+    tcp4_logger->info("Both IPv4 & IPv6 clients are running (Press Ctrl+C to terminate)...");
 
     while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
 
         auto now = std::chrono::system_clock::now();
         std::time_t now_c = std::chrono::system_clock::to_time_t(now);
@@ -144,27 +156,29 @@ int main() {
         localtime_r(&now_c, &tm);
 #endif
 
-        // IPv4 연결 시 데이터 전송
+        // IPv4 데이터 전송
         if (client4.is_connected()) {
             std::ostringstream oss;
             oss << "Hello World (IPv4) " << std::put_time(&tm, "%H:%M:%S");
             if (client4.send_data(oss.str()) < 0) {
-                tcp4_logger->error("Failed to send IPv4 data.");
+                tcp4_logger->error("<red>Failed</red> to send IPv4 data.");
             }
             else {
-                tcp4_logger->info("  Sent: {}", oss.str());
+                tcp4_logger->info("<magenta>Sent</magenta>: <bright_green>{}</bright_green>", oss.str());
             }
         }
 
-        // IPv6 연결 시 데이터 전송
+        std::this_thread::sleep_for(std::chrono::seconds(6));
+
+        // IPv6 데이터 전송
         if (client6.is_connected()) {
             std::ostringstream oss;
             oss << "Hello World (IPv6) " << std::put_time(&tm, "%H:%M:%S");
             if (client6.send_data(oss.str()) < 0) {
-                tcp6_logger->error("Failed to send IPv6 data.");
+                tcp6_logger->error("<red>Failed</red> to send IPv6 data.");
             }
             else {
-                tcp6_logger->info("  Sent: {}", oss.str());
+                tcp6_logger->info("<magenta>Sent</magenta>: <cyan>{}</cyan>", oss.str());
             }
         }
     }
