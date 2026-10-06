@@ -13,7 +13,7 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
-    { // Windows Visual Studio preset
+    { 
       "name": "windows-vs-base",
       "hidden": true,
       "inherits": "base-common",
@@ -52,7 +52,7 @@
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
-    { // Linux GCC preset
+    { 
       "name": "linux-gcc-base",
       "hidden": true,
       "inherits": "base-common",

@@ -340,17 +340,139 @@
 
 ### 🏗️ 빌드 도구
 
+#### `CMake` 사용자 프리셋 설정 <sub> `CMakeUserPresets.json` </sub>
+
+- 빌드 환경에 따라 프리셋 정보를 맞춰서 수정하여 사용.
+
+```json
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base-common",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    { // Windows Visual Studio preset
+      "name": "windows-vs-base",
+      "hidden": true,
+      "inherits": "base-common",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "vs-debug",
+      "displayName": "Windows VS 2022 (Debug)",
+      "inherits": "windows-vs-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "vs-release",
+      "displayName": "Windows VS 2022 (Release)",
+      "inherits": "windows-vs-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    { // Linux GCC preset
+      "name": "linux-gcc-base",
+      "hidden": true,
+      "inherits": "base-common",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Linux GCC (Debug)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "Linux GCC (Release)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "vs-debug",
+      "displayName": "Build VS (Debug)",
+      "configurePreset": "vs-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "vs-release",
+      "displayName": "Build VS (Release)",
+      "configurePreset": "vs-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Build Linux GCC (Debug)",
+      "configurePreset": "linux-gcc-debug"
+    },
+    {
+      "name": "linux-gcc-release",
+      "displayName": "Build Linux GCC (Release)",
+      "configurePreset": "linux-gcc-release"
+    }
+  ]
+}
+```
+
+<br />
+
 #### ⊞ Windows 환경 🧩
 - 🛠️ `Visual Studio` <sub> (2022 이상) </sub>
 - 🔨 `cmake` <sub> (3.24 이상) </sub>
 - 🥷 `ninja` <sub> (1.12.1 이상) </sub>
 - 📦 `vcpkg` <sub> (2023.06 이상) </sub>
-    - 사전에 환경변수 `VCPKG_ROOT`를 `vcpkg`가 설치된 경로로 설정
-       - `VCPKG_ROOT`는 `PATH` 경로에 추가하여야 함 
-    - :one: `Visual Studio` 인 경우
-       - `vcpkg integrate install` 명령 실행
-       - 또는 `Tools`/`Options`/`vcpkg Pacakage Manager`에 `VCPKG_ROOT` 경로 설정
-    - :two: `VS Code`인 경우 : `.vscode`/`settings.json` 
+    - 사전에 환경변수 `VCPKG_ROOT`를 `vcpkg.exe`가 설치된 경로로 설정.
+       - `VCPKG_ROOT`는 `PATH` 경로에 추가하여야 함. 
+    - :one: `Visual Studio` 인 경우,
+       - `vcpkg integrate install` 명령 실행.
+       - 또는 `Tools`/`Options`/`vcpkg Pacakage Manager`에 `VCPKG_ROOT` 경로 설정.
+    - :two: `VS Code`인 경우 : `.vscode`/`settings.json`를 다음과 같이 설정.
     ```json
      {
          "cmake.configureSettings": {
@@ -358,120 +480,6 @@
          }
      }
     ```
-    - 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
-    ```json
-    {
-        "version": 3,
-        "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 24,
-        "patch": 0
-        },
-        "configurePresets": [
-        {
-            "name": "base-common",
-            "hidden": true,
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
-            "cacheVariables": {
-            "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-            }
-        },
-        {
-            "name": "windows-vs-base",
-            "hidden": true,
-            "inherits": "base-common",
-            "generator": "Visual Studio 17 2022",
-            "architecture": {
-            "value": "x64",
-            "strategy": "external"
-            },
-            "cacheVariables": {
-            "CMAKE_TOOLCHAIN_FILE": {
-                "type": "FILEPATH",
-                "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-            }
-            },
-            "condition": {
-            "type": "equals",
-            "lhs": "${hostSystemName}",
-            "rhs": "Windows"
-            }
-        },
-        {
-            "name": "vs-debug",
-            "displayName": "Windows VS 2022 (Debug)",
-            "inherits": "windows-vs-base",
-            "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "vs-release",
-            "displayName": "Windows VS 2022 (Release)",
-            "inherits": "windows-vs-base",
-            "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "linux-gcc-base",
-            "hidden": true,
-            "inherits": "base-common",
-            "generator": "Ninja",
-            "cacheVariables": {
-            "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
-            "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/g++"
-            },
-            "condition": {
-            "type": "equals",
-            "lhs": "${hostSystemName}",
-            "rhs": "Linux"
-            }
-        },
-        {
-            "name": "linux-gcc-debug",
-            "displayName": "Linux GCC (Debug)",
-            "inherits": "linux-gcc-base",
-            "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "linux-gcc-release",
-            "displayName": "Linux GCC (Release)",
-            "inherits": "linux-gcc-base",
-            "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Release"
-            }
-        }
-        ],
-        "buildPresets": [
-        {
-            "name": "vs-debug",
-            "displayName": "Build VS (Debug)",
-            "configurePreset": "vs-debug",
-            "configuration": "Debug"
-        },
-        {
-            "name": "vs-release",
-            "displayName": "Build VS (Release)",
-            "configurePreset": "vs-release",
-            "configuration": "Release"
-        },
-        {
-            "name": "linux-gcc-debug",
-            "displayName": "Build Linux GCC (Debug)",
-            "configurePreset": "linux-gcc-debug"
-        },
-        {
-            "name": "linux-gcc-release",
-            "displayName": "Build Linux GCC (Release)",
-            "configurePreset": "linux-gcc-release"
-        }
-        ]
-    }
-    ``` 
 
 <br />
 
@@ -479,41 +487,7 @@
 - 🦬 `gcc` <sub> (8.5 이상) </sub>
 - 🔨 `cmake` <sub> (3.24 이상) </sub>
 - 🥷 `ninja` <sub> (1.8.2 이상) </sub>
-- `Linux`에서는 `vcpkg`는 사용하지 않는 것을 가정하였음
-- `vscode` 사용 시 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
-```json
-{
-    "name": "linux-gcc-base",
-    "hidden": true,
-    "inherits": "base-common",
-    "generator": "Ninja",
-    "cacheVariables": {
-    "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
-    "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/g++"
-    },
-    "condition": {
-    "type": "equals",
-    "lhs": "${hostSystemName}",
-    "rhs": "Linux"
-    }
-},
-{
-    "name": "linux-gcc-debug",
-    "displayName": "Linux GCC (Debug)",
-    "inherits": "linux-gcc-base",
-    "cacheVariables": {
-    "CMAKE_BUILD_TYPE": "Debug"
-    }
-},
-{
-    "name": "linux-gcc-release",
-    "displayName": "Linux GCC (Release)",
-    "inherits": "linux-gcc-base",
-    "cacheVariables": {
-    "CMAKE_BUILD_TYPE": "Release"
-    }
-}
-```
+- `Linux`에서는 `vcpkg`는 **사용하지 않는** 것을 가정하였음.
 
 <br />
 
@@ -572,8 +546,9 @@ sudo apt install -y libcurl4-openssl-dev
 <br />
 
 ##### 📦 라이브러리 설치 
-- 라이브러리 빌드 모드 설정 (`Debug`, `Release`)
-- 라이브러리 경로 설정 (`C:\opt\mino`, `~/mino` 등)
+- 라이브러리 빌드 모드 설정: `Debug`, `Release`
+- 라이브러리 경로 설정: `C:\opt\mino`, `~/mino` 등
+
 ###### :one: 🛠️ `Visual Studio` + 📦 `vcpkg` 환경
 ```bat
 ::::::::::::::::::::::::::::::::::::::::::::::::::
