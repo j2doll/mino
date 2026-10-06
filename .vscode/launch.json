@@ -1,49 +1,63 @@
 {
   "version": "0.2.0",
   "configurations": [
+    // ================= Linux =================
     {
-      "name": "C/C++: Build and Debug",
+      "name": "Linux: Debug",
       "type": "cppdbg",
       "request": "launch",
+      "program": "${workspaceFolder}/build/linux-gcc-debug/example/core/bit/core_bit_example",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "preLaunchTask": "CMake Build Preset",
-      "windows": {
-        "type": "cppvsdbg",
-        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe", // TODO: Set the path to the program to debug for Windows.
-        "console": "integratedTerminal"
-      },
-      "linux": {
-        "type": "cppdbg",
-        "MIMode": "gdb",
-        "miDebuggerPath": "/usr/bin/gdb", // TODO: Set the path to the gdb debugger if different.
-        "program": "${workspaceFolder}/build/${input:selectedPreset}/example/core/bit/core_bit_example", // TODO: Set the path to the program to debug for Linux.
-        "externalConsole": false,
-        "setupCommands": [
-          {
-            "description": "Activate gdb pretty-printing.",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-          }
-        ]
-      }
-    }
-  ],
-  "inputs": [
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
+        {
+          "description": "Activate gdb pretty-printing.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
     {
-      "id": "selectedPreset",
-      "type": "pickString",
-      "description": "Select the CMake Preset to use.",
-      "options": [
-        "linux-gcc-debug",
-        "linux-gcc-release",
-        "vs-debug",
-        "vs-release"
-      ],
-      "default": "linux-gcc-debug"
+      "name": "Linux: Release",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/linux-gcc-release/example/core/bit/core_bit_example",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb"
+    },
+
+    // ================= Windows =================
+    {
+      "name": "Windows: Debug",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/build/vs-debug/example/core/bit/Debug/core_bit_example.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Windows: Release",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/out/build/vs-release/example/core/bit/Release/core_bit_example.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "console": "integratedTerminal"
     }
   ]
 }
-
