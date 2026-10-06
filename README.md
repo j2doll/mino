@@ -473,15 +473,15 @@
        - `vcpkg integrate install` 명령 실행.
        - 또는 `Tools`/`Options`/`vcpkg Pacakage Manager`에 `VCPKG_ROOT` 경로 설정.
     - :two: `VS Code`인 경우 : `.vscode`/`settings.json`를 다음과 같이 설정.
-    ```json
-     {
-         "cmake.configureSettings": {
-           "CMAKE_TOOLCHAIN_FILE": "${env:VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-         }
-     }
-    ```
-	   - (1) `Ctrl` + `Shift` + `P` 누른 후, `CMake: Set Build and Launch/Debug Target`을 선택하고, 디버깅 대상인 프로그램을 선택.
-	   - (2) `F5` <sub> (또는 디버깅 단축키) </sub> 를 누르고 디버깅 실행.
+       ```json
+        {
+            "cmake.configureSettings": {
+              "CMAKE_TOOLCHAIN_FILE": "${env:VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            }
+        }
+       ```
+       - (1) `Ctrl` + `Shift` + `P` 누른 후, `CMake: Set Build and Launch/Debug Target`을 선택하고, 디버깅 대상인 프로그램을 선택.
+       - (2) `F5` <sub> (또는 디버깅 단축키) </sub> 를 누르고 디버깅 실행.
 
 <br />
 
