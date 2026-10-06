@@ -480,6 +480,8 @@
          }
      }
     ```
+	   - (1) `Ctrl` + `Shift` + `P` 누른 후, `CMake: Set Build and Launch/Debug Target`을 선택하고, 디버깅 대상인 프로그램을 선택.
+	   - (2) `F5` <sub> (또는 디버깅 단축키) </sub> 를 누르고 디버깅 실행.
 
 <br />
 
