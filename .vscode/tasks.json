@@ -15,9 +15,10 @@
             "label": "CMake Build Preset",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "--preset", "${input:selectedPreset}" ], // [1] 전체 빌드
-            // "args": [ "--build", "--preset", "${input:selectedPreset}", "--target", "core_bit_example" ], // [2] 특정 타겟만 빌드
-            // NOTE: 특정 타겟(예: core_bit_example)만 빌드하면 빌드 속도가 빨라짐.
+            "args": ["--build", "--preset", "${input:selectedPreset}" ],
+            "dependsOn": [
+                "CMake Configure Preset"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true

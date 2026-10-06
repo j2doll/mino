@@ -8,7 +8,7 @@
       "defines": [
         "__linux__"
       ],
-      "compilerPath": "/usr/bin/gcc", // TODO: Linux gcc 경로 지정. "/opt/rh/gcc-toolset-15/root/usr/bin/gcc" 등
+      "compilerPath": "/usr/bin/gcc", // TODO: Set Linux gcc path. "/opt/rh/gcc-toolset-15/root/usr/bin/gcc" etc.
       "intelliSenseMode": "linux-gcc-x64",
       // "cStandard": "c17",
       // "cppStandard": "c++17"
@@ -25,8 +25,8 @@
         "WIN32",
         "_WINDOWS"
       ],
-      "windowsSdkVersion": "10.0.22621.0", // TODO: Windows SDK 버전 지정
-      "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe", // TODO: MSVC cl.exe 경로 지정
+      "windowsSdkVersion": "10.0.22621.0", // TODO: Set Windows SDK version
+      "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe", // TODO: Set MSVC cl.exe path
       "intelliSenseMode": "windows-msvc-x64",
       // "cStandard": "c17",
       // "cppStandard": "c++17"

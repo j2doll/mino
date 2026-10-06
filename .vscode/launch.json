@@ -5,28 +5,21 @@
       "name": "C/C++: Build and Debug",
       "type": "cppdbg",
       "request": "launch",
-      // "program": "${workspaceFolder}/program_name",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "preLaunchTask": "CMake Build Preset",
-
       "windows": {
         "type": "cppvsdbg",
-        // TODO: VSCode + Windows Visual Studio 컴파일러 환경에서 디버깅할 프로그램(debugee)를 지정.
-        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe",
-        "console": "integratedTerminal",
-        // "nativeDebugging": false,
-        // "launchBrowser": false
+        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/Debug/core_bit_example.exe", // TODO: Set the path to the program to debug for Windows.
+        "console": "integratedTerminal"
       },
-
       "linux": {
         "type": "cppdbg",
         "MIMode": "gdb",
-        "miDebuggerPath": "/usr/bin/gdb", // TODO: Linux gdb 경로 지정
-        // TODO: VSCode + Linux gcc 컴파일러 환경에서 디버깅할 프로그램(debugee)를 지정.
-        "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
+        "miDebuggerPath": "/usr/bin/gdb", // TODO: Set the path to the gdb debugger if different.
+        "program": "${workspaceFolder}/build/${input:selectedPreset}/example/core/bit/core_bit_example", // TODO: Set the path to the program to debug for Linux.
         "externalConsole": false,
         "setupCommands": [
           {
@@ -53,3 +46,4 @@
     }
   ]
 }
+

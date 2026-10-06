@@ -48,17 +48,12 @@
     "editor.tabSize": 2,
     "files.encoding": "utf8",
     "files.eol": "\n"
-  }
+  },
 
-  // Uncomment below if Windows-only files require CRLF line endings
-  // "files.associations": {
-  //   "*.sln": "visualstudio-solution",
-  //   "*.vcxproj": "xml"
-  // },
-  // "[visualstudio-solution]": {
-  //   "files.eol": "\r\n"
-  // },
-  // "[xml]": {
-  //   "files.eol": "\r\n"
-  // }
+  // ==========================================
+  // File associations (allow comments in JSON files)
+  // ==========================================
+  "files.associations": {
+    "*.json": "jsonc"
+  }
 }
