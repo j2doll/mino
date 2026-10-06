@@ -9,17 +9,17 @@
     {
       "name": "base-common",
       "hidden": true,
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
-    {
+    { // Windows Visual Studio preset
       "name": "windows-vs-base",
       "hidden": true,
       "inherits": "base-common",
       "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -52,14 +52,16 @@
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
-    {
+    { // Linux GCC preset
       "name": "linux-gcc-base",
       "hidden": true,
       "inherits": "base-common",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/g++"
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
       },
       "condition": {
         "type": "equals",
