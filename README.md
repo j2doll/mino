@@ -361,42 +361,116 @@
     - 환경에 맞춰 `CMakeUserPresets.json`를 수정할 수 있음
     ```json
     {
-      "name": "windows-vs-base",
-      "hidden": true,
-      "inherits": "base-common",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": {
-          "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "version": 3,
+        "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
+        },
+        "configurePresets": [
+        {
+            "name": "base-common",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+            "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "windows-vs-base",
+            "hidden": true,
+            "inherits": "base-common",
+            "generator": "Visual Studio 17 2022",
+            "architecture": {
+            "value": "x64",
+            "strategy": "external"
+            },
+            "cacheVariables": {
+            "CMAKE_TOOLCHAIN_FILE": {
+                "type": "FILEPATH",
+                "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            }
+            },
+            "condition": {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs-debug",
+            "displayName": "Windows VS 2022 (Debug)",
+            "inherits": "windows-vs-base",
+            "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "vs-release",
+            "displayName": "Windows VS 2022 (Release)",
+            "inherits": "windows-vs-base",
+            "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-gcc-base",
+            "hidden": true,
+            "inherits": "base-common",
+            "generator": "Ninja",
+            "cacheVariables": {
+            "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/gcc",
+            "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-15/root/usr/bin/g++"
+            },
+            "condition": {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-gcc-debug",
+            "displayName": "Linux GCC (Debug)",
+            "inherits": "linux-gcc-base",
+            "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-gcc-release",
+            "displayName": "Linux GCC (Release)",
+            "inherits": "linux-gcc-base",
+            "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release"
+            }
         }
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "vs-debug",
-      "displayName": "Windows VS 2022 (Debug)",
-      "inherits": "windows-vs-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "vs-release",
-      "displayName": "Windows VS 2022 (Release)",
-      "inherits": "windows-vs-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
+        ],
+        "buildPresets": [
+        {
+            "name": "vs-debug",
+            "displayName": "Build VS (Debug)",
+            "configurePreset": "vs-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs-release",
+            "displayName": "Build VS (Release)",
+            "configurePreset": "vs-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-gcc-debug",
+            "displayName": "Build Linux GCC (Debug)",
+            "configurePreset": "linux-gcc-debug"
+        },
+        {
+            "name": "linux-gcc-release",
+            "displayName": "Build Linux GCC (Release)",
+            "configurePreset": "linux-gcc-release"
+        }
+        ]
+    }
     ``` 
 
 <br />
