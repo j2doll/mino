@@ -24,13 +24,13 @@
       "linux": {
         "type": "cppdbg",
         "MIMode": "gdb",
-        "miDebuggerPath": "/usr/bin/gdb", // TODO: gdb 경로 지정
+        "miDebuggerPath": "/usr/bin/gdb", // TODO: Linux gdb 경로 지정
         // TODO: VSCode 리눅스(gcc 컴파일러) 환경에서 디버깅할 때 사용할 프로그램 경로를 지정.
         "program": "${workspaceFolder}/out/build/${input:selectedPreset}/example/core/bit/core_bit_example",
         "externalConsole": false,
         "setupCommands": [
           {
-            "description": "gdb pretty-printing 활성화",
+            "description": "Activate gdb pretty-printing.",
             "text": "-enable-pretty-printing",
             "ignoreFailures": true
           }
@@ -42,7 +42,7 @@
     {
       "id": "selectedPreset",
       "type": "pickString",
-      "description": "사용할 CMake Preset을 선택하세요",
+      "description": "Select the CMake Preset to use.",
       "options": [
         "linux-gcc-debug",
         "linux-gcc-release",
