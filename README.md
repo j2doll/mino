@@ -160,6 +160,8 @@
     - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp) : 한글 인코딩간 변환 <sub> (`UTF-8/16/32`, `wstring`, `CP949`/`EUC-KR`, `ISO-2022-KR`, `JOHAB`, `MacKorean`) </sub> , 콘솔 출력용 인코딩 변환
     - [string ext](example/core/string/test_string_ext.cpp) : <sub> 한국어 초성 추출/검색, 자모 분해/재조합, 유니코드 및 전각/반각 변환, 네이밍 스타일 변환, URL 슬러그, 문자열 유사도, 퍼지 검색, 제로-할당 string_view 기반 유틸리티, 구조화 데이터 안전 토크나이저 & 포맷팅 치환 </sub>
     - [print](example/core/string/test_print.cpp) : `print*`,`eprint*` 계열 콘솔 출력 기능
+- 🏛️ [subsystem](example/core/subsystem/) 
+    - `std in/out/err`를 사용하여 마스터([example_master](example/core/subsystem/example_master.cpp))와 워커([example_worker](example/core/subsystem/example_worker.cpp)) 간 통신
 - 🏛️ [system](example/core/system/main.cpp) 
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회
 - 🏛️ [thread](example/core/thread/main.cpp)
