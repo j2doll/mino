@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     mcss::master_channel channel;
     channel.set_logger(logger);
 
-    // 워커(example_worker)가 자율적으로 생성해 푸시한 이벤트를 비동기로 가로채는 콜백 등록
+    // 워커(example_worker) => 마스터(example_master) 콜백 등록
     channel.on_event([logger](const std::string& event_name, const std::string& payload) {
         logger->info("<magenta>[워커 자율 푸시 수신] 이벤트: '{}' -> 본문: '{}'</magenta>",
             event_name, payload);
@@ -83,10 +83,11 @@ int main(int argc, char* argv[]) {
     logger->info("--- 워커의 추가 이벤트 수신 대기 중 (1.5초) ---");
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
-    // 4. 세션 종료
+    // 4. 세션 종료.
+    // QUIT 명령은 워커 프로세스가 종료되도록 지시하며, 마스터는 워커의 종료를 기다린 후 채널을 닫음.
     execute_rpc("QUIT", "");
 
-    channel.close();
+    channel.close(); // 워커 프로세스 종료 후 채널 닫기
     logger->info("<cyan>=======================================================</cyan>");
     logger->info("<cyan>[서브시스템 마스터 세션 정상 완료]</cyan>");
     logger->info("<cyan>=======================================================</cyan>");

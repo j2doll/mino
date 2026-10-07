@@ -35,13 +35,13 @@ int main(int argc, char* argv[]) {
         }
     });
 
-    // RPC 핸들러 1: 세션 초기화
+    // RPC 핸들러 1: 세션 초기화 (INIT)
     service.on_command("INIT", [logger](const std::string& client_info) -> std::pair<std::string, std::string> {
         logger->info("Processing session negotiation: {}", client_info);
         return { "OK", "서브시스템 준비 완료" };
     });
 
-    // RPC 핸들러 2: 계산
+    // RPC 핸들러 2: 계산 (CALC)
     service.on_command("CALC", [logger](const std::string& expr) -> std::pair<std::string, std::string> {
         logger->info("Processing calculation: {}", expr);
         if (expr == "150 + 350") {
