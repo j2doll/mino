@@ -174,6 +174,8 @@
     - 고유 ID 생성·파싱  
 - 🏛️ [validation](example/core/validation/main.cpp)
     - 이메일, 전화번호, `URL`, `IP`, `Base64`, `HEX` 색, `JSON`, 주민번호 검증
+- 🏛️ [work_stealing_pool](example/core/work_stealing_pool/main.cpp)
+    - 작업 훔치기(`Work-Stealing`) 스레드 풀 
 - 🏛️ [xml](example/core/xml/main.cpp)
     - `.xml` 파싱·직렬화
 - 🏛️ [yaml](example/core/yaml/main.cpp)

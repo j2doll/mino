@@ -19,6 +19,9 @@
 
 namespace mino::core::thread {
 
+    // work_stealing_thread_pool 는 작업을 모두 마친 유휴(놀고 있는) 스레드가
+    // 다른 바쁜 스레드의 큐에서 남은 작업을 '훔쳐와서(Steal)'
+    // 대신 처리하는 Work-Stealing(작업 훔치기) 스케줄링 알고리즘을 사용
     class work_stealing_thread_pool {
     public:
         explicit work_stealing_thread_pool(std::size_t thread_count = std::thread::hardware_concurrency())
