@@ -73,7 +73,8 @@
     - [stable_vector](example/core/container/test_stable_vector.cpp) : 참조 비무효 벡터
     - [static_vector](example/core/container/test_static_vector.cpp) : 스택 크기 고정 벡터
     - [topic_queue](example/core/container/test_topic_queue.cpp) : `1:N` 메시지 발행/구독 큐
-    - [red_black_tree](example/core/container/test_red_black_tree.cpp) : 레드/블랙 노드 균형 트리
+    - [red_black_tree](example/core/container/test_red_black_tree.cpp) : `red`/`black` 노드 균형 트리
+    - [span](example/core/container/test_span.cpp) : 소유권이 없는(`non-owning`) 뷰(`view`) `span`
 - 🏛️ [convert](example/core/convert/main.cpp)
     - 문자열 ↔ 숫자(정수,실수) 변환
 - 🏛️ [crypt](example/core/crypt/main.cpp)
