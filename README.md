@@ -166,6 +166,8 @@
     - 환경변수, 경로 변환, 호스트/프로세스 정보 조회
 - 🏛️ [thread](example/core/thread/main.cpp)
     - 동적 스레드·동시성
+- 🏛️ [time](example/core/time/main.cpp)
+    - 타이머 (1회성, 주기적, 타이머 취소)
 - 🏛️ [toml](example/core/toml/main.cpp)
     - `.toml` 파싱·직렬화
 - 🏛️ [tpm](example/core/tpm/main.cpp)
