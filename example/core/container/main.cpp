@@ -25,6 +25,7 @@ extern void test_small_vector_all_public();
 extern void test_stable_vector_all_public();
 extern void test_static_vector_all_public();
 extern void test_topic_queue_all_public();
+extern void test_span();
 
 // ============================================================================
 // 메인 함수
@@ -56,6 +57,7 @@ int main() {
         test_stable_vector_all_public();
         test_static_vector_all_public();
         test_topic_queue_all_public();
+        test_span(); 
 
         std::cout << "========================================================\n";
         std::cout << " ALL TESTS PASSED SUCCESSFULLY!\n";

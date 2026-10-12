@@ -18,6 +18,7 @@
 #include "mino/core/container/red_black_tree.hpp"
 #include "mino/core/container/skew_heap.hpp"
 #include "mino/core/container/small_vector.hpp"
+#include "mino/core/container/span.hpp"
 #include "mino/core/container/stable_vector.hpp"
 #include "mino/core/container/static_vector.hpp"
 #include "mino/core/container/topic_queue.hpp"
