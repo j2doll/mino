@@ -38,9 +38,11 @@ void test_basic_and_pod() {
     Point orig_point{ 10, 20 }; // Point는 POD 자료로만 구성된 구조체
 
     // 직렬화
-    s.serialize(orig_int);
-    s.serialize(orig_double);
-    s.serialize(orig_point);
+    s.serialize(orig_int);    // [1]
+    s.serialize(orig_double); // [2]
+    s.serialize(orig_point);  // [3]
+
+    // s.buffer는 직렬화된 데이터를 담고 있음 (복사, 통신, 파일 등을 통하여 전송 가능)
 
     deserializer d(s.buffer); // 역직렬화 객체 생성
     // s.buffer는 직렬화된 데이터를 담고 있음 (통신, 파일 등을 통하여 전송 가능)
@@ -49,10 +51,10 @@ void test_basic_and_pod() {
     double deserialized_double = 0.0;
     Point deserialized_point{ 0, 0 };
 
-    // 역직렬화
-    assert(d.deserialize(deserialized_int));
-    assert(d.deserialize(deserialized_double));
-    assert(d.deserialize(deserialized_point));
+    // 역직렬화. 직렬화의 순서와 동일하게 역직렬화해야 함.
+    assert(d.deserialize(deserialized_int));    // [1]
+    assert(d.deserialize(deserialized_double)); // [2]
+    assert(d.deserialize(deserialized_point));  // [3]
 
     // 역직렬화된 값이 원본과 동일한지 확인
     assert(orig_int == deserialized_int); // 42

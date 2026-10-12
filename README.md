@@ -115,7 +115,7 @@
 - 🏛️ [macro](example/core/macro/main.cpp)
     - 함수 시도(`TRY_OPT`) 계열 매크로
 - 🏛️ [memory](example/core/memory/main.cpp)
-    - 메모리 직렬화/역직렬화. 딥 카피.
+    - 메모리 직렬화/역직렬화. 딥 카피. 고정 메모리 풀. 풀 할당자. 
 - 🏛️ [notification](example/core/notification/main.cpp)
     - 옵저버 등록 및 경고 알림.
 - 🏛️ [notifications](example/core/notifications/main.cpp)
