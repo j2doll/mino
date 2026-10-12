@@ -21,5 +21,6 @@
 #include "mino/core/container/stable_vector.hpp"
 #include "mino/core/container/static_vector.hpp"
 #include "mino/core/container/topic_queue.hpp"
+#include "mino/core/container/work_stealing_deque.hpp"
 
 
