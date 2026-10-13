@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <list>
 
 #include "mino/core/type_traits/concepts.hpp"
 #include "mino/core/container/span.hpp"
