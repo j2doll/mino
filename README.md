@@ -173,6 +173,8 @@
     - `.toml` 파싱·직렬화
 - 🏛️ [tpm](example/core/tpm/main.cpp)
     - 인메모리 TP 모니터
+- 🏛️ [type_traits](example/core/type_traits/main.cpp)
+    - 타입 특성 검사
 - 🏛️ [uuid](example/core/uuid/main.cpp)
     - 고유 ID 생성·파싱  
 - 🏛️ [validation](example/core/validation/main.cpp)
