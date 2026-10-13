@@ -25,7 +25,8 @@
         "WIN32",
         "_WINDOWS"
       ],
-      "windowsSdkVersion": "10.0.22621.0", // TODO: Set Windows SDK version. // Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots" | Select-Object -ExpandProperty PSChildName
+      "windowsSdkVersion": "10.0.22621.0", // TODO: Set Windows SDK version. 
+      // Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots" | Select-Object -ExpandProperty PSChildName
       "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe", // TODO: Set MSVC cl.exe path
       "intelliSenseMode": "windows-msvc-x64",
       // "cStandard": "c17",
