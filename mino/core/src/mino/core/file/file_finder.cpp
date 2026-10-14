@@ -13,7 +13,7 @@
 #   include <cwchar> // _wcsicmp
 #endif
 
-#include "mino/core//file/file_finder.hpp"
+#include "mino/core/file/file_finder.hpp"
 #include "mino/core/file/path.hpp"
 
 namespace mino::core::file {
@@ -23,7 +23,7 @@ namespace mino::core::file {
     // -------------------- 내부 유틸 --------------------
 
 #if defined(_WIN32)
-
+    // Windows: UTF-16 네이티브 비교. 대소문자 무시는 _wcsicmp 사용.
 #else
     // ASCII 범위만 소문자화(한글 등 비ASCII에는 영향 없음)
     static std::string to_lower_ascii(std::string s) {
@@ -42,12 +42,19 @@ namespace mino::core::file {
 #if defined(_WIN32)
         std::wstring w = p.wstring();
         DWORD attr = GetFileAttributesW(w.c_str());
-        if (attr == INVALID_FILE_ATTRIBUTES) { is_hidden = false; is_system = false; return false; }
+        if (attr == INVALID_FILE_ATTRIBUTES) {
+            is_hidden = false;
+            is_system = false;
+            return false;
+        }
         is_hidden = (attr & FILE_ATTRIBUTE_HIDDEN) != 0;
         is_system = (attr & FILE_ATTRIBUTE_SYSTEM) != 0;
         return true;
 #else
-        (void)p; is_hidden = false; is_system = false; return false;
+        (void)p;
+        is_hidden = false;
+        is_system = false;
+        return false;
 #endif
     }
 
@@ -56,12 +63,24 @@ namespace mino::core::file {
         auto norm = [&](char c) { return case_sensitive ? c : static_cast<char>(std::tolower(static_cast<unsigned char>(c))); };
         size_t pi = 0, ti = 0, star = std::string::npos, star_t = 0;
         while (ti < text.size()) {
-            if (pi < pat.size() && (pat[pi] == '?' || norm(pat[pi]) == norm(text[ti]))) { ++pi; ++ti; }
-            else if (pi < pat.size() && pat[pi] == '*') { star = ++pi; star_t = ti; }
-            else if (star != std::string::npos) { pi = star; ti = ++star_t; }
-            else return false;
+            if (pi < pat.size() && (pat[pi] == '?' || norm(pat[pi]) == norm(text[ti]))) {
+                ++pi;
+                ++ti;
+            }
+            else if (pi < pat.size() && pat[pi] == '*') {
+                star = ++pi;
+                star_t = ti;
+            }
+            else if (star != std::string::npos) {
+                pi = star;
+                ti = ++star_t;
+            }
+            else {
+                return false;
+            }
         }
-        while (pi < pat.size() && pat[pi] == '*') ++pi;
+        while (pi < pat.size() && pat[pi] == '*')
+            ++pi;
         return pi == pat.size();
     }
 
@@ -72,12 +91,20 @@ namespace mino::core::file {
     }
 
     static bool match_extension(const fs::path& p, const file_finder::finder_options& opt) {
-        if (opt.extensions.empty()) return true;
+        if (opt.extensions.empty())
+            return true;
         std::string ext = p.extension().string();
-        if (!opt.ext_case_sensitive) ext = to_lower(ext);
+        if (!opt.ext_case_sensitive)
+            ext = to_lower(ext);
         for (const auto& want : opt.extensions) {
-            if (opt.ext_case_sensitive) { if (ext == want) return true; }
-            else { if (ext == to_lower(want)) return true; }
+            if (opt.ext_case_sensitive) {
+                if (ext == want)
+                    return true;
+            }
+            else {
+                if (ext == to_lower(want))
+                    return true;
+            }
         }
         return false;
     }
@@ -85,22 +112,33 @@ namespace mino::core::file {
     static bool match_name_filters(const std::string& name, const file_finder::finder_options& opt) {
         if (!opt.include_globs.empty()) {
             bool any = false;
-            for (const auto& g : opt.include_globs)
-                if (wildcard_match(g, name, opt.ext_case_sensitive)) { any = true; break; }
-            if (!any) return false;
+            for (const auto& g : opt.include_globs) {
+                if (wildcard_match(g, name, opt.ext_case_sensitive)) {
+                    any = true;
+                    break;
+                }
+            }
+            if (!any)
+                return false;
         }
-        for (const auto& g : opt.exclude_globs)
-            if (wildcard_match(g, name, opt.ext_case_sensitive)) return false;
+        for (const auto& g : opt.exclude_globs) {
+            if (wildcard_match(g, name, opt.ext_case_sensitive))
+                return false;
+        }
 
-        if (opt.name_regex.has_value())
-            if (!std::regex_match(name, *opt.name_regex)) return false;
+        if (opt.name_regex.has_value()) {
+            if (!std::regex_match(name, *opt.name_regex))
+                return false;
+        }
 
         return true;
     }
 
     static bool should_skip_dir_name(const std::string& name, const file_finder::finder_options& opt) {
-        for (const auto& g : opt.exclude_dir_globs)
-            if (wildcard_match(g, name, opt.ext_case_sensitive)) return true;
+        for (const auto& g : opt.exclude_dir_globs) {
+            if (wildcard_match(g, name, opt.ext_case_sensitive))
+                return true;
+        }
         return false;
     }
 
@@ -115,7 +153,8 @@ namespace mino::core::file {
         get_mtime_ec(const fs::path& p) noexcept {
         std::error_code ec;
         auto ftime = fs::last_write_time(p, ec);
-        if (ec) return std::nullopt;
+        if (ec)
+            return std::nullopt;
 
         // C++17 호환 변환: file_clock 기준 시각 차이를 system_clock 기준으로 보정
         const auto now_sys = std::chrono::system_clock::now();
@@ -134,32 +173,42 @@ namespace mino::core::file {
     static std::optional<std::uintmax_t> get_size_ec(const fs::path& p) noexcept {
         std::error_code ec;
         auto s = fs::file_size(p, ec);
-        if (ec) return std::nullopt;
+        if (ec)
+            return std::nullopt;
         return s;
     }
 
     static bool filtered_out_hidden_system(const fs::path& p, const file_finder::finder_options& opt) {
-        if (opt.include_hidden && opt.include_system) return false;
+        if (opt.include_hidden && opt.include_system)
+            return false;
 #if defined(_WIN32)
         bool is_hidden = false, is_system = false;
         if (get_win_attributes(p, is_hidden, is_system)) {
-            if (!opt.include_hidden && is_hidden) return true;
-            if (!opt.include_system && is_system) return true;
+            if (!opt.include_hidden && is_hidden)
+                return true;
+            if (!opt.include_system && is_system)
+                return true;
             return false;
         }
-        if (!opt.include_hidden && is_hidden_unixlike(p)) return true;
+        if (!opt.include_hidden && is_hidden_unixlike(p))
+            return true;
         return false;
 #else
-        if (!opt.include_hidden && is_hidden_unixlike(p)) return true;
+        if (!opt.include_hidden && is_hidden_unixlike(p))
+            return true;
         return false;
 #endif
     }
 
     static bool pass_time_size_filters(const file_finder::entry& e, const file_finder::finder_options& opt) {
-        if (opt.mtime_since && e.mtime && *e.mtime < *opt.mtime_since) return false;
-        if (opt.mtime_until && e.mtime && *e.mtime > *opt.mtime_until) return false;
-        if (opt.min_size && e.size && *e.size < *opt.min_size) return false;
-        if (opt.max_size && e.size && *e.size > *opt.max_size) return false;
+        if (opt.mtime_since && e.mtime && *e.mtime < *opt.mtime_since)
+            return false;
+        if (opt.mtime_until && e.mtime && *e.mtime > *opt.mtime_until)
+            return false;
+        if (opt.min_size && e.size && *e.size < *opt.min_size)
+            return false;
+        if (opt.max_size && e.size && *e.size > *opt.max_size)
+            return false;
         return true;
     }
 
@@ -173,7 +222,8 @@ namespace mino::core::file {
         e.is_dir = fs::is_directory(st);
         e.is_file = fs::is_regular_file(st);
         e.mtime = get_mtime_ec(p);
-        if (compute_size && e.is_file) e.size = get_size_ec(p);
+        if (compute_size && e.is_file)
+            e.size = get_size_ec(p);
         e.found_time = std::chrono::system_clock::now();
         return e;
     }
@@ -190,9 +240,11 @@ namespace mino::core::file {
     {
         std::error_code ec;
         fs::directory_options dopt = fs::directory_options::none;
-        if (opt.skip_permission_denied) dopt |= fs::directory_options::skip_permission_denied;
+        if (opt.skip_permission_denied)
+            dopt |= fs::directory_options::skip_permission_denied;
 
-        if (opt.max_depth >= 0 && depth >= opt.max_depth) return true;
+        if (opt.max_depth >= 0 && depth >= opt.max_depth)
+            return true;
 
         for (fs::directory_iterator it(dir, dopt, ec), end; it != end; ) {
             const fs::directory_entry ent = *it;
@@ -203,7 +255,12 @@ namespace mino::core::file {
                 const auto dname = ent.path().filename().string();
                 if (should_skip_dir_name(dname, opt)) {
                     it.increment(ec);
-                    if (ec) { push_err(errs, ent.path(), ec, "iterator 증가 실패"); if (opt.stop_on_error) return false; ec.clear(); }
+                    if (ec) {
+                        push_err(errs, ent.path(), ec, "iterator increment failure");
+                        if (opt.stop_on_error)
+                            return false;
+                        ec.clear();
+                    }
                     continue;
                 }
             }
@@ -211,26 +268,35 @@ namespace mino::core::file {
             std::error_code e1, e2;
             auto st_sym = ent.symlink_status(e1);
             auto st = ent.status(e2);
-            if (e1) push_err(errs, ent.path(), e1, "symlink_status 실패");
-            if (e2) push_err(errs, ent.path(), e2, "status 실패");
+            if (e1)
+                push_err(errs, ent.path(), e1, "symlink_status failure");
+            if (e2)
+                push_err(errs, ent.path(), e2, "status failure");
 
             const auto name = ent.path().filename().string();
 
             // 결과 수집 여부
             bool take = false;
             if (!filtered_out_hidden_system(ent.path(), opt) && match_name_filters(name, opt)) {
-                if (fs::is_symlink(st_sym) && opt.include_symlinks_as_items) take = true;
-                if (fs::is_regular_file(st) && opt.include_files && match_extension(ent.path(), opt)) take = true;
-                if (fs::is_directory(st) && opt.include_dirs) take = true;
+                if (fs::is_symlink(st_sym) && opt.include_symlinks_as_items)
+                    take = true;
+                if (fs::is_regular_file(st) && opt.include_files && match_extension(ent.path(), opt))
+                    take = true;
+                if (fs::is_directory(st) && opt.include_dirs)
+                    take = true;
             }
 
             if (take) {
                 auto e = make_entry(ent.path(), st_sym, st, opt.compute_size);
                 if (pass_time_size_filters(e, opt)) {
-                    if (opt.on_visit) { if (!opt.on_visit(e)) return false; }
+                    if (opt.on_visit) {
+                        if (!opt.on_visit(e))
+                            return false;
+                    }
                     else {
                         out.push_back(std::move(e));
-                        if (opt.limit_results && out.size() >= opt.limit_results) return false;
+                        if (opt.limit_results && out.size() >= opt.limit_results)
+                            return false;
                     }
                 }
             }
@@ -246,18 +312,25 @@ namespace mino::core::file {
                     if (!ec_can) {
                         const auto key = can.string();
                         if (visited.insert(key).second) {
-                            if (!scan_dir_children(ent.path(), depth + 1, opt, visited, errs, out)) return false;
+                            if (!scan_dir_children(ent.path(), depth + 1, opt, visited, errs, out))
+                                return false;
                         }
                     }
                     else {
-                        push_err(errs, ent.path(), ec_can, "weakly_canonical 실패");
-                        if (opt.stop_on_error) return false;
+                        push_err(errs, ent.path(), ec_can, "weakly_canonical failure");
+                        if (opt.stop_on_error)
+                            return false;
                     }
                 }
             }
 
             it.increment(ec);
-            if (ec) { push_err(errs, ent.path(), ec, "iterator 증가 실패"); if (opt.stop_on_error) return false; ec.clear(); }
+            if (ec) {
+                push_err(errs, ent.path(), ec, "iterator increment failure");
+                if (opt.stop_on_error)
+                    return false;
+                ec.clear();
+            }
         }
         return true;
     }
@@ -278,7 +351,8 @@ namespace mino::core::file {
 
         std::error_code ec;
         auto st_root = fs::status(root, ec);
-        if (ec) return out;
+        if (ec)
+            return out;
 
         // 루트 자체도 조건에 따라 포함
         if (opt.include_dirs && fs::is_directory(st_root) && !filtered_out_hidden_system(root, opt)) {
@@ -286,8 +360,13 @@ namespace mino::core::file {
             if (match_name_filters(name.empty() ? root.string() : name, opt)) {
                 auto e = make_entry(root, fs::symlink_status(root, ec), st_root, opt.compute_size);
                 if (pass_time_size_filters(e, opt)) {
-                    if (opt.on_visit) { if (!opt.on_visit(e)) return out; }
-                    else out.push_back(std::move(e));
+                    if (opt.on_visit) {
+                        if (!opt.on_visit(e))
+                            return out;
+                    }
+                    else {
+                        out.push_back(std::move(e));
+                    }
                 }
             }
         }
@@ -297,8 +376,13 @@ namespace mino::core::file {
             if (match_name_filters(name.empty() ? root.string() : name, opt)) {
                 auto e = make_entry(root, fs::symlink_status(root, ec), st_root, opt.compute_size);
                 if (pass_time_size_filters(e, opt)) {
-                    if (opt.on_visit) { if (!opt.on_visit(e)) return out; }
-                    else out.push_back(std::move(e));
+                    if (opt.on_visit) {
+                        if (!opt.on_visit(e))
+                            return out;
+                    }
+                    else {
+                        out.push_back(std::move(e));
+                    }
                 }
             }
         }
@@ -306,7 +390,8 @@ namespace mino::core::file {
         if (opt.recursive && fs::is_directory(st_root)) {
             visited_set visited;
             auto can = fs::weakly_canonical(root, ec);
-            if (!ec) visited.insert(can.string());
+            if (!ec)
+                visited.insert(can.string());
             scan_dir_children(root, 0, opt, visited, dummy_errs, out);
         }
         else if (!opt.recursive && fs::is_directory(st_root)) {
@@ -337,7 +422,8 @@ namespace mino::core::file {
                 std::sort(v.begin(), v.end(), [&](const auto& x, const auto& y) { return asc ? less(x, y) : less(y, x); });
             };
         sorter(out, opt.sort_by, opt.sort_ascending);
-        if (opt.limit_results && out.size() > opt.limit_results) out.resize(opt.limit_results);
+        if (opt.limit_results && out.size() > opt.limit_results)
+            out.resize(opt.limit_results);
 
         return out;
     }
@@ -348,7 +434,10 @@ namespace mino::core::file {
 
         std::error_code ec;
         auto st_root = fs::status(root, ec);
-        if (ec) { push_err(last_errors_, root, ec, "status 실패"); return {}; }
+        if (ec) {
+            push_err(last_errors_, root, ec, "status failure");
+            return {};
+        }
 
         std::vector<file_finder::entry> out;
 
@@ -358,8 +447,13 @@ namespace mino::core::file {
             if (match_name_filters(name.empty() ? root.string() : name, opts_)) {
                 auto e = make_entry(root, fs::symlink_status(root, ec), st_root, opts_.compute_size);
                 if (pass_time_size_filters(e, opts_)) {
-                    if (opts_.on_visit) { if (!opts_.on_visit(e)) return out; }
-                    else out.push_back(std::move(e));
+                    if (opts_.on_visit) {
+                        if (!opts_.on_visit(e))
+                            return out;
+                    }
+                    else {
+                        out.push_back(std::move(e));
+                    }
                 }
             }
         }
@@ -369,8 +463,13 @@ namespace mino::core::file {
             if (match_name_filters(name.empty() ? root.string() : name, opts_)) {
                 auto e = make_entry(root, fs::symlink_status(root, ec), st_root, opts_.compute_size);
                 if (pass_time_size_filters(e, opts_)) {
-                    if (opts_.on_visit) { if (!opts_.on_visit(e)) return out; }
-                    else out.push_back(std::move(e));
+                    if (opts_.on_visit) {
+                        if (!opts_.on_visit(e))
+                            return out;
+                    }
+                    else {
+                        out.push_back(std::move(e));
+                    }
                 }
             }
         }
@@ -378,7 +477,8 @@ namespace mino::core::file {
         if (opts_.recursive && fs::is_directory(st_root)) {
             visited_set visited;
             auto can = fs::weakly_canonical(root, ec);
-            if (!ec) visited.insert(can.string());
+            if (!ec)
+                visited.insert(can.string());
             std::vector<std::string> errs;
             scan_dir_children(root, 0, opts_, visited, errs, out);
             last_errors_ = std::move(errs);
@@ -412,7 +512,8 @@ namespace mino::core::file {
                 std::sort(v.begin(), v.end(), [&](const auto& x, const auto& y) { return asc ? less(x, y) : less(y, x); });
             };
         sorter(out, opts_.sort_by, opts_.sort_ascending);
-        if (opts_.limit_results && out.size() > opts_.limit_results) out.resize(opts_.limit_results);
+        if (opts_.limit_results && out.size() > opts_.limit_results)
+            out.resize(opts_.limit_results);
 
         return out;
     }
@@ -427,15 +528,25 @@ namespace mino::core::file {
     }
 
     void file_finder::print_entry_safe(const entry& e, std::ostream& os) noexcept {
-        if (!exists_now(e.path)) { os << "[사라짐] " << e.path.string() << "\n"; return; }
+        if (!exists_now(e.path)) {
+            os << "[not_exists] " << e.path.string() << "\n";
+            return;
+        }
+
         std::time_t ft = to_time_t(e.found_time);
+
         os << e.path.string()
-            << "  (found_at=" << std::put_time(std::localtime(&ft), "%F %T") << ")";
+            << "  (found_at="
+            << std::put_time(std::localtime(&ft), "%F %T") << ")";
+
         if (e.mtime) {
             std::time_t mt = to_time_t(*e.mtime);
             os << "  mtime=" << std::put_time(std::localtime(&mt), "%F %T");
         }
-        if (e.size) os << "  size=" << *e.size << "B";
+
+        if (e.size)
+            os << "  size=" << *e.size << "B";
+
         os << (e.is_symlink ? "  [symlink]" : "")
             << (e.is_dir ? "  [dir]" : (e.is_file ? "  [file]" : ""))
             << "\n";
@@ -462,25 +573,38 @@ namespace mino::core::file {
         // Windows: UTF-16 네이티브 비교. 대소문자 무시는 _wcsicmp 사용.
         const std::wstring want = filename.filename().native();
         opt.on_visit = [&](const file_finder::entry& e) -> bool {
-            if (!e.is_file) return true;
+            if (!e.is_file)
+                return true;
             const std::wstring name = e.path.filename().native();
             bool eq = false;
-            if (case_insensitive) eq = (_wcsicmp(name.c_str(), want.c_str()) == 0);
-            else                  eq = (name == want);
-            if (eq) { found = true; return false; }
+            if (case_insensitive)
+                eq = (_wcsicmp(name.c_str(), want.c_str()) == 0);
+            else
+                eq = (name == want);
+            if (eq) {
+                found = true;
+                return false;
+            }
             return true;
             };
 #else
         // POSIX: UTF-8(바이트) 비교. 한글은 케이스 개념이 없어 case_insensitive 영향 없음.
         const std::string want = filename.filename().native();
         opt.on_visit = [&](const file_finder::entry& e) -> bool {
-            if (!e.is_file) return true;
+            if (!e.is_file)
+                return true;
             std::string name = e.path.filename().native();
             if (case_insensitive) {
-                if (to_lower_ascii(name) == to_lower_ascii(want)) { found = true; return false; }
+                if (to_lower_ascii(name) == to_lower_ascii(want)) {
+                    found = true;
+                    return false;
+                }
             }
             else {
-                if (name == want) { found = true; return false; }
+                if (name == want) {
+                    found = true;
+                    return false;
+                }
             }
             return true;
             };

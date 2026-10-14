@@ -12,40 +12,45 @@ namespace mino::core::string
 {
     // Unicode 문자 집합을 표현하는 인코딩 : UTF-8, UTF-16, UTF-32.
     // KS X 1001 문자 집합을 표현하는 인코딩 : EUC-KR, ISO-2022-KR.
-    // 
-    // UTF-8 <-> UTF-16
-     bool utf8_to_utf16(const std::string& utf8, std::u16string& out);
-     bool utf16_to_utf8(const std::u16string& u16, std::string& out);
+    
+    // UTF-8(string) <-> UTF-16(u16string)
+    bool utf8_to_utf16(const std::string& utf8, std::u16string& out);
+    bool utf16_to_utf8(const std::u16string& u16, std::string& out);
 
-     std::wstring utf8_to_utf16(const std::string& utf8);
-     std::string utf16_to_utf8(const std::wstring& utf16);
+    // UTF-8(string) <-> UTF-16(wstring)
+    std::wstring utf8_to_utf16(const std::string& utf8);
+    std::string utf16_to_utf8(const std::wstring& utf16);
 
-    // UTF-8 <-> UTF-32
-     bool utf8_to_utf32(const std::string& utf8, std::u32string& out);
-     bool utf32_to_utf8(const std::u32string& u32, std::string& out);
+    // UTF-8(string) <-> UTF-32(u32string)
+    bool utf8_to_utf32(const std::string& utf8, std::u32string& out);
+    bool utf32_to_utf8(const std::u32string& u32, std::string& out);
 
-    // UTF-16 <-> UTF-32
-     bool utf16_to_utf32(const std::u16string& u16, std::u32string& out);
-     bool utf32_to_utf16(const std::u32string& u32, std::u16string& out);
+    // UTF-16(u16string) <-> UTF-32(u32string)
+    bool utf16_to_utf32(const std::u16string& u16, std::u32string& out);
+    bool utf32_to_utf16(const std::u32string& u32, std::u16string& out);
 
     // ---------- CP949 ----------
-    // UTF-8 <-> CP949 (EUC-KR superset; Windows: CP 949)
-     bool utf8_to_cp949(const std::string& utf8, std::string& out_cp949);
-     bool cp949_to_utf8(const std::string& cp949, std::string& out_utf8);
+    
+    // UTF-8(string) <-> CP949(string) (EUC-KR superset; Windows: CP 949)
+    bool utf8_to_cp949(const std::string& utf8, std::string& out_cp949);
+    bool cp949_to_utf8(const std::string& cp949, std::string& out_utf8);
 
-    // UTF-16 <-> CP949
-     bool utf16_to_cp949(const std::u16string& u16, std::string& out_cp949);
-     bool cp949_to_utf16(const std::string& cp949, std::u16string& out_u16);
+    // UTF-16(u16string) <-> CP949(string)
+    bool utf16_to_cp949(const std::u16string& u16, std::string& out_cp949);
+    bool cp949_to_utf16(const std::string& cp949, std::u16string& out_u16);
 
     // ---------- ISO-2022-KR ----------
-    // UTF-8 <-> ISO-2022-KR
+    
+    // UTF-8(string) <-> ISO-2022-KR(string)
      bool utf8_to_iso2022kr(const std::string& utf8, std::string& out_iso2022kr);
      bool iso2022kr_to_utf8(const std::string& iso2022kr, std::string& out_utf8);
-    // UTF-16 <-> ISO-2022-KR
+
+    // UTF-16(u16string) <-> ISO-2022-KR(string)
      bool utf16_to_iso2022kr(const std::u16string& u16, std::string& out_iso2022kr);
      bool iso2022kr_to_utf16(const std::string& iso2022kr, std::u16string& out_u16);
 
-    // ISO-2022-KR vs CP949 차이 요약
+    /////////////////////////////////////////////////////////////////////
+    // NOTE:  ISO-2022-KR vs CP949 차이 요약
     //
     // 1) 표준/성격
     // - ISO-2022-KR: 인터넷 표준(MIME) 기반의 상태 전환(stateful) 인코딩입니다.
@@ -104,16 +109,20 @@ namespace mino::core::string
     // - ISO-2022-KR: 전송 안정성(7비트) 목적의 상태 전환 인코딩입니다.
     // - CP949: Windows 중심 확장 완성형(8비트), 문자 범위가 더 넓습니다.
     // - 현대 개발에서는 UTF-8을 기본으로, 레거시 호환은 변환기로 처리하십시오.
+    /////////////////////////////////////////////////////////////////////
 
     // ---------- JOHAB (CP 1361) ----------
-    // UTF-8 <-> JOHAB
-     bool utf8_to_johab(const std::string& utf8, std::string& out_johab);
-     bool johab_to_utf8(const std::string& johab, std::string& out_utf8);
-    // UTF-16 <-> JOHAB
-     bool utf16_to_johab(const std::u16string& u16, std::string& out_johab);
-     bool johab_to_utf16(const std::string& johab, std::u16string& out_u16);
 
-    // JOHAB (CP1361) 요약  
+    // UTF-8(string) <-> JOHAB(string)
+    bool utf8_to_johab(const std::string& utf8, std::string& out_johab);
+    bool johab_to_utf8(const std::string& johab, std::string& out_utf8);
+
+    // UTF-16(u16string) <-> JOHAB(string)
+    bool utf16_to_johab(const std::u16string& u16, std::string& out_johab);
+    bool johab_to_utf16(const std::string& johab, std::u16string& out_u16);
+
+    /////////////////////////////////////////////////////////////////////
+    // NOTE: JOHAB (CP1361) 요약  
     //
     // 1) 개요/성격
     // - JOHAB: 조합형(algorithmic) 한글 인코딩, MS 코드페이지 1361입니다.
@@ -163,16 +172,20 @@ namespace mino::core::string
     // - JOHAB(CP1361)은 조합 규칙 기반의 2바이트 한글 인코딩입니다.
     // - 범위/정렬은 규칙적이나, 생태계 지원이 약해 실무 채택은 드뭅니다.
     // - 현대 개발에서는 UTF-8 기본, 레거시는 명시적 변환을 권장합니다.
-
+    /////////////////////////////////////////////////////////////////////
+    
     // ---------- MacKorean ----------
-    // UTF-8 <-> MacKorean
-     bool utf8_to_mackorean(const std::string& utf8, std::string& out_mackor);
-     bool mackorean_to_utf8(const std::string& mackor, std::string& out_utf8);
-    // UTF-16 <-> MacKorean
-     bool utf16_to_mackorean(const std::u16string& u16, std::string& out_mackor);
-     bool mackorean_to_utf16(const std::string& mackor, std::u16string& out_u16);
 
-    // MacKorean (Mac OS Korean) 요약 
+    // UTF-8(string) <-> MacKorean(string)
+    bool utf8_to_mackorean(const std::string& utf8, std::string& out_mackor);
+    bool mackorean_to_utf8(const std::string& mackor, std::string& out_utf8);
+
+    // UTF-16(u16string) <-> MacKorean(string)
+    bool utf16_to_mackorean(const std::u16string& u16, std::string& out_mackor);
+    bool mackorean_to_utf16(const std::string& mackor, std::u16string& out_u16);
+
+    /////////////////////////////////////////////////////////////////////
+    // NOTE: MacKorean (Mac OS Korean) 요약 
     //
     // 1) 개요/성격
     // - MacKorean: 구형 Mac OS에서 사용된 한국어 문자 인코딩입니다.
@@ -214,41 +227,57 @@ namespace mino::core::string
     // - MacKorean은 구형 Mac OS 전용 한국어 인코딩입니다.
     // - 범위 제한, 호환성 문제로 현재는 거의 사용되지 않습니다.
     // - 현대 개발/보존 목적에서는 UTF-8이 필수 선택입니다.
+    /////////////////////////////////////////////////////////////////////
 
-    //---------------------------------------
-    // 실패 시 예외(exception)를 던지는 타입.
-    // NOTICE: 빈드시 try catch 구문으로 감싸서 사용하여야 함. 실패 시 std::runtime_error 예외 발생.
-     std::u16string utf8_to_utf16_or_throw(const std::string& utf8);
-     std::string    utf16_to_utf8_or_throw(const std::u16string& u16);
+    //--------------------------------------------------------------------
+    // 실패 시 예외(exception)를 던지는(throw) 문자열 변환 함수 타입.
+    // NOTICE: 반드시 try ... catch 구문으로 감싸서 사용하여야 함.
+    //   실패 시 std::runtime_error 예외 발생.
 
-     std::u32string utf8_to_utf32_or_throw(const std::string& utf8);
-     std::string    utf32_to_utf8_or_throw(const std::u32string& u32);
+    // UTF-8(string) <-> UTF-16(u16string)
+    std::u16string utf8_to_utf16_or_throw(const std::string& utf8);
+    std::string    utf16_to_utf8_or_throw(const std::u16string& u16);
 
-     std::u32string utf16_to_utf32_or_throw(const std::u16string& u16);
-     std::u16string utf32_to_utf16_or_throw(const std::u32string& u32);
+    // UTF-8(string) <-> UTF-32(u32string)
+    std::u32string utf8_to_utf32_or_throw(const std::string& utf8);
+    std::string    utf32_to_utf8_or_throw(const std::u32string& u32);
 
-     std::string    utf8_to_cp949_or_throw(const std::string& utf8);
-     std::string    cp949_to_utf8_or_throw(const std::string& cp949);
+    // UTF-16(u16string) <-> UTF-32(u32string)
+    std::u32string utf16_to_utf32_or_throw(const std::u16string& u16);
+    std::u16string utf32_to_utf16_or_throw(const std::u32string& u32);
 
-     std::string    utf16_to_cp949_or_throw(const std::u16string& u16);
-     std::u16string cp949_to_utf16_or_throw(const std::string& cp949);
+    // CP949(string) <-> UTF-8(string)
+    std::string    utf8_to_cp949_or_throw(const std::string& utf8);
+    std::string    cp949_to_utf8_or_throw(const std::string& cp949);
 
-     std::string    utf8_to_iso2022kr_or_throw(const std::string& utf8);
-     std::string    iso2022kr_to_utf8_or_throw(const std::string& iso2022kr);
+    // CP949(string) <-> UTF-16(u16string)
+    std::string    utf16_to_cp949_or_throw(const std::u16string& u16);
+    std::u16string cp949_to_utf16_or_throw(const std::string& cp949);
 
-     std::u16string iso2022kr_to_utf16_or_throw(const std::string& iso2022kr);
-     std::string    utf16_to_iso2022kr_or_throw(const std::u16string& u16);
+    // ISO-2022-KR(string) <-> UTF-8(string)
+    std::string    utf8_to_iso2022kr_or_throw(const std::string& utf8);
+    std::string    iso2022kr_to_utf8_or_throw(const std::string& iso2022kr);
 
-     std::string    utf8_to_johab_or_throw(const std::string& utf8);
-     std::string    johab_to_utf8_or_throw(const std::string& johab);
+    // ISO-2022-KR(string) <-> UTF-16(u16string)
+    std::u16string iso2022kr_to_utf16_or_throw(const std::string& iso2022kr);
+    std::string    utf16_to_iso2022kr_or_throw(const std::u16string& u16);
 
-     std::u16string johab_to_utf16_or_throw(const std::string& johab);
-     std::string    utf16_to_johab_or_throw(const std::u16string& u16);
+    // JOHAB(string) <-> UTF-8(string)
+    std::string    utf8_to_johab_or_throw(const std::string& utf8);
+    std::string    johab_to_utf8_or_throw(const std::string& johab);
 
-     std::string    utf8_to_mackorean_or_throw(const std::string& utf8);
-     std::string    mackorean_to_utf8_or_throw(const std::string& mackor);
+    // JOHAB(string) <-> UTF-16(u16string)
+    std::u16string johab_to_utf16_or_throw(const std::string& johab);
+    std::string    utf16_to_johab_or_throw(const std::u16string& u16);
 
-     std::u16string mackorean_to_utf16_or_throw(const std::string& mackor);
-     std::string    utf16_to_mackorean_or_throw(const std::u16string& u16);
+    // MacKorean(string) <-> UTF-8(string)
+    std::string    utf8_to_mackorean_or_throw(const std::string& utf8);
+    std::string    mackorean_to_utf8_or_throw(const std::string& mackor);
 
-} //  
+    // MacKorean(string) <-> UTF-16(u16string)
+    std::u16string mackorean_to_utf16_or_throw(const std::string& mackor);
+    std::string    utf16_to_mackorean_or_throw(const std::u16string& u16);
+
+
+
+} // namespace mino::core::string

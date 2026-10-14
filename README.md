@@ -18,26 +18,21 @@
                +----------+
                |   core   |
                +----------+
-                ^        ^
-               /          \
-              /            \
+                     |
+          +----------+----------+
+          |                     |
     +----------+          +----------+
     | external |          | network  |
     +----------+          +----------+
-                           ^   ^    ^
-             +-------------+   |    +---------------+
-            /                  |                     \
-+--------------+    +-------------------+    +-----------------+
-| network_curl |    |  network_libssh2  |    | network_openssl |
-+--------------+    +-------------------+    +-----------------+
+
 ```
 
 - 🏛️ [**core**](mino/core/include/mino/core)
-   - 독립형 핵심 기능 모듈
+   - 핵심 기능 모듈 <sub> 독립형 </sub>>
 - 📦 [**external**](mino/external/include/mino/external)
-   - 외부 라이브러리 사용 모듈
+   - 외부 라이브러리 사용 모듈 <sub> 외부 종속 </sub> 
 - 🔀 [**network**](mino/network)
-   - 네트워크 모듈
+   - 네트워크 모듈 <sub> 하위 모듈로 구성 </sub>
 
 <br />
 
@@ -100,9 +95,14 @@
     - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
 - 🏛️ [exception](example/core/exception/main.cpp)
     - `C++17` 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
-- 🏛️ [file](example/core/file/main.cpp)
-    - 실행 프로그램 경로/파일명 얻기. `UTF-8` 한글 경로.
-    - 파일 정보. 파일 권한. 파일 크기. 파일 찾기.
+- 🏛️ [file](example/core/file/)
+    - [실행 파일 경로](example/core/file/test_01_executable_path.cpp)
+    - [UTF8 문자열 → 경로 변환](example/core/file/test_02_path_from_utf8.cpp)
+    - [파일 정보](example/core/file/test_04_finfo.cpp)
+    - [파일 권한](example/core/file/test_05_file_permission.cpp)
+    - [파일 크기 형식화](example/core/file/test_06_file_size_formatter.cpp)
+    - [파일 찾기](example/core/file/test_07_find_finder.cpp)
+    - [파일 감시자](example/core/file/test_08_file_watcher.cpp)
 - 🏛️ [findfile](example/core/findfile/main.cpp)
     - 파일에서 찾기 (`Find in files`)
 - 🏛️ [hash](example/core/hash/main.cpp) 
@@ -142,7 +142,8 @@
     - 서비스 등록, 시작/중지, 상태 확인
 - 🏛️ [shared_memory](example/core/shared_memory/main.cpp) : 공유 메모리 `IPC` 
     - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
-- 🏛️ [singleton](example/core/singleton/main.cpp) : 싱글톤 패턴  
+- 🏛️ [singleton](example/core/singleton/main.cpp)
+    - 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
     - [Trim](example/core/string/test_trim.cpp) : 문자열 정리
     - [Replace](example/core/string/test_replace.cpp) : 문자열 치환
@@ -340,10 +341,14 @@
 <br />
 
 ##### 🧱 [template](example/template) : 템플릿 예제 프로젝트
-- 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt) : 통합 예제 템플릿 <sub> `core` `network` `external` </sub>
-- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt) : `core` 템플릿
-- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt) : `external` 템플릿
-- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt) : `network` 템플릿
+- 🧱 [mino_all_example](example/template/mino_all_example/CMakeLists.txt)
+   - 통합 예제 템플릿 <sub> `core` `network` `external` </sub>
+- 🧱 [mino_core_example](example/template/mino_core_example/CMakeLists.txt)
+   - `core` 예제 템플릿
+- 🧱 [mino_external_example](example/template/mino_external_example/CMakeLists.txt)
+   - `external` 예제 템플릿
+- 🧱 [mino_network_example](example/template/mino_network_example/CMakeLists.txt)
+   - `network` 예제 템플릿
 
 <br />
 

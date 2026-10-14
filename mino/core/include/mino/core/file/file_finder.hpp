@@ -73,7 +73,7 @@ namespace mino::core::file {
 
             // 방문자(스트리밍) 콜백: true=계속, false=중단
             std::function<bool(const entry&)> on_visit;
-        }; // ← 세미콜론 누락 주의
+        }; // <= 세미콜론 누락 주의
 
     public:
         // 정적 편의 함수(예외 미사용)

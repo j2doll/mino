@@ -168,15 +168,18 @@ namespace mino::core::file {
 
 #if defined(_WIN32)
         auto raw = win_executable_path(ec, opt);
-        if (ec) return {};
+        if (ec)
+            return {};
         return normalize_path(raw, opt, ec);
 #elif defined(__APPLE__)
         auto raw = mac_executable_path(ec, opt);
-        if (ec) return {};
+        if (ec)
+            return {};
         return normalize_path(raw, opt, ec);
 #else
         auto raw = linux_executable_path(ec, opt);
-        if (ec) return {};
+        if (ec)
+            return {};
         return normalize_path(raw, opt, ec);
 #endif
     }
