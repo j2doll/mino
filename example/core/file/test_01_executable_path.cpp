@@ -16,8 +16,12 @@ bool test_executable_path()
     exec_path_options opt{}; // 실행 파일 경로 조회 동작을 제어하는 옵션
 
     opt.resolve_symlink = true; // 심볼릭 링크를 실제 경로로 변환
-    opt.prefer_realpath_on_linux_deleted = true; // Linux에서 삭제된 실행 파일의 경로를 realpath()로 우선 시도
-    opt.windows_keep_device_prefix = false; // Windows에서 \\?\ 접두사 제거
+
+    opt.prefer_realpath_on_linux_deleted = true;
+    // Linux에서 삭제된 실행 파일의 경로를 realpath()로 우선 시도
+
+    opt.windows_keep_device_prefix = false;
+    // Windows에서 \\?\ 접두사 제거
 
     std::error_code ec;
 

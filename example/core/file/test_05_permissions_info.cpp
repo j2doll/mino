@@ -17,7 +17,9 @@ bool test_permissions_info(std::filesystem::path sub_file1)
 
     using file_info = mcfile::file_info;
 
-    auto sub_file1_path_string = sub_file1.string(); // 경로 문자열 (윈도우일 경우 CP949, 리눅스일 경우 UTF-8)
+    auto sub_file1_path_string = sub_file1.string();
+    // 경로 문자열 (윈도우일 경우 CP949, 리눅스일 경우 UTF-8)
+
     mcfile::permissions_info pinfo(sub_file1_path_string); // 파일 권한 정보
 
     mcsp::println("pinfo.exists() : {}", pinfo.exists() ); // 존재 여부
