@@ -193,15 +193,14 @@
 
 	
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 </sub>
-- 📦 [json](example/external/json/main.cpp) 📄 `nlohmann::json` </sub>
-    -  `nlohmann::json` 확장 기능
+- 📦 [json](example/external/json/main.cpp) : 📄 `nlohmann::json`확장 기능
     - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
 - 📦 `log` : 로깅 어댑터/팩토리
     - [adapter](example/external/log/adapter/main.cpp) : `spdlog` 기능 확장 어댑터 <sub> ⚡ `spdlog` </sub>
     - [factory](example/external/log/factory/main.cpp) : `spdlog` 확장 팩토리 패턴 <sub> ⚡ `spdlog` </sub> 
     - [spd](example/external/log/spd/main.cpp) : `spdlog` 추가 기능 <sub> ⚡ `spdlog` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
-    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `n::json` 확장 <sub> 📄 `nlohmann::json` </sub> 
+    - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장 <sub> 📄 `nlohmann::json` </sub> 
 - 📦 [`xml`](example/external/xml/main.cpp) : `.xml` => `C++` 변환 구조체 사용 <sub> 🐶 `pugixml` </sub>  
     - [xml2cpp.py](mino/external/include/mino/external/xml/xml2cpp.py) : [`.xml`](example/external/xml/catalog.xml) => [`C++` 구조체](example/external/xml/catalog.hpp) 변환
 
@@ -251,20 +250,20 @@
            - [구조체](example/network/message_broker/reflect-sample.hpp) 역직렬화 구독자 <sub> `core/reflect` `tcp` </sub>
 - 🔀 `mqtt` <sub> (`Message Queuing Telemetry Transport`) </sub>
     - ```
-                            +-------------------+
-                            |    MQTT Broker    |
-                            +-------------------+
-                              ^        ^      |
-                      Publish |        |      | Publish
-                              |        |      | (Matched Topic)
-                              |        |      |
-                              |     Subscribe |
-                              |        |      |
-                              |        |      v
-                    +---------------+  |   +---------------+
-                    |   Publisher   |  +---|  Subscriber   |
-                    |     (pub)     |      |     (sub)     |
-                    +---------------+      +---------------+
+                     +-------------------+
+                     |    MQTT Broker    |
+                     +-------------------+
+                       ^        ^      |
+               Publish |        |      | Publish
+                       |        |      | (Matched Topic)
+                       |        |      |
+                       |     Subscribe |
+                       |        |      |
+                       |        |      v
+             +---------------+  |   +---------------+
+             |   Publisher   |  +---|  Subscriber   |
+             |     (pub)     |      |     (sub)     |
+             +---------------+      +---------------+
       			  
       ``` 
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
