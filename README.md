@@ -28,11 +28,11 @@
 ```
 
 - 🏛️ [**core**](mino/core/include/mino/core)
-   - 핵심 기능 모듈 <sub> 독립형 </sub>>
+   - 핵심 기능 모듈 <sub> 독립형 </sub>
 - 📦 [**external**](mino/external/include/mino/external)
-   - 외부 라이브러리 사용 모듈 <sub> 외부 종속 </sub> 
+   - 외부 라이브러리 사용 모듈 <sub> 외부 종속, `core` 사용 </sub> 
 - 🔀 [**network**](mino/network)
-   - 네트워크 모듈 <sub> 하위 모듈로 구성 </sub>
+   - 네트워크 모듈 <sub> 하위 모듈로 분류, `core` 사용 </sub>
 
 <br />
 
