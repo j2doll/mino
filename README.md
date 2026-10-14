@@ -291,9 +291,13 @@
     - `psftp` 연동 클라이언트
 - 🔀 [ssh](example/network/ssh/main.cpp)
     - 독립형 `ssh` 클라이언트 
-- 🔀 `tcp` 
-    - [server](example/network/tcp/server/main.cpp) : `TCP` 서버
-    - [client](example/network/tcp/client/main.cpp) : `TCP` 클라이언트
+- 🔀 `tcp`
+    - `tcp` 서버, 클라이언트
+        - [server](example/network/tcp/server/main.cpp) : `TCP` 서버
+        - [client](example/network/tcp/client/main.cpp) : `TCP` 클라이언트
+    - 수신 버퍼 처리
+        - [buffer_server](example/network/tcp/buffer_server/main.cpp) : `TCP` 버퍼 서버
+        - [buffer_client](example/network/tcp/buffer_client/main.cpp) : `TCP` 버퍼 클라이언트
 - 🔀 `udp`
     - [receiver](example/network/udp/receiver/main.cpp) : `UDP` 수신
     - [sender](example/network/udp/sender/main.cpp) : `UDP` 송신

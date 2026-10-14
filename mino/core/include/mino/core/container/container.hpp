@@ -2,6 +2,7 @@
 
 #include "mino/core/container/bimap.hpp"
 #include "mino/core/container/binomial_heap.hpp"
+#include "mino/core/container/byte_buffer.hpp" 
 #include "mino/core/container/circular_buffer.hpp"
 #include "mino/core/container/concurrent_queue.hpp"
 #include "mino/core/container/d_ary_heap.hpp"
