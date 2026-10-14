@@ -81,10 +81,10 @@
 - 🏛️ `datetime` : 날짜·시간 처리 
     - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
     - `util`
-       - [test_conversion_functions](example/core/datetime/util/test_conversion_functions.cpp) : 시간 단위 변환 (`std::tm` <-> `time_t` <-> `time_point`)
-       - [test_formatting_functions](example/core/datetime/util/test_formatting_functions.cpp) : 문자열 포맷팅
-       - [test_parsing_functions](example/core/datetime/util/test_parsing_functions.cpp) : 시간 문자열 파싱 (`Strict`, `ISO-8601` & `RFC-3339`)
-       - [test_current_time_functions](example/core/datetime/util/test_current_time_functions.cpp) : 현재 시간 문자열 생성 
+       - [시간 단위 변환](example/core/datetime/util/test_conversion_functions.cpp) : `std::tm` <-> `time_t` <-> `time_point`
+       - [문자열 포맷팅](example/core/datetime/util/test_formatting_functions.cpp)
+       - [시간 문자열 파싱](example/core/datetime/util/test_parsing_functions.cpp) : `Strict`, `ISO-8601` & `RFC-3339`
+       - [현재 시간 문자열 생성](example/core/datetime/util/test_current_time_functions.cpp)  
 - 🏛️ [dispatch](example/core/dispatch/main.cpp)
     - 이벤트 디스패치
 - 🏛️ [encoding](example/core/encoding/main.cpp)
