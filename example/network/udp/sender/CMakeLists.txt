@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(network_udp_sender_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "network_udp_sender_example")
+set(EXE_NAME "network_udp_sender")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)

@@ -301,6 +301,7 @@
 - 🔀 `udp`
     - [receiver](example/network/udp/receiver/main.cpp) : `UDP` 수신
     - [sender](example/network/udp/sender/main.cpp) : `UDP` 송신
+    - [buffer_receiver](example/network/udp/buffer_receiver/main.cpp) : `UDP` 수신 버퍼 처리
 - 🔀 [util](example/network/util/main.cpp)
     - 네트워크 인터페이스 목록 얻기 및 `IP` 주소 검증 
 

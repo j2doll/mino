@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     concurrent_byte_buffer rx_buffer; // 수신 버퍼
     std::atomic<bool> parsing_running{ true }; // 파싱 스레드 실행 여부
 
-    // [파싱 스레드] 폴링 방식으로 버퍼를 확인하고 매번 슬립
+    // [수신 버퍼 파싱 스레드] 폴링 방식으로 버퍼를 확인하고 매번 슬립
     std::thread parser_thread(
         [server, &rx_buffer, &parsing_running]() {
             while (parsing_running) {
@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
 
                             std::size_t total_size = sizeof(Header) + header.length; // 구조체 크기 계산
 
-                            if (buf.readable_bytes() < total_size) { // 잘못된 패킷 길이 또는 미완성 패킷 처리
-                                break; // 패킷 미완성 시 대기
+                            if (buf.readable_bytes() < total_size) { 
+                                break; // 잘못된 패킷 길이 또는 미완성 패킷 처리
                             }
 
                             buf.read(&header, sizeof(header)); // 헤더 읽기 (실제로 읽기 포인터 이동)

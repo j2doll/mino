@@ -35,7 +35,7 @@ int main() {
     concurrent_byte_buffer rx_buffer; // 수신 버퍼
     std::atomic<bool> parsing_running{ true };
 
-    // [파싱 스레드] 폴링 방식으로 응답 스트림 파싱 및 슬립
+    // [수신 버퍼 파싱 스레드] 폴링 방식으로 응답 스트림 파싱 및 슬립
     std::thread parser_thread(
         [&rx_buffer, &parsing_running]() {
             while (parsing_running) {
@@ -65,6 +65,7 @@ int main() {
                                 "[클라이언트 파싱 스레드] 응답 수신 "
                                 "[ID: {}, 길이: {}] 내용: '{}'",
                                 header.id, header.length, body);
+
                         } // while (buf.readable_bytes() >= 4)
 
                         // 수신 버퍼 파싱 }}
