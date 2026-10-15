@@ -199,6 +199,7 @@
     - [adapter](example/external/log/adapter/main.cpp) : `spdlog` 기능 확장 어댑터 <sub> ⚡ `spdlog` </sub>
     - [factory](example/external/log/factory/main.cpp) : `spdlog` 확장 팩토리 패턴 <sub> ⚡ `spdlog` </sub> 
     - [spd](example/external/log/spd/main.cpp) : `spdlog` 추가 기능 <sub> ⚡ `spdlog` </sub>
+    - [sqlite](example/external/log/sqlite/main.cpp) : `spdlog` + `sqlite` 확장 <sub> 🗄️ `sqlite3` </sub>
 - 📦 `schedule` : `core` 스케줄러 확장
     - [weekly](example/external/schedule/weekly/main.cpp) : 주간 스케줄러 어댑터 `nlohmann::json` 확장 <sub> 📄 `nlohmann::json` </sub> 
 - 📦 [`xml`](example/external/xml/main.cpp) : `.xml` => `C++` 변환 구조체 사용 <sub> 🐶 `pugixml` </sub>  
@@ -663,6 +664,7 @@ $ eza --tree mino
         - ⚡ [spdlog](https://github.com/gabime/spdlog) : `MIT License`
         - 🐶 [pugixml](https://github.com/zeux/pugixml) : `MIT License`
         - 🗜️ [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
+        - 🗄️ [sqlite3](https://www.sqlite.org/index.html) : `Public Domain`
     - 🔀 `network` 모듈
         - 📡 [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
         - 🌐 [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
