@@ -8,7 +8,7 @@
 #include "mino/core/enum/enum.hpp"
 
 // task 네임스페이스에 weekday 열거형 정의 (std::tm::tm_wday: 0: 일요일 ~ 6: 토요일 체계)
-DEFINE_ENUM_NAMESPACE(mino::core::schedule::task, weekday,
+MINO_DEFINE_ENUM_NAMESPACE(mino::core::schedule::task, weekday,
     sunday = 0,
     monday,
     tuesday,
@@ -19,7 +19,7 @@ DEFINE_ENUM_NAMESPACE(mino::core::schedule::task, weekday,
 )
 
 // 시간 변환 기준 열거형 (로컬 타임, UTC)
-DEFINE_ENUM_NAMESPACE(mino::core::schedule::task, time_base,
+MINO_DEFINE_ENUM_NAMESPACE(mino::core::schedule::task, time_base,
     localtime,
     utc
 )

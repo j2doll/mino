@@ -97,7 +97,7 @@ namespace mino::core::enums {
 // [User API] Super Simple Macros
 // ==========================================
 
-#define DEFINE_ENUM_NAMESPACE(Namespace, EnumName, ...) \
+#define MINO_DEFINE_ENUM_NAMESPACE(Namespace, EnumName, ...) \
     namespace Namespace { \
         enum class EnumName { __VA_ARGS__ }; \
     } \
@@ -108,7 +108,7 @@ namespace mino::core::enums {
         }; \
     }
 
-#define DEFINE_ENUM_GLOBAL(EnumName, ...) \
+#define MINO_DEFINE_ENUM_GLOBAL(EnumName, ...) \
     enum class EnumName { __VA_ARGS__ }; \
     namespace mino::core::enums::internal { \
         template <> struct EnumMap<::EnumName> { \
@@ -117,4 +117,3 @@ namespace mino::core::enums {
         }; \
     }
 
-    

@@ -5,15 +5,18 @@
 #include "mino/core/string/to_console_encoding.hpp"
 
 // 1. 네임스페이스 포함 열거형 정의 테스트 (자동 할당 및 값 명시 mixed)
-DEFINE_ENUM_NAMESPACE(game, \
-    Status, \
-    Idle = 0, Running, Paused = 10, Stopped)
-    // 네임스페이스 game 인 Status 열거형(game::Status) 정의
+MINO_DEFINE_ENUM_NAMESPACE(game, Status, \
+    Idle = 0, Running, Paused = 10, Stopped
+)
+// namespace가 game, 열거형 Status 정의 (game::Status)
+// Idle = 0, Running = 1, Paused = 10, Stopped = 11 로 정의됨.
 
 // 2. 전역 열거형 정의 테스트 (음수 및 명시적 정수 값)
-DEFINE_ENUM_GLOBAL(Color, \
-    Red = -1, Green, Blue = 5)
-    // 전역 Color 열거형 정의
+MINO_DEFINE_ENUM_GLOBAL(Color, \
+    Red = -1, Green, Blue = 5
+)
+// 전역값으로 Color 열거형 정의
+// Red = -1, Green = 0, Blue = 5 로 정의됨.
 
 int main() { 
     namespace enums = mino::core::enums;
