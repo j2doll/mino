@@ -1,4 +1,3 @@
-// delete_client.hpp
 #pragma once
 
 #include <memory>

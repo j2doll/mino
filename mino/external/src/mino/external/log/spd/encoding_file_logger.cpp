@@ -13,7 +13,7 @@
 #include "mino/external/log/spd/encoding_file_logger.hpp"
 
 #define MINIZ_CPP_HEADER_ONLY
-#include "mino/external/log/spd/zip_file.hpp"
+#include "mino/external/third-party/miniz-cpp/zip_file.hpp"
 
 // detect spdlog version at compile time and provide a fallback for older spdlog
 #ifndef SPDLOG_VER_MAJOR

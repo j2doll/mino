@@ -136,6 +136,8 @@
 - 🏛️ `schedule`  
     - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
     - [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
+- 🏛️ [scope](example/core/scope/main.cpp)
+    - 스코프 탈툴 시 자동 처리
 - 🏛️ [server](example/core/server/main.cpp) 
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 

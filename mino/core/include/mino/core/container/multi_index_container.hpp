@@ -14,7 +14,7 @@
 // 항목        |  std::unordered_map|  std::map          |  multi_index_
 //             |                    |                    |  container
 // ------------+--------------------+--------------------+------------------
-// 키(Key) 개수| 1개 (단일 키)      | 1개 (단일 키)      | 2개 (독립된 2중 고유 키)
+// 키(Key) 개수| 1개 (단일 키)      | 1개 (단일 키)      | n 개 (독립된 n중 고유 키)
 // 검색 지원   | Key -> Value       | Key -> Value       | Key1/Key2 -> Value 양방향
 // 고유성 보장 | Key 고유           | Key 고유           | Key1, Key2 각각 100% 고유
 // ------------+--------------------+--------------------+------------------
@@ -69,30 +69,25 @@
 
 namespace mino::core::container {
 
-    template <
-        typename Value,
-        typename Key1,
-        typename Key2,
-        typename Hash1 = std::hash<Key1>,
-        typename Hash2 = std::hash<Key2>,
-        typename Equal1 = std::equal_to<Key1>,
-        typename Equal2 = std::equal_to<Key2>
-    >
+    template <typename Value, typename... Keys>
     class multi_index_container {
+        static_assert(sizeof...(Keys) > 0, "At least one key type is required.");
+
     public:
         using value_type = Value;
-        using key1_type = Key1;
-        using key2_type = Key2;
         using size_type = std::size_t;
+
+        // N번째 키의 타입 조회
+        template <std::size_t I>
+        using key_type_at = std::tuple_element_t<I, std::tuple<Keys...>>;
 
         struct entry {
             value_type value;
-            key1_type k1;
-            key2_type k2;
+            std::tuple<Keys...> keys;
 
-            template <typename V, typename K1, typename K2>
-            entry(V&& val, K1&& key1, K2&& key2)
-                : value(std::forward<V>(val)), k1(std::forward<K1>(key1)), k2(std::forward<K2>(key2)) {
+            template <typename V, typename... Ks>
+            entry(V&& val, Ks&&... ks)
+                : value(std::forward<V>(val)), keys(std::forward<Ks>(ks)...) {
             }
         };
 
@@ -102,8 +97,60 @@ namespace mino::core::container {
         using const_storage_iterator = typename storage_type::const_iterator;
 
         storage_type storage_;
-        std::unordered_map<key1_type, storage_iterator, Hash1, Equal1> by_key1_;
-        std::unordered_map<key2_type, storage_iterator, Hash2, Equal2> by_key2_;
+
+        // 가변 인자 Keys에 대응하는 std::unordered_map들의 튜플 생성 헬퍼
+        template <typename... Ts>
+        struct map_tuple_helper;
+
+        template <typename T, typename... Rest>
+        struct map_tuple_helper<T, Rest...> {
+            using type = decltype(std::tuple_cat(
+                std::tuple<std::unordered_map<T, storage_iterator>>{},
+                typename map_tuple_helper<Rest...>::type{}
+            ));
+        };
+
+        template <>
+        struct map_tuple_helper<> {
+            using type = std::tuple<>;
+        };
+
+        using maps_tuple_type = typename map_tuple_helper<Keys...>::type;
+        maps_tuple_type index_maps_;
+
+        // 모든 키에 대해 중복 검사 (Fold Expression 활용)
+        template <std::size_t... Is, typename... Ks>
+        bool check_keys_exist_impl(std::index_sequence<Is...>, const Ks&... ks) const {
+            bool exists = false;
+            ((exists = exists || (std::get<Is>(index_maps_).find(ks) != std::get<Is>(index_maps_).end())), ...);
+            return exists;
+        }
+
+        template <typename... Ks>
+        bool check_keys_exist(const Ks&... ks) const {
+            return check_keys_exist_impl(std::index_sequence_for<Keys...>{}, ks...);
+        }
+
+        // 모든 인덱스 맵에 반복자 등록
+        template <std::size_t... Is, typename... Ks>
+        void insert_maps_impl(std::index_sequence<Is...>, storage_iterator it, const Ks&... ks) {
+            (std::get<Is>(index_maps_).emplace(ks, it), ...);
+        }
+
+        template <typename... Ks>
+        void insert_maps(storage_iterator it, const Ks&... ks) {
+            insert_maps_impl(std::index_sequence_for<Keys...>{}, it, ks...);
+        }
+
+        // 모든 인덱스 맵에서 키 제거
+        template <std::size_t... Is>
+        void erase_maps_impl(std::index_sequence<Is...>, const std::tuple<Keys...>& k_tuple) {
+            (std::get<Is>(index_maps_).erase(std::get<Is>(k_tuple)), ...);
+        }
+
+        void erase_maps(const std::tuple<Keys...>& k_tuple) {
+            erase_maps_impl(std::index_sequence_for<Keys...>{}, k_tuple);
+        }
 
     public:
         multi_index_container() = default;
@@ -112,116 +159,93 @@ namespace mino::core::container {
         // --------------------------------------------------------------------
         // 1. 데이터 삽입 및 인플레이스 생성
         // --------------------------------------------------------------------
-        bool insert(const value_type& value, const key1_type& k1, const key2_type& k2) {
-            if (by_key1_.find(k1) != by_key1_.end() || by_key2_.find(k2) != by_key2_.end()) {
-                return false;
+        bool insert(const value_type& value, const Keys&... keys) {
+            if (check_keys_exist(keys...)) {
+                return false; // 어떤 인덱스든 키가 중복되면 실패
             }
 
-            storage_.emplace_back(value, k1, k2);
+            storage_.emplace_back(value, keys...);
             storage_iterator it = std::prev(storage_.end());
-
-            by_key1_.emplace(k1, it);
-            by_key2_.emplace(k2, it);
+            insert_maps(it, keys...);
             return true;
         }
 
-        bool insert(value_type&& value, const key1_type& k1, const key2_type& k2) {
-            if (by_key1_.find(k1) != by_key1_.end() || by_key2_.find(k2) != by_key2_.end()) {
+        bool insert(value_type&& value, const Keys&... keys) {
+            if (check_keys_exist(keys...)) {
                 return false;
             }
 
-            storage_.emplace_back(std::move(value), k1, k2);
+            storage_.emplace_back(std::move(value), keys...);
             storage_iterator it = std::prev(storage_.end());
-
-            by_key1_.emplace(k1, it);
-            by_key2_.emplace(k2, it);
+            insert_maps(it, keys...);
             return true;
         }
 
         template <typename... Args>
-        bool emplace(const key1_type& k1, const key2_type& k2, Args&&... args) {
-            if (by_key1_.find(k1) != by_key1_.end() || by_key2_.find(k2) != by_key2_.end()) {
-                return false;
-            }
-
-            storage_.emplace_back(value_type(std::forward<Args>(args)...), k1, k2);
-            storage_iterator it = std::prev(storage_.end());
-
-            by_key1_.emplace(k1, it);
-            by_key2_.emplace(k2, it);
-            return true;
+        bool emplace(const std::tuple<Keys...>& keys_tuple, Args&&... args) {
+            // 튜플 형태로 키를 받을 수 있는 emplace 오버로드
+            bool inserted = false;
+            auto apply_emplace = [&](const auto&... ks) {
+                if (check_keys_exist(ks...)) {
+                    return;
+                }
+                storage_.emplace_back(value_type(std::forward<Args>(args)...), ks...);
+                storage_iterator it = std::prev(storage_.end());
+                insert_maps(it, ks...);
+                inserted = true;
+                };
+            std::apply(apply_emplace, keys_tuple);
+            return inserted;
         }
 
         // --------------------------------------------------------------------
-        // 2. 데이터 검색 (O(1) 포인터 반환)
+        // 2. 데이터 검색 (N번째 인덱스 기준 O(1))
         // --------------------------------------------------------------------
-        [[nodiscard]] const value_type* find_by_key1(const key1_type& k1) const {
-            auto it = by_key1_.find(k1);
-            if (it == by_key1_.end()) return nullptr;
+        template <std::size_t N>
+        [[nodiscard]] const value_type* find_by_index(const key_type_at<N>& key) const {
+            const auto& map = std::get<N>(index_maps_);
+            auto it = map.find(key);
+            if (it == map.end()) return nullptr;
             return &(it->second->value);
         }
 
-        [[nodiscard]] value_type* find_by_key1(const key1_type& k1) {
-            auto it = by_key1_.find(k1);
-            if (it == by_key1_.end()) return nullptr;
+        template <std::size_t N>
+        [[nodiscard]] value_type* find_by_index(const key_type_at<N>& key) {
+            auto& map = std::get<N>(index_maps_);
+            auto it = map.find(key);
+            if (it == map.end()) return nullptr;
             return &(it->second->value);
         }
 
-        [[nodiscard]] const value_type* find_by_key2(const key2_type& k2) const {
-            auto it = by_key2_.find(k2);
-            if (it == by_key2_.end()) return nullptr;
-            return &(it->second->value);
-        }
-
-        [[nodiscard]] value_type* find_by_key2(const key2_type& k2) {
-            auto it = by_key2_.find(k2);
-            if (it == by_key2_.end()) return nullptr;
-            return &(it->second->value);
-        }
-
-        [[nodiscard]] bool contains_key1(const key1_type& k1) const {
-            return by_key1_.find(k1) != by_key1_.end();
-        }
-
-        [[nodiscard]] bool contains_key2(const key2_type& k2) const {
-            return by_key2_.find(k2) != by_key2_.end();
+        template <std::size_t N>
+        [[nodiscard]] bool contains(const key_type_at<N>& key) const {
+            return std::get<N>(index_maps_).find(key) != std::get<N>(index_maps_).end();
         }
 
         // --------------------------------------------------------------------
-        // 3. 데이터 삭제 (반복자를 통한 O(1) 즉시 삭제)
+        // 3. 데이터 삭제 (N번째 인덱스 기준)
         // --------------------------------------------------------------------
-        bool erase_by_key1(const key1_type& k1) {
-            auto it1 = by_key1_.find(k1);
-            if (it1 == by_key1_.end()) return false;
+        template <std::size_t N>
+        bool erase_by_index(const key_type_at<N>& key) {
+            auto& map = std::get<N>(index_maps_);
+            auto it = map.find(key);
+            if (it == map.end()) return false;
 
-            storage_iterator sit = it1->second;
-            by_key2_.erase(sit->k2);
-            by_key1_.erase(it1);
-            storage_.erase(sit);
-            return true;
-        }
-
-        bool erase_by_key2(const key2_type& k2) {
-            auto it2 = by_key2_.find(k2);
-            if (it2 == by_key2_.end()) return false;
-
-            storage_iterator sit = it2->second;
-            by_key1_.erase(sit->k1);
-            by_key2_.erase(it2);
-            storage_.erase(sit);
+            storage_iterator sit = it->second;
+            erase_maps(sit->keys); // 모든 인덱스 맵에서 제거
+            storage_.erase(sit);   // 실제 스토리지에서 제거
             return true;
         }
 
         // --------------------------------------------------------------------
         // 4. 용량 및 초기화
-        // --------------------------------------------------------------------
+        // --------------------û------------------------------------------------
         [[nodiscard]] size_type size() const noexcept { return storage_.size(); }
         [[nodiscard]] bool empty() const noexcept { return storage_.empty(); }
 
         void clear() noexcept {
             storage_.clear();
-            by_key1_.clear();
-            by_key2_.clear();
+            std::apply([](auto&... maps) { (maps.clear(), ...); }, index_maps_);
         }
 
         // --------------------------------------------------------------------
@@ -233,33 +257,6 @@ namespace mino::core::container {
         const_storage_iterator end() const noexcept { return storage_.cend(); }
         const_storage_iterator cbegin() const noexcept { return storage_.cbegin(); }
         const_storage_iterator cend() const noexcept { return storage_.cend(); }
-
-        // --------------------------------------------------------------------
-        // 6. 순수 ASCII 기반 Multi Index Dump
-        // --------------------------------------------------------------------
-        void dump(const std::string& title = "") const {
-            if (!title.empty()) {
-                std::cout << "=== " << title << " (Size: " << size() << ") ===\n";
-            }
-            else {
-                std::cout << "=== Multi Index Container Dump (Size: " << size() << ") ===\n";
-            }
-
-            if (empty()) {
-                std::cout << "  \\-- <Empty Container>\n\n";
-                return;
-            }
-
-            size_type count = 0;
-            size_type total = storage_.size();
-            for (const auto& entry_item : storage_) {
-                bool is_last = (++count == total);
-                std::string connector = is_last ? "\\-- " : "|-- ";
-                std::cout << connector << "Key1: [" << entry_item.k1 << "] | Key2: ["
-                    << entry_item.k2 << "]\n";
-            }
-            std::cout << "\n";
-        }
     };
 
 } // namespace mino::core::container
