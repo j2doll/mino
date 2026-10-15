@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(core_expection_example_project VERSION 0.1 LANGUAGES CXX)
-set(EXE_NAME "core_expection_example")
+project(core_exception_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "core_exception_example")
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
