@@ -9,7 +9,7 @@ int main() {
     namespace mco = mino::core::overload;
     auto to_console_encoding = mino::core::string::to_console_encoding;
 
-    // 1. 테스트용 std::variant 타입 정의
+    // 1. 테스트용 std::variant 타입 정의 <int, double, std::string>
     using VarType = std::variant<int, double, std::string>;
 
     // 2. overload 패턴을 활용한 방문자(Visitor) 객체 생성
@@ -29,19 +29,21 @@ int main() {
     };
 
     // 3. 다양한 타입의 variant 값 준비
-    VarType v1 = 42; // int
-    VarType v2 = 3.14159; // double
-    VarType v3 = std::string("Hello, overload!"); // std::string
-
     std::cout << to_console_encoding("=== std::visit 테스트 ===") << std::endl;
+
+    VarType v1 = 42; // int
     std::visit(visitor, v1); // int로 처리
+
+    VarType v2 = 3.14159; // double
     std::visit(visitor, v2); // double로 처리
+
+    VarType v3 = std::string("Hello, overload!"); // std::string
     std::visit(visitor, v3); // std::string로 처리
 
     std::cout << to_console_encoding("\n=== 직접 호출 테스트 ===") << std::endl;
-    visitor(100); // 직접 호출: int 처리
-    visitor(2.718); // 직접 호출: double 처리
-    visitor("Direct Call"); // 직접 호출: std::string 처리
+    visitor(100); // 직접 호출: int 로 처리
+    visitor(2.718); // 직접 호출: double 로 처리
+    visitor("Direct Call"); // 직접 호출: std::string 로 처리
 
     // 4. std::visit 안에서 즉석(In-place)으로 overload 생성하여 사용하기
     std::cout << to_console_encoding("\n=== Inline std::visit 테스트 ===") << std::endl;
@@ -49,6 +51,7 @@ int main() {
     VarType v4 = 999; // int 타입의 variant 값
     std::visit(mco::overload{
         [](int i) {
+            // v4는 int 타입이므로 이 람다 함수가 호출됨
             auto to_console_encoding = mino::core::string::to_console_encoding;
             std::cout << to_console_encoding("Inline int: ") << i << '\n';
         },
@@ -62,7 +65,8 @@ int main() {
     // 5. 반환 값 처리 테스트 (동일한 타입 반환)
     // =========================================================================
     std::cout
-        << to_console_encoding("\n=== 반환 값 처리 테스트 (std::string 반환) ===") << std::endl;
+        << to_console_encoding("\n=== 반환 값 처리 테스트 (std::string 반환) ===")
+        << std::endl;
 
     auto stringifier = mco::overload{
         [](int i) -> std::string {
@@ -108,16 +112,20 @@ int main() {
         }
     };
 
-    ResultType r1 = std::visit(process_and_convert, v1); // v1이 VarType(int)이므로 int로 처리되고, r1은 ResultType(int)로 저장됨
-    if (std::holds_alternative<int>(r1)) {
+    ResultType r1 = std::visit(process_and_convert, v1); // visit 결과를 ResultType으로 받음
+    // v1이 VarType(int) 이므로 int로 처리되고,
+    // r1은 ResultType(int) 로 저장됨. 
+
+    if (std::holds_alternative<int>(r1)) { // r1이 int 타입인지 확인
         int int_r1 = std::get<int>(r1); // r1에서 int 값 추출 가능
-        std::cout
-            << to_console_encoding("r1에서 추출된 int 값: ")
-            << int_r1 << '\n';
+        std::cout << to_console_encoding("r1에서 추출된 int 값: ") << int_r1 << '\n';
     }
 
-    ResultType r2 = std::visit(process_and_convert, v2); // v2이 VarType(double)이므로 double로 처리되고, r2는 ResultType(string)로 저장됨
-    if (std::holds_alternative<std::string>(r2)) {
+    ResultType r2 = std::visit(process_and_convert, v2);
+    // v2이 VarType(double) 이므로 double로 처리되고,
+    // r2는 ResultType(string) 로 저장됨.
+
+    if (std::holds_alternative<std::string>(r2)) { // r2가 string 타입인지 확인
         std::string str_r2 = std::get<std::string>(r2); // r2에서 string 값 추출 가능
         std::cout
             << to_console_encoding("r2에서 추출된 string 값: ")
