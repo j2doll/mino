@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 1. Set the project name and version
-project(mino_external VERSION 1.0.0 LANGUAGES CXX)
+# 1. Set the project name and version (C언어 컴파일을 위해 C 언어 추가)
+project(mino_external VERSION 1.0.0 LANGUAGES CXX C)
 
 # 2. C++ standard information setting
 if(NOT DEFINED CMAKE_CXX_STANDARD)
@@ -22,6 +22,13 @@ file(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
 )
+
+# 4-1. SQLite3 Amalgamation 소스 파일 추가
+set(SQLITE3_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party/sqlite3")
+list(APPEND SRC_FILES
+  "${SQLITE3_DIR}/sqlite3.c"
+)
+
 add_library(mino_external STATIC ${SRC_FILES})
 
 # 4-2. Visual Studio setting
@@ -39,6 +46,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 endif()
 
+# 4-4. SQLite3 컴파일 최적화 및 경고 억제 (선택 사항)
+if(MSVC)
+  target_compile_options(mino_external PRIVATE /wd4244 /wd4267)
+else()
+  target_compile_options(mino_external PRIVATE -Wno-unused-but-set-variable -Wno-implicit-fallthrough)
+endif()
+
 # 5. Specify header file paths
 
 # 5-1. mino_external PUBLIC header path
@@ -50,7 +64,6 @@ target_include_directories(
 )
 
 # 5-2. Third-party library header path (SYSTEM PUBLIC: suppress warnings)
-# target_include_directories(<target> SYSTEM <INTERFACE|PUBLIC|PRIVATE> [items1...])
 target_include_directories(
   mino_external
   SYSTEM PUBLIC
@@ -58,8 +71,11 @@ target_include_directories(
     $<INSTALL_INTERFACE:include/mino/external/third-party>
 )
 
-# 6. Link libraries
+# 6. Link libraries (스레드 라이브러리 및 수학/시스템 라이브러리 링크)
 target_link_libraries(mino_external PRIVATE Threads::Threads)
+if(NOT WIN32)
+  target_link_libraries(mino_external PRIVATE dl pthread)
+endif()
 target_link_libraries(mino_external PUBLIC mino_core)
 
 # 7. Define install rules
@@ -72,3 +88,4 @@ install(
 )
 
 install(DIRECTORY include/mino DESTINATION include)
+

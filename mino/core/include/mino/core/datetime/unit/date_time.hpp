@@ -6,8 +6,7 @@
 #include <string>
 #include <optional>
 
-namespace mino::core::datetime {
-    namespace unit {
+namespace mino::core::datetime::unit {
 
     // 시간 표기 기준: 로컬 시간인지 UTC인지 명시합니다.
     enum class time_zone {
@@ -195,6 +194,5 @@ namespace mino::core::datetime {
     // Note: implementations for utc_offset_seconds(), utc_offset_minutes(), utc_offset_hours()
     // and utc_offset_string() live in `unit/date_time.cpp` to avoid duplicate-definition (ODR) issues.
 
+} // namespace mino::core::datetime::unit
 
-    } // namespace unit
-} // namespace mino::core::datetime

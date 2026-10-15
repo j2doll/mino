@@ -3,8 +3,7 @@
 
 #include "mino/core/datetime/unit/date_time.hpp"
 
-namespace mino::core::datetime {
-    namespace unit {
+namespace mino::core::datetime::unit {
 
     ////////////////////////////////////////
 
@@ -363,5 +362,6 @@ namespace mino::core::datetime {
         return tp_ == other.tp_ && zone_ == other.zone_;
     }
      
-    } // namespace unit
-} // namespace mino::core::datetime
+
+} // namespace mino::core::datetime::unit
+
