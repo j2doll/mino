@@ -60,7 +60,7 @@
     - [flat_multiset](example/core/container/test_flat_multiset.cpp) : 정렬 다중키 셋
     - [flat_set](example/core/container/test_flat_set.cpp) : 정렬 셋
     - [multi_array](example/core/container/test_multi_array.cpp) : `N`차원 배열
-    - [multi_index_container](example/core/container/test_multi_index_container.cpp) : 2중 인덱스 컨테이너
+    - [multi_index_container](example/core/container/test_multi_index_container.cpp) : `N`중 인덱스 컨테이너
     - [pairing_heap](example/core/container/test_pairing_heap.cpp) : `N`진 트리 구조
     - [priority_queue](example/core/container/test_priority_queue.cpp) : 완전 이진 트리 큐
     - [skew_heap](example/core/container/test_skew_heap.cpp) : 비균형 이진 트리 힙
