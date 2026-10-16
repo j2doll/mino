@@ -34,17 +34,17 @@
 //     int age;
 //     User(std::string n, int a) : name(std::move(n)), age(a) {}
 // };
-// 
+//
 // // ID(int)와 이메일(std::string)로 User를 관리하는 2중 인덱스 컨테이너
 // multi_index_container<User, int, std::string> users;
-// 
+//
 // // [1] 데이터 삽입 (Key1과 Key2 모두 고유할 때만 성공, O(1))
 // users.insert(User("Alice", 25), 1, "alice@example.com");
 // users.insert(User("Bob", 30), 2, "bob@example.com");
 // users.insert(User("Charlie", 28), 3, "charlie@example.com");
-// 
+//
 // std::cout << "Size: " << users.size() << std::endl; // 3
-// 
+//
 // // [2] Key1 (ID) 또는 Key2 (Email)로 O(1) 검색
 // if (const auto* u = users.find_by_key1(1)) {
 //     std::cout << "Found by ID 1: " << u->name << ", Age: " << u->age << std::endl;
@@ -52,22 +52,45 @@
 // if (const auto* u = users.find_by_key2("charlie@example.com")) {
 //     std::cout << "Found by Email: " << u->name << ", Age: " << u->age << std::endl;
 // }
-// 
+//
 // // [3] Key1 또는 Key2 기준으로 O(1) 즉시 삭제
 // users.erase_by_key1(2);                      // Bob 삭제
 // users.erase_by_key2("charlie@example.com"); // Charlie 삭제
 // std::cout << "Size after erase: " << users.size() << std::endl; // 1 (Alice만 남음)
-// 
+//
 // // [4] 중복 키 삽입 방지 검증
 // bool ok1 = users.insert(User("David", 35), 1, "david@example.com"); // ID 1 중복 -> false
 // bool ok2 = users.insert(User("Eve", 29), 4, "alice@example.com");   // Email 중복 -> false
-// 
+//
 // // [5] 초기화
 // users.clear();
 // std::cout << "Is empty: " << users.empty() << std::endl; // 1 (true)
-// 
+//
 
 namespace mino::core::container {
+
+    // Forward declarations and helper structures
+    template <typename Value, typename... Keys>
+    class multi_index_container;
+
+    // Helper to build a tuple of unordered_maps for each key type
+    namespace detail {
+        template <typename StorageIter, typename... Keys>
+        struct map_tuple_helper;
+
+        template <typename StorageIter, typename T, typename... Rest>
+        struct map_tuple_helper<StorageIter, T, Rest...> {
+            using type = decltype(std::tuple_cat(
+                std::tuple<std::unordered_map<T, StorageIter>>{},
+                typename map_tuple_helper<StorageIter, Rest...>::type{}
+            ));
+        };
+
+        template <typename StorageIter>
+        struct map_tuple_helper<StorageIter> {
+            using type = std::tuple<>;
+        };
+    }
 
     template <typename Value, typename... Keys>
     class multi_index_container {
@@ -98,24 +121,7 @@ namespace mino::core::container {
 
         storage_type storage_;
 
-        // 가변 인자 Keys에 대응하는 std::unordered_map들의 튜플 생성 헬퍼
-        template <typename... Ts>
-        struct map_tuple_helper;
-
-        template <typename T, typename... Rest>
-        struct map_tuple_helper<T, Rest...> {
-            using type = decltype(std::tuple_cat(
-                std::tuple<std::unordered_map<T, storage_iterator>>{},
-                typename map_tuple_helper<Rest...>::type{}
-            ));
-        };
-
-        template <>
-        struct map_tuple_helper<> {
-            using type = std::tuple<>;
-        };
-
-        using maps_tuple_type = typename map_tuple_helper<Keys...>::type;
+        using maps_tuple_type = typename detail::map_tuple_helper<storage_iterator, Keys...>::type;
         maps_tuple_type index_maps_;
 
         // 모든 키에 대해 중복 검사 (Fold Expression 활용)
@@ -156,6 +162,12 @@ namespace mino::core::container {
         multi_index_container() = default;
         ~multi_index_container() = default;
 
+        // Remove default copy and move operations if needed
+        multi_index_container(const multi_index_container&) = delete;
+        multi_index_container(multi_index_container&&) = delete;
+        multi_index_container& operator=(const multi_index_container&) = delete;
+        multi_index_container& operator=(multi_index_container&&) = delete;
+
         // --------------------------------------------------------------------
         // 1. 데이터 삽입 및 인플레이스 생성
         // --------------------------------------------------------------------
@@ -193,7 +205,7 @@ namespace mino::core::container {
                 storage_iterator it = std::prev(storage_.end());
                 insert_maps(it, ks...);
                 inserted = true;
-                };
+            };
             std::apply(apply_emplace, keys_tuple);
             return inserted;
         }
@@ -239,7 +251,7 @@ namespace mino::core::container {
 
         // --------------------------------------------------------------------
         // 4. 용량 및 초기화
-        // --------------------û------------------------------------------------
+        // --------------------------------------------------------------------
         [[nodiscard]] size_type size() const noexcept { return storage_.size(); }
         [[nodiscard]] bool empty() const noexcept { return storage_.empty(); }
 
@@ -247,16 +259,6 @@ namespace mino::core::container {
             storage_.clear();
             std::apply([](auto&... maps) { (maps.clear(), ...); }, index_maps_);
         }
-
-        // --------------------------------------------------------------------
-        // 5. 반복자 (범위 기반 for문 지원)
-        // --------------------------------------------------------------------
-        storage_iterator begin() noexcept { return storage_.begin(); }
-        storage_iterator end() noexcept { return storage_.end(); }
-        const_storage_iterator begin() const noexcept { return storage_.cbegin(); }
-        const_storage_iterator end() const noexcept { return storage_.cend(); }
-        const_storage_iterator cbegin() const noexcept { return storage_.cbegin(); }
-        const_storage_iterator cend() const noexcept { return storage_.cend(); }
     };
 
 } // namespace mino::core::container
