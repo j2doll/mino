@@ -22,25 +22,30 @@ namespace mino::core::file {
     }
 
     bool file_watcher::set_target_path(const std::filesystem::path& target_path) {
+        namespace fs = std::filesystem;
+
         if (is_running_) {
             return false;
         }
 
         std::error_code ec;
-        auto status = std::filesystem::status(target_path, ec);
-        if (ec || !std::filesystem::exists(status)) {
+        auto status = fs::status(target_path, ec);
+        if (ec || !fs::exists(status)) {
             return false;
         }
 
-        if (std::filesystem::is_regular_file(status)) {
-            std::filesystem::last_write_time(target_path, ec);
+        if (fs::is_regular_file(status)) {
+            [[maybe_unused]] auto last_write = fs::last_write_time(target_path, ec);
             if (ec) {
                 return false;
             }
         }
-        else if (std::filesystem::is_directory(status)) {
-            std::filesystem::directory_iterator test_iter(
-                target_path, std::filesystem::directory_options::skip_permission_denied, ec);
+        else if (fs::is_directory(status)) {
+            using directory_iterator = fs::directory_iterator;
+            using directory_options = fs::directory_options;
+            auto skip_permission_denied = directory_options::skip_permission_denied;
+
+            directory_iterator test_iter(target_path, skip_permission_denied, ec);
             if (ec) {
                 return false;
             }
