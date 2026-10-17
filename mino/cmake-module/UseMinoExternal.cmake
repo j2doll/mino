@@ -5,7 +5,6 @@ function(use_mino_external EXE_NAME MINO_DIR)
         target_compile_options(${EXE_NAME} PRIVATE "/utf-8")
     endif()
 
-    # Warn if caller didn't create the executable target (we expect the caller to create it)
     if(NOT TARGET ${EXE_NAME})
         message(WARNING "use_mino_external: target ${EXE_NAME} does not exist. Proceeding to configure linking; create the executable target before calling this function.")
     endif()
@@ -56,7 +55,6 @@ function(use_mino_external EXE_NAME MINO_DIR)
             )
         endif()
 
-        # third-party dependencies
         find_package(Threads REQUIRED)
 
         if(UNIX AND NOT APPLE)

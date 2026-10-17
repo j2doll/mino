@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.24)
 
 project(mino_network_libssh2 VERSION 1.0.0 LANGUAGES CXX)
 
+# Standard installation paths for cross-platform compliance (Linux/macOS/Windows)
+include(GNUInstallDirs)
+
 # C++ Standard
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
@@ -11,10 +14,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Dependencies
 find_package(Threads REQUIRED)
+
+# Find Libssh2 via CMake Config or PkgConfig fallback
 find_package(Libssh2 CONFIG QUIET)
 if(NOT TARGET Libssh2::libssh2)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBSSH2 REQUIRED IMPORTED_TARGET libssh2)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(LIBSSH2 QUIET IMPORTED_TARGET libssh2)
+    endif()
+endif()
+
+# Fallback check if Libssh2 is found through either method
+if(NOT TARGET Libssh2::libssh2 AND NOT TARGET PkgConfig::LIBSSH2)
+    message(WARNING "Libssh2 target not found automatically. Ensure it is installed via vcpkg, conan, brew, or system package manager.")
 endif()
 
 # Source Files
@@ -32,24 +44,31 @@ target_include_directories(
     mino_network_libssh2
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-# Compiler & Platform Options
+# Compiler Options
 if(MSVC)
     target_compile_options(mino_network_libssh2 PRIVATE "/utf-8")
-endif()
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(mino_network_libssh2 PUBLIC -Wno-free-nonheap-object -Wno-deprecated-literal-operator)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(mino_network_libssh2 PRIVATE -Wall -Wextra -Wno-free-nonheap-object -Wno-deprecated-literal-operator)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
         target_link_libraries(mino_network_libssh2 PUBLIC stdc++fs)
     endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang")
+    target_compile_options(mino_network_libssh2 PRIVATE -Wall -Wextra)
 endif()
 
+# Platform-specific configurations
 if(WIN32)
     target_compile_definitions(mino_network_libssh2 PUBLIC WIN32_LEAN_AND_MEAN NOMINMAX)
     target_link_libraries(mino_network_libssh2 PRIVATE ws2_32 iphlpapi)
+elseif(APPLE)
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(SECURITY_FRAMEWORK Security)
+    if(CORE_FOUNDATION_FRAMEWORK AND SECURITY_FRAMEWORK)
+        target_link_libraries(mino_network_libssh2 PRIVATE ${CORE_FOUNDATION_FRAMEWORK} ${SECURITY_FRAMEWORK})
+    endif()
 endif()
 
 # Target Linking  
@@ -71,11 +90,12 @@ endif()
 install(
     TARGETS mino_network_libssh2
     EXPORT minoTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(DIRECTORY include/ DESTINATION include)
-
-
+install(
+    DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

@@ -13,11 +13,11 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
-    { 
-      "name": "windows-vs-base",
+    {
+      "name": "windows-msvc-base",
       "hidden": true,
       "inherits": "base-common",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "architecture": {
@@ -25,6 +25,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_TOOLCHAIN_FILE": {
           "type": "FILEPATH",
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
@@ -37,22 +39,22 @@
       }
     },
     {
-      "name": "vs-debug",
-      "displayName": "Windows VS 2022 (Debug)",
-      "inherits": "windows-vs-base",
+      "name": "windows-msvc-debug",
+      "displayName": "MSVC Debug",
+      "inherits": "windows-msvc-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "vs-release",
-      "displayName": "Windows VS 2022 (Release)",
-      "inherits": "windows-vs-base",
+      "name": "windows-msvc-release",
+      "displayName": "MSVC Release",
+      "inherits": "windows-msvc-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
-    { 
+    {
       "name": "linux-gcc-base",
       "hidden": true,
       "inherits": "base-common",
@@ -71,7 +73,7 @@
     },
     {
       "name": "linux-gcc-debug",
-      "displayName": "Linux GCC (Debug)",
+      "displayName": "GCC Debug",
       "inherits": "linux-gcc-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -79,8 +81,41 @@
     },
     {
       "name": "linux-gcc-release",
-      "displayName": "Linux GCC (Release)",
+      "displayName": "GCC Release",
       "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "macos-clang-base",
+      "hidden": true,
+      "inherits": "base-common",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Clang Debug",
+      "inherits": "macos-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Clang Release",
+      "inherits": "macos-clang-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -88,26 +123,34 @@
   ],
   "buildPresets": [
     {
-      "name": "vs-debug",
-      "displayName": "Build VS (Debug)",
-      "configurePreset": "vs-debug",
-      "configuration": "Debug"
+      "name": "windows-msvc-debug",
+      "displayName": "Build MSVC Debug",
+      "configurePreset": "windows-msvc-debug"
     },
     {
-      "name": "vs-release",
-      "displayName": "Build VS (Release)",
-      "configurePreset": "vs-release",
-      "configuration": "Release"
+      "name": "windows-msvc-release",
+      "displayName": "Build MSVC Release",
+      "configurePreset": "windows-msvc-release"
     },
     {
       "name": "linux-gcc-debug",
-      "displayName": "Build Linux GCC (Debug)",
+      "displayName": "Build GCC Debug",
       "configurePreset": "linux-gcc-debug"
     },
     {
       "name": "linux-gcc-release",
-      "displayName": "Build Linux GCC (Release)",
+      "displayName": "Build GCC Release",
       "configurePreset": "linux-gcc-release"
+    },
+    {
+      "name": "macos-clang-debug",
+      "displayName": "Build Clang Debug",
+      "configurePreset": "macos-clang-debug"
+    },
+    {
+      "name": "macos-clang-release",
+      "displayName": "Build Clang Release",
+      "configurePreset": "macos-clang-release"
     }
   ]
 }

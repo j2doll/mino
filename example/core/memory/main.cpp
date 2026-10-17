@@ -342,7 +342,7 @@ void test_pool_allocator_with_stl() {
         << std::endl;
 
     // 1. std::list 연동 (노드 단위 할당 시 메모리 풀 활용)
-    {
+    try {
         fixed_memory_pool list_pool(sizeof(int) + 32, 256); // list_pool 을 생성 (int + list 노드 오버헤드 고려, 256개 블록)
         pool_allocator<int> alloc(&list_pool); // list_pool 메모리 풀과 연동되는 pool_allocator 생성
 
@@ -364,10 +364,13 @@ void test_pool_allocator_with_stl() {
         std::cout
             << to_console_encoding(" -> std::list 연동 성공 (원소 수: ")
             << pool_list.size() << ")" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << to_console_encoding("std::list 연동 실패: ") << e.what() << std::endl;
+        return;
     }
 
     // 2. std::vector 연동 (n > 1 연속 블록 요청 시 글로벌 힙 자동 폴백 확인)
-    {
+    try {
         fixed_memory_pool vec_pool(sizeof(double), 64); // vec_pool 을 생성 (double 크기 고려, 64개 블록)
         pool_allocator<double> alloc(&vec_pool); // vec_pool 메모리 풀과 연동되는 pool_allocator 생성
 
@@ -417,6 +420,10 @@ void test_pool_allocator_with_stl() {
         std::cout
             << to_console_encoding(" -> std::vector 연동 및 힙 폴백 성공 (원소 수: ")
             << pool_vec.size() << ")" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << to_console_encoding("std::vector 연동 실패: ") << e.what() << std::endl;
+        return;
     }
 }
 

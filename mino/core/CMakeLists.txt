@@ -1,24 +1,22 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 1. Set the project name and version
-#   mino's submodule mino_core
-project(mino_core VERSION 1.0.0 LANGUAGES CXX)
+# 1. Project name and version setup
+#    Submodule: mino_core
+project(mino_core VERSION 1.0.0 LANGUAGES C CXX)
 
-# 2. C++ standard information setting
+# 2. C++ standard configuration
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 3. External dependency configuration
-
-# 3-1. Threads
+# 3. External dependencies
+# 3-1. Threads support
 find_package(Threads REQUIRED)
 
-# 4. Create a library and configure the source code
-
-# 4-1. Create a library
+# 4. Target library configuration and source collection
+# 4-1. Collect source files and create static library
 file(
     GLOB_RECURSE SRC_FILES
     CONFIGURE_DEPENDS
@@ -29,32 +27,31 @@ file(
 )
 add_library(mino_core STATIC ${SRC_FILES})
 
-# 4-2. Visual Studio setting
+# 4-2. MSVC compiler settings
 if(MSVC)
     target_compile_options(mino_core PRIVATE "/utf-8")
 endif()
 
-# 4-3. gcc setting
+# 4-3. GCC-specific compiler flags and backward compatibility
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(mino_core PUBLIC -Wno-free-nonheap-object)
+    target_compile_options(mino_core PRIVATE -Wno-free-nonheap-object)
 
-    # gcc 8.x filesystem library fix for std::filesystem
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    # GCC 8.x std::filesystem support
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
         target_link_libraries(mino_core PUBLIC stdc++fs)
-    endif()    
+    endif()
 endif()
 
-# 4-4. Link the Threads library 
+# 4-4. Link threading library
 target_link_libraries(mino_core PUBLIC Threads::Threads)
 
 # -------------------------------------------------------------
-# 4-5. Stack trace & debug symbols (Windows / macOS / Linux)
+# 4-5. Platform-specific settings: Stack trace and debug symbols
 # -------------------------------------------------------------
 if(WIN32)
-    # Windows: Link dbghelp for SymFromAddr and SymGetLineFromAddr64 symbols
+    # Windows: Link DbgHelp for stack trace symbol resolution (e.g., SymFromAddr)
     target_link_libraries(mino_core PUBLIC dbghelp)
 
-    # MSVC: Generate PDB only in Debug mode
     if(MSVC)
         target_compile_options(mino_core PRIVATE
             $<$<CONFIG:Debug>:/Zi>
@@ -65,25 +62,26 @@ if(WIN32)
     endif()
 
 elseif(APPLE)
-    # macOS: Enable -g only in Debug mode
+    # macOS: Clang / AppleClang settings
     target_compile_options(mino_core PRIVATE
         $<$<CONFIG:Debug>:-g>
     )
-    target_link_options(mino_core INTERFACE -Wl,-export_dynamic)
+    # Ensure symbols are preserved in consumers of this library
+    set_target_properties(mino_core PROPERTIES ENABLE_EXPORTS ON)
 
 elseif(UNIX)
-    # Linux: Link libdl for dladdr()
+    # Linux: Link dl for dynamic symbol resolution (dladdr)
     target_link_libraries(mino_core PUBLIC ${CMAKE_DL_LIBS})
 
-    # Linux: Enable -g only in Debug mode, and keep symbol export (-rdynamic)
     target_compile_options(mino_core PRIVATE
         $<$<CONFIG:Debug>:-g>
     )
+    # Export dynamic symbols for backtraces in dependent executables
     target_link_options(mino_core INTERFACE -rdynamic)
 endif()
 
-# 5. Specify the header file path
-# Distinguish the environment at build from the environment when it is installed and deployed later.
+# 5. Header search paths
+# Distinguish build directory paths from installed deployment paths
 target_include_directories(
     mino_core
     PUBLIC
@@ -91,17 +89,15 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
-# 6. Define an install rule
+# 6. Installation rules for library targets
 install(
     TARGETS mino_core
-    EXPORT
-        minoTargets # Important: Manage all submodules under a single bundle of exports (minoTargets)
+    EXPORT minoTargets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
-# 7. Public header file installation (copy the entire folder)
-# Set the mino folder inside include/ as the target to maintain the include/mino/core/ structure.
+# 7. Public header installation
+# Preserves the directory hierarchy: include/mino/...
 install(DIRECTORY include/mino DESTINATION include)
-
