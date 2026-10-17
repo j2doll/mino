@@ -130,13 +130,13 @@
 - 🏛️ [reflect](example/core/reflect/main.cpp)
     - 구조체의 직렬화/역직렬화 매크로.
 - 🏛️ `resilience`
-    - [`bulkhead`](example/core/resilience/test_bulkhead.cpp)
-    - [`circuit breaker`](example/core/resilience/test_circuit_breaker.cpp)
-    - [`paginated list`](example/core/resilience/test_paginated_list.cpp)
-    - [`retry helper`](example/core/resilience/test_retry_helper.cpp)
-    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp)
-    - [`token bucket`](example/core/resilience/test_token_bucket.cpp)
-    - [`bulkhead`, `token bucket`, `circuit breaker` 조합](example/core/resilience/test_combined.cpp)
+    - [`bulkhead`](example/core/resilience/test_bulkhead.cpp) : 동시 몇 개까지 제한
+    - [`circuit breaker`](example/core/resilience/test_circuit_breaker.cpp) : 장애가 발생 시 호출 차단
+    - [`paginated list`](example/core/resilience/test_paginated_list.cpp) : 페이지 단위로 나누어 조회
+    - [`retry helper`](example/core/resilience/test_retry_helper.cpp) : 실패 가능성 작업을 자동 재시도
+    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp) : 최근 시간(윈도우) 내 요청 횟수를 제한
+    - [`token bucket`](example/core/resilience/test_token_bucket.cpp) : 빈도를 조절할 때 사용
+    - [벌크헤드, 토큰 버킷, 서킷 브레이커 조합 예제](example/core/resilience/test_combined.cpp)
     - [레이트 리미터 예제1](example/core/resilience/test_rate_limiters.cpp)
     - [레이트 리미터 예제2](example/core/resilience/test_rate_limiter_example.cpp)
 - 🏛️ [result](example/core/result/main.cpp)
@@ -145,7 +145,7 @@
     - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
     - [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
 - 🏛️ [scope](example/core/scope/main.cpp)
-    - 스코프 탈툴 시 자동 처리
+    - 스코프 탈출 시 자동 처리
 - 🏛️ [server](example/core/server/main.cpp) 
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 
