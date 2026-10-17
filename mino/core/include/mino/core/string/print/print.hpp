@@ -20,29 +20,6 @@
 
 #include "mino/core/string/to_console_encoding.hpp"
 
-// NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
-//
-// #include "mino/core/string/string.hpp"
-// namespace {
-//  namespace mcs = mino::core::string;
-//  namespace mcsp = mino::core::string::print;
-// 
-//  auto tce = mcs::to_console_encoding;
-//  auto tcev = [](std::string_view sv) { return mcs::to_console_encoding(std::string(sv)); };
-// 
-//  auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-//  auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-//  std::ostream& (*endl)(std::ostream&) = std::endl;
-// 
-//  auto println = [](std::string_view fmt, auto&&... args) { mcsp::println(fmt, s:forward<decltype(args)>(args)...); };
-//  auto eprintln = [](std::string_view fmt, auto&&... args) { mcsp::eprintln(fmt, s:forward<decltype(args)>(args)...); };
-//
-//  auto printss = [](std::string_view fmt, mcsp::named_args args) { mcsp::printss(fmt, as); };
-//  auto printlnss = [](std::string_view fmt, mcsp::named_args args) { mcsp::printlnss(fmt, a); };
-//  auto eprintss = [](std::string_view fmt, mcsp::named_args args) { mcsp::eprintss(fmt, a); };
-//  auto eprintlnss = [](std::string_view fmt, mcsp::named_args args) { mcsp::eprintlnss(fmt, a); };
-// }
-// 
 
 namespace mino::core::string::print {
 
@@ -347,3 +324,38 @@ namespace mino::core::string::print {
     }
 
 } // namespace mino::core::string::print
+
+//-----------------------------------------------------------------
+// NOTE: 다음과 같이 람다를 사용하여 간단히 호출도 가능.
+//
+// #include "mino/core/string/string.hpp"
+// namespace {
+//  namespace mcs = mino::core::string;
+//  namespace mcsp = mino::core::string::print;
+// 
+//  auto tce = mcs::to_console_encoding;
+//  auto tcev = [](std::string_view sv) { \
+//    return mcs::to_console_encoding(std::string(sv)); };
+// 
+//  auto print = [](const auto&... args) { \
+//    (std::cout << ... << args) << std::endl; };
+//  auto eprint = [](const auto&... args) { \
+//    (std::cerr << ... << args) << std::endl; };
+//  std::ostream& (*endl)(std::ostream&) = std::endl;
+// 
+//  auto println = [](std::string_view fmt, auto&&... args) { \
+//    mcsp::println(fmt, s:forward<decltype(args)>(args)...); };
+//  auto eprintln = [](std::string_view fmt, auto&&... args) { \
+//    mcsp::eprintln(fmt, s:forward<decltype(args)>(args)...); };
+//
+//  auto printss = [](std::string_view fmt, mcsp::named_args args) { \
+//    mcsp::printss(fmt, as); };
+//  auto printlnss = [](std::string_view fmt, mcsp::named_args args) { \
+//    mcsp::printlnss(fmt, a); };
+//  auto eprintss = [](std::string_view fmt, mcsp::named_args args) { \
+//    mcsp::eprintss(fmt, a); };
+//  auto eprintlnss = [](std::string_view fmt, mcsp::named_args args) { \
+//    mcsp::eprintlnss(fmt, a); };
+// }
+// 
+//-----------------------------------------------------------------

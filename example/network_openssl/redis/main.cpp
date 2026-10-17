@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include "mino/core/string/string.hpp"
-#include "mino/core/string/print.hpp"
+#include "mino/core/string/print/print.hpp"
 
 #include "mino/network/ethernet.hpp"
 

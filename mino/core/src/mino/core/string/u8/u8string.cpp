@@ -7,9 +7,10 @@
 #   include <locale>
 #endif
 
-#include "mino/core/string/u8string.hpp"
 #include "mino/core/string/string_basic.hpp"
 #include "mino/core/string/to_string.hpp"
+
+#include "mino/core/string/u8/u8string.hpp"
 
 // UTF-8 내부 처리용 detail 네임스페이스
 namespace mino::core::string::u8

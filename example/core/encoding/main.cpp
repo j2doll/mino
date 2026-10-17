@@ -3,8 +3,8 @@
 #include <cassert>
 
 #include "mino/core/encoding/encoding.hpp"
-#include "mino/core/string/u8string.hpp"
-#include "mino/core/string/print.hpp"
+#include "mino/core/string/u8/u8string.hpp"
+#include "mino/core/string/print/print.hpp"
 
 int main() {
     namespace mce = mino::core::encoding;

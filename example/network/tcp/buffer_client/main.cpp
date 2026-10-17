@@ -9,7 +9,7 @@
 
 #include "mino/network/tcp/tcp_client.hpp"
 #include "mino/core/container/byte_buffer.hpp"
-#include "mino/core/string/print.hpp"
+#include "mino/core/string/print/print.hpp"
 
 namespace mcsp = mino::core::string::print;
 

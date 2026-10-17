@@ -4,7 +4,7 @@
 #include <memory>
 #include <chrono>
 
-#include "mino/core/string/print.hpp"
+#include "mino/core/string/print/print.hpp"
 
 #include "mino/network/ethernet.hpp"
 #include "mino/network/ftp/tcp/ftp_client.hpp"

@@ -5,7 +5,7 @@
 
 #include "mino/core/expected/expected.hpp"
 #include "mino/core/string/to_console_encoding.hpp"
-#include "mino/core/string/print.hpp"  
+#include "mino/core/string/print/print.hpp"  
 
 // 커스텀 에러 열거형
 enum class MathError {

@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <limits>
 
-#include "mino/core/string/u8.hpp"
+#include "mino/core/string/u8/u8.hpp"
 
 namespace mino::core::string {
 

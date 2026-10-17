@@ -3,7 +3,7 @@
 #include "mino/external/log/sqlite/sqlite_logger.hpp"
 
 #include "mino/core/datetime/unit/date_time.hpp"
-#include "mino/core/string/u8string.hpp"
+#include "mino/core/string/u8/u8string.hpp"
 #include "mino/core/string/mutex_string.hpp"
 
 #include <string>

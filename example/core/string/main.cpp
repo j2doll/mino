@@ -21,6 +21,7 @@ extern void test_u8string();
 extern void test_encodings();
 extern void test_print();
 extern void test_string_ext();
+extern void test_format();
 
 int main() {
     const auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
@@ -49,7 +50,8 @@ int main() {
         test_u8string();
         test_encodings();
         test_print();
-        test_string_ext(); 
+        test_string_ext();
+        test_format(); 
 
         print(endl, tce("========================================"));
         print(tce("[SUCCESS] All tests passed successfully!"));

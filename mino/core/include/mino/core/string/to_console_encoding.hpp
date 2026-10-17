@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-#include "mino/core/string/u8.hpp"
+#include "mino/core/string/u8/u8.hpp"
 
 namespace mino::core::string {
 

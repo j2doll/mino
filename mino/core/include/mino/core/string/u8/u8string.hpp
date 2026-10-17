@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "mino/core/string/u8.hpp"
+#include "mino/core/string/u8/u8.hpp"
 
 // C++ 표준 문자열 타입
 // | 타입           | type     | 문자크기 | 인코딩                          |
