@@ -670,16 +670,16 @@ $ eza --tree mino
    - 상세 내용 [LICENSE](LICENSE) 참고
 - 📜 외부 라이브러리 
     - 📦 `external` 모듈
-        - 📄 [nlohmann/json](https://github.com/nlohmann/json) : `MIT License`
-        - ⚡ [spdlog](https://github.com/gabime/spdlog) : `MIT License`
-        - 🐶 [pugixml](https://github.com/zeux/pugixml) : `MIT License`
-        - 🗜️ [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License`
-        - 🗄️ [sqlite3](https://www.sqlite.org/index.html) : `Public Domain`
+        - 📄 [nlohmann/json](https://github.com/nlohmann/json) : `MIT License` <sub> header-only </sub>
+        - ⚡ [spdlog](https://github.com/gabime/spdlog) : `MIT License` <sub> header-only </sub>
+        - 🐶 [pugixml](https://github.com/zeux/pugixml) : `MIT License` <sub> header-only </sub>
+        - 🗜️ [miniz-cpp](https://github.com/tfussell/miniz-cpp) : `MIT License` <sub> header-only </sub>
+        - 🗄️ [sqlite3](https://www.sqlite.org/index.html) : `Public Domain` <sub> amalgamation </sub>
     - 🔀 `network` 모듈
-        - 📡 [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License`
-        - 🌐 [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html)
-        - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License`
-        - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`
-        - 🥖 [brotli](https://github.com/google/brotli) : `MIT License`
+        - 📡 [cpp-httplib](https://github.com/yhirose/cpp-httplib) : `MIT License` <sub> header-only </sub>
+        - 🌐 [libcurl](https://curl.se/) : [`Curl License`](https://curl.se/docs/copyright.html) <sub> static or dynamic library </sub>
+        - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License` <sub> static or dynamic library </sub>
+        - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`  <sub> static or dynamic library </sub>
+        - 🥖 [brotli](https://github.com/google/brotli) : `MIT License`  <sub> static or dynamic library </sub>
 
 
