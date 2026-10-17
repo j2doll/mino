@@ -130,15 +130,15 @@
 - 🏛️ [reflect](example/core/reflect/main.cpp)
     - 구조체의 직렬화/역직렬화 매크로.
 - 🏛️ `resilience`
-    - [bulkhead](example/core/resilience/test_bulkhead.cpp)
-    - [circuit_breaker](example/core/resilience/test_circuit_breaker.cpp)
-    - [combined](example/core/resilience/test_combined.cpp)
-    - [paginated_list](example/core/resilience/test_paginated_list.cpp)
-    - [rate_limiters](example/core/resilience/test_rate_limiters.cpp)
-    - [rate_limiter_example](example/core/resilience/test_rate_limiter_example.cpp)
-    - [retry_helper](example/core/resilience/test_retry_helper.cpp)
-    - [sliding_window_limiter](example/core/resilience/test_sliding_window_limiter.cpp)
-    - [token_bucket](example/core/resilience/test_token_bucket.cpp)
+    - [`bulkhead`](example/core/resilience/test_bulkhead.cpp)
+    - [`circuit breaker`](example/core/resilience/test_circuit_breaker.cpp)
+    - [`paginated list`](example/core/resilience/test_paginated_list.cpp)
+    - [`retry helper`](example/core/resilience/test_retry_helper.cpp)
+    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp)
+    - [`token bucket`](example/core/resilience/test_token_bucket.cpp)
+    - [`bulkhead`, `token bucket`, `circuit breaker` 조합](example/core/resilience/test_combined.cpp)
+    - [레이트 리미터 예제1](example/core/resilience/test_rate_limiters.cpp)
+    - [레이트 리미터 예제2](example/core/resilience/test_rate_limiter_example.cpp)
 - 🏛️ [result](example/core/result/main.cpp)
     - 타입 별 성공/실패 처리.
 - 🏛️ `schedule`  

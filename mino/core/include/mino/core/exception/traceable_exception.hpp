@@ -50,20 +50,24 @@ namespace mino::core::exception {
     )
 
 // 멀티 라인 명령 매크로 
-#define MINO_X_GUARD_BEGIN \
-    const char* _mino_file = __FILE__; \
-    int _mino_line = __LINE__; \
+#define MINO_X_LINE _mino_cur_line = __LINE__
+
+#define MINO_X_BEGIN \
+    const char* _mino_cur_file = __FILE__; \
+    int _mino_cur_line = __LINE__; \
     try {
 
-#define MINO_X_GUARD_END \
+#define MINO_X_END \
     } catch (const std::exception& e) { \
         throw ::mino::core::exception::traceable_exception( \
-            e.what(), _mino_file, _mino_line, std::current_exception() \
+            e.what(), _mino_cur_file, _mino_cur_line, std::current_exception() \
         ); \
     } catch (...) { \
         throw ::mino::core::exception::traceable_exception( \
-            "unknown non-std exception", _mino_file, _mino_line, std::current_exception() \
+            "unknown non-std exception", _mino_cur_file, _mino_cur_line, std::current_exception() \
         ); \
     }
+
+
 
 

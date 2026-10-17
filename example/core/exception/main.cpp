@@ -105,15 +105,17 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     //--------------------------------------------
-    // [4] 멀티 라인 명령 매크로 MINO_X2() 사용
+    // [4] 멀티 라인 명령 매크로 사용
+    //  - C++17 버전 제한 때문에 번거로운 매크로 사용방법이 제시됨.
+    //  - C++23 이상인 경우 std::stacktrace를 활용할 것.
     try {
         bool result = false;
-        MINO_X_GUARD_BEGIN
-            int a = 10;
-            std::string b = std::to_string(a);
-            result = fs::create_directory("invalid/not/exist/path"); // 예외 발생
-            std::cout << tce("[4][MINO_X2] 디렉토리 생성 시도") << std::endl;
-        MINO_X_GUARD_END
+        MINO_X_BEGIN
+            MINO_X_LINE; int a = 10;
+            MINO_X_LINE; std::string b = std::to_string(a);
+            MINO_X_LINE; result = fs::create_directory("invalid/not/exist/path"); // 예외 발생
+            MINO_X_LINE; std::cout << tce("[4][MINO_X2] 디렉토리 생성 시도") << std::endl;
+        MINO_X_END
     }
     catch (const mce::traceable_exception& e) {
         auto what = std::string(e.what()); // 예외 메시지
