@@ -13,9 +13,57 @@
 #   include <cxxabi.h>
 #   include <memory>
 #   include <dlfcn.h>
+#   include <unistd.h>
+#   include <array>
 #endif
 
 namespace mino::core::exception {
+
+    namespace {
+#if defined(__linux__)
+        // 리눅스: 주소와 모듈 정보를 기반으로 파일명 및 라인 번호 복원
+        std::string resolve_linux_source_location(void* addr) {
+            Dl_info info;
+            if (!dladdr(addr, &info) || !info.dli_fname) {
+                return "";
+            }
+
+            // PIE(Position Independent Executable) 또는 공유 라이브러리의 상대 오프셋 계산
+            uintptr_t base_addr = reinterpret_cast<uintptr_t>(info.dli_fbase);
+            uintptr_t target_addr = reinterpret_cast<uintptr_t>(addr);
+            uintptr_t offset = target_addr - base_addr;
+
+            char cmd[2048];
+            // PIE/공유객체는 오프셋 주소로 조회하고, 일반 바이너리는 절대 주소로 fallback 시도
+            snprintf(cmd, sizeof(cmd),
+                "addr2line -C -e \"%s\" -f -p %lx 2>/dev/null || addr2line -C -e \"%s\" -f -p %p 2>/dev/null",
+                info.dli_fname, offset, info.dli_fname, addr);
+
+            std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+            if (!pipe) {
+                return "";
+            }
+
+            std::array<char, 512> buffer;
+            std::string result;
+            while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+                result += buffer.data();
+            }
+
+            // 개행 문자 제거
+            while (!result.empty() && (result.back() == '\n' || result.back() == '\r')) {
+                result.pop_back();
+            }
+
+            // 디버그 심볼(-g)이 없는 Release 모드이거나 심볼을 못 찾으면 "??:0" 등이 반환됨
+            if (result.empty() || result.find("??:0") != std::string::npos || result.find("??:?") != std::string::npos) {
+                return "";
+            }
+
+            return result;
+        }
+#endif
+    } // anonymous namespace
 
     stack_traced_exception::stack_traced_exception(const std::string& message)
         : std::runtime_error(message) {
@@ -65,6 +113,7 @@ namespace mino::core::exception {
                 func_name = symbol->Name;
             }
 
+            // Debug 모드에서 PDB가 있으면 파일명:라인 획득, Release 모드면 자동으로 생략됨
             if (SymGetLineFromAddr64(process, address, &displacement, &line_info)) {
                 location = std::string(" at ") + line_info.FileName + ":" + std::to_string(line_info.LineNumber);
             }
@@ -80,6 +129,16 @@ namespace mino::core::exception {
         for (int i = 2; i < size; ++i) {
             std::string frame_desc = symbols[i];
 
+#if defined(__linux__)
+            // Debug 모드(-g)인 경우 addr2line을 통해 "함수명 at 파일:라인" 획득 시도
+            std::string resolved = resolve_linux_source_location(stack[i]);
+            if (!resolved.empty()) {
+                frames_.push_back(resolved);
+                continue;
+            }
+#endif
+
+            // Release 모드이거나(-g 없음) 조회 실패 시: 디맹글링된 함수명/기본 심볼 문자열 사용
             Dl_info info;
             if (dladdr(stack[i], &info) && info.dli_sname) {
                 int status = -1;

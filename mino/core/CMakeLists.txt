@@ -54,29 +54,31 @@ if(WIN32)
     # Windows: Link dbghelp for SymFromAddr and SymGetLineFromAddr64 symbols
     target_link_libraries(mino_core PUBLIC dbghelp)
 
-    # MSVC: Generate PDB files in both Release and Debug to resolve filenames and line numbers
+    # MSVC: Generate PDB only in Debug mode
     if(MSVC)
         target_compile_options(mino_core PRIVATE
-            $<$<CONFIG:Release>:/Zi>
             $<$<CONFIG:Debug>:/Zi>
         )
         target_link_options(mino_core INTERFACE
-            $<$<CONFIG:Release>:/DEBUG>
             $<$<CONFIG:Debug>:/DEBUG>
         )
     endif()
 
 elseif(APPLE)
-    # macOS: libdl is not required, enable debug symbols (-g) and dynamic symbol export
-    target_compile_options(mino_core PRIVATE -g)
+    # macOS: Enable -g only in Debug mode
+    target_compile_options(mino_core PRIVATE
+        $<$<CONFIG:Debug>:-g>
+    )
     target_link_options(mino_core INTERFACE -Wl,-export_dynamic)
 
 elseif(UNIX)
     # Linux: Link libdl for dladdr()
     target_link_libraries(mino_core PUBLIC ${CMAKE_DL_LIBS})
 
-    # Export symbols to the dynamic symbol table (-rdynamic) and retain debug symbols (-g)
-    target_compile_options(mino_core PRIVATE -g)
+    # Linux: Enable -g only in Debug mode, and keep symbol export (-rdynamic)
+    target_compile_options(mino_core PRIVATE
+        $<$<CONFIG:Debug>:-g>
+    )
     target_link_options(mino_core INTERFACE -rdynamic)
 endif()
 
