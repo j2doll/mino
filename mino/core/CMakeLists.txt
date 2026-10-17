@@ -47,6 +47,39 @@ endif()
 # 4-4. Link the Threads library 
 target_link_libraries(mino_core PUBLIC Threads::Threads)
 
+# -------------------------------------------------------------
+# 4-5. Stack trace & debug symbols (Windows / macOS / Linux)
+# -------------------------------------------------------------
+if(WIN32)
+    # Windows: Link dbghelp for SymFromAddr and SymGetLineFromAddr64 symbols
+    target_link_libraries(mino_core PUBLIC dbghelp)
+
+    # MSVC: Generate PDB files in both Release and Debug to resolve filenames and line numbers
+    if(MSVC)
+        target_compile_options(mino_core PRIVATE
+            $<$<CONFIG:Release>:/Zi>
+            $<$<CONFIG:Debug>:/Zi>
+        )
+        target_link_options(mino_core INTERFACE
+            $<$<CONFIG:Release>:/DEBUG>
+            $<$<CONFIG:Debug>:/DEBUG>
+        )
+    endif()
+
+elseif(APPLE)
+    # macOS: libdl is not required, enable debug symbols (-g) and dynamic symbol export
+    target_compile_options(mino_core PRIVATE -g)
+    target_link_options(mino_core INTERFACE -Wl,-export_dynamic)
+
+elseif(UNIX)
+    # Linux: Link libdl for dladdr()
+    target_link_libraries(mino_core PUBLIC ${CMAKE_DL_LIBS})
+
+    # Export symbols to the dynamic symbol table (-rdynamic) and retain debug symbols (-g)
+    target_compile_options(mino_core PRIVATE -g)
+    target_link_options(mino_core INTERFACE -rdynamic)
+endif()
+
 # 5. Specify the header file path
 # Distinguish the environment at build from the environment when it is installed and deployed later.
 target_include_directories(
