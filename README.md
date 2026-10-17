@@ -129,8 +129,16 @@
     - 프로세스 목록 및 정보 얻기.
 - 🏛️ [reflect](example/core/reflect/main.cpp)
     - 구조체의 직렬화/역직렬화 매크로.
-- 🏛️ [resilience](example/core/resilience/main.cpp) : 복원력 패턴  
-    - 재시도 전략, 지수 백오프, 서킷 브레이커.
+- 🏛️ `resilience`
+    - [bulkhead](example/core/resilience/bulkhead/main.cpp)
+    - [circuit_breaker](example/core/resilience/circuit_breaker/main.cpp)
+    - [combined](example/core/resilience/combined/main.cpp)
+    - [paginated_list](example/core/resilience/paginated_list/main.cpp)
+    - [rate_limiters](example/core/resilience/rate_limiters/main.cpp)
+    - [rate_limiter_example](example/core/resilience/rate_limiter_example/main.cpp)
+    - [retry_helper](example/core/resilience/retry_helper/main.cpp)
+    - [sliding_window_limiter](example/core/resilience/sliding_window_limiter/main.cpp)
+    - [token_bucket](example/core/resilience/token_bucket/main.cpp)
 - 🏛️ [result](example/core/result/main.cpp)
     - 타입 별 성공/실패 처리.
 - 🏛️ `schedule`  

@@ -102,5 +102,36 @@ int main(int argc, char* argv[]) {
         std::cout << tce(" 알 수 없는 예외가 발생했습니다.") << std::endl;
     }
 
+    std::cout << std::endl;
+
+    //--------------------------------------------
+    // [4] 멀티 라인 명령 매크로 MINO_X2() 사용
+    try {
+        bool result = false;
+        MINO_X_GUARD_BEGIN
+            int a = 10;
+            std::string b = std::to_string(a);
+            result = fs::create_directory("invalid/not/exist/path"); // 예외 발생
+            std::cout << tce("[4][MINO_X2] 디렉토리 생성 시도") << std::endl;
+        MINO_X_GUARD_END
+    }
+    catch (const mce::traceable_exception& e) {
+        auto what = std::string(e.what()); // 예외 메시지
+        auto file_name = std::string(e.file_name()); // 예외 발생 파일 이름
+        auto line_number = e.line_number(); // 예외 발생 파일의 라인 번호
+        std::cout << tce("[4][traceable_exception][예외 발생]\n");
+        std::cout << tce(" 메시지: ") << what << std::endl;
+        std::cout << tce(" 파일: ") << file_name << std::endl;
+        std::cout << tce(" 라인: ") << line_number << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cout << tce("[4][exception][예외 발생]\n");
+        std::cout << tce(" 메시지: ") << e.what() << std::endl;
+    }
+    catch (...) {
+        std::cout << tce("[4][예외 발생]\n");
+        std::cout << tce(" 알 수 없는 예외가 발생했습니다.") << std::endl;
+    }
+
     return 0;
 }
