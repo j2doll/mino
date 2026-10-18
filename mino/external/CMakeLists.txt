@@ -102,12 +102,3 @@ install(
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
-#####################################
-# # 1) 소스에 슬래시를 붙이면: 소스 디렉터리의 "내용"을 대상 디렉터리에 복사
-# install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party/" DESTINATION third-party)
-# # 결과 -> ${CMAKE_INSTALL_PREFIX}/third-party/ (소스 third-party 내부 파일들이 이곳에 들어감)
-#####################################
-# # 2) 소스에 슬래시가 없으면: 소스 디렉터리 자체가 DESTINATION 아래에 생성되어 복사
-# install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party" DESTINATION third-party)
-# # 결과 -> ${CMAKE_INSTALL_PREFIX}/third-party/third-party/ (마지막 경로 컴포넌트가 하위 디렉터리로 생성)
-#####################################

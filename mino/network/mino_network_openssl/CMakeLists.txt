@@ -46,7 +46,7 @@ add_library(mino_network_openssl STATIC ${SRC_FILES})
 
 # Include Directories for Third-Party Libraries
 target_include_directories(mino_network_openssl SYSTEM PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/mino/network_openssl/third-party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third-party
 )
 
 # Include Directories & Compile Definitions
@@ -117,3 +117,13 @@ install(
 )
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+
+# Install third-party directory to the install prefix root: <prefix>/third-party
+install(
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party/"
+  DESTINATION third-party
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+
