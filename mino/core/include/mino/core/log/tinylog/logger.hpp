@@ -167,13 +167,15 @@ namespace mino::core::log::tinylog {
             std::vector<std::string> arg_strs;
             arg_strs.reserve(sizeof...(args));
 
-            auto to_string_helper = [&](const auto& arg) {
-                std::stringstream ss;
-                ss << std::boolalpha;
-                ss << arg;
-                arg_strs.push_back(ss.str());
+            if constexpr (sizeof...(args) > 0) {
+                auto to_string_helper = [&](const auto& arg) {
+                    std::stringstream ss;
+                    ss << std::boolalpha;
+                    ss << arg;
+                    arg_strs.push_back(ss.str());
                 };
-            (to_string_helper(format_args), ...);
+                (to_string_helper(format_args), ...);
+            }
 
             std::string result;
             result.reserve(fmt.size() + (sizeof...(args) * 16));
