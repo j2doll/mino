@@ -7,7 +7,12 @@
 namespace mino::network_libssh2::ssh2 {
 
     ssh_client::ssh_client() {
-        platform_network_initializer::ensure_initialized();
+        try {
+            platform_network_initializer::ensure_initialized();
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[ssh_client] Failed to initialize libssh2: " << e.what() << std::endl;
+        }
     }
 
     ssh_client::~ssh_client() {

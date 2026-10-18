@@ -1,16 +1,12 @@
 #include "mino/core/zip/zip_archiver.hpp"
 
 #include <algorithm>
-#include <stdexcept>
 #include <system_error>
 
 namespace mino::core::zip {
 
     namespace detail {
 
-        // -------------------------------------------------------------
-        // CRC32 계산 정의
-        // -------------------------------------------------------------
         uint32_t calculate_crc32(const std::vector<uint8_t>& data) {
             static const auto crc_table = []() {
                 std::array<uint32_t, 256> table{};
@@ -31,9 +27,6 @@ namespace mino::core::zip {
             return crc ^ 0xFFFFFFFF;
         }
 
-        // -------------------------------------------------------------
-        // bit_writer 멤버 함수 정의
-        // -------------------------------------------------------------
         void bit_writer::write_bits(uint32_t bits, int count) {
             bit_buffer |= (bits << bit_count);
             bit_count += count;
@@ -56,9 +49,6 @@ namespace mino::core::zip {
             return out_bytes;
         }
 
-        // -------------------------------------------------------------
-        // 허프만 및 DEFLATE 헬퍼 함수 정의
-        // -------------------------------------------------------------
         void write_huffman_code(bit_writer& bw, uint32_t code, int length) {
             uint32_t reversed = 0;
             for (int i = 0; i < length; ++i) {
@@ -103,7 +93,7 @@ namespace mino::core::zip {
             }
         }
 
-        std::vector<uint8_t> compress_deflate(const std::vector<uint8_t>& input,
+        std::optional<std::vector<uint8_t>> compress_deflate(const std::vector<uint8_t>& input,
             compression_level level,
             const std::string& entry_name,
             const progress_callback& callback,
@@ -111,23 +101,24 @@ namespace mino::core::zip {
             const size_t in_size = input.size();
             int last_reported_pct = -1;
 
-            auto report = [&](size_t current_pos, bool force = false) {
-                if (!callback) return;
+            auto report = [&](size_t current_pos, bool force = false) -> bool {
+                if (!callback) return true;
 
                 int current_pct = (in_size == 0) ? 100 : static_cast<int>((current_pos * 100) / in_size);
 
                 if (last_reported_pct == -1 || (current_pct - last_reported_pct >= percent_step) || force) {
-                    if (force && current_pct == last_reported_pct) return;
+                    if (force && current_pct == last_reported_pct) return true;
 
                     last_reported_pct = current_pct;
                     progress_info info{ entry_name, current_pos, in_size, current_pct };
-                    if (!callback(info)) {
-                        throw std::runtime_error("Compression cancelled by user progress callback.");
-                    }
+                    return callback(info);
                 }
+                return true;
                 };
 
-            report(0);
+            if (!report(0)) {
+                return std::nullopt;
+            }
 
             if (level == compression_level::store) {
                 bit_writer bw;
@@ -140,7 +131,7 @@ namespace mino::core::zip {
                     auto& bytes = bw.get_bytes();
                     bytes.push_back(0); bytes.push_back(0);
                     bytes.push_back(0xFF); bytes.push_back(0xFF);
-                    report(0, true);
+                    if (!report(0, true)) return std::nullopt;
                     return bytes;
                 }
 
@@ -164,9 +155,9 @@ namespace mino::core::zip {
                     bytes.insert(bytes.end(), input.begin() + offset, input.begin() + offset + block_len);
                     offset += block_len;
 
-                    report(offset);
+                    if (!report(offset)) return std::nullopt;
                 }
-                report(in_size, true);
+                if (!report(in_size, true)) return std::nullopt;
                 return bw.get_bytes();
             }
 
@@ -181,7 +172,7 @@ namespace mino::core::zip {
             const size_t max_match = 258;
 
             while (pos < in_size) {
-                report(pos);
+                if (!report(pos)) return std::nullopt;
 
                 size_t best_len = 0;
                 size_t best_dist = 0;
@@ -268,28 +259,18 @@ namespace mino::core::zip {
             write_fixed_literal(bw, 256);
             bw.flush();
 
-            report(in_size, true);
+            if (!report(in_size, true)) return std::nullopt;
 
             return bw.get_bytes();
         }
 
     } // namespace detail
 
-    // -------------------------------------------------------------
-    // zip_archiver 멤버 함수 정의
-    // -------------------------------------------------------------
     zip_archiver::zip_archiver() = default;
 
     zip_archiver::~zip_archiver() {
         if (is_initialized && !is_finished) {
-            try {
-                if (zip_out.is_open()) {
-                    zip_out.close();
-                }
-                std::error_code ec;
-                fs::remove(target_path, ec);
-            }
-            catch (...) {}
+            cleanup_on_error();
         }
     }
 
@@ -310,10 +291,8 @@ namespace mino::core::zip {
 
     zip_archiver& zip_archiver::operator=(zip_archiver&& other) noexcept {
         if (this != &other) {
-            if (is_initialized && !is_finished && zip_out.is_open()) {
-                zip_out.close();
-                std::error_code ec;
-                fs::remove(target_path, ec);
+            if (is_initialized && !is_finished) {
+                cleanup_on_error();
             }
 
             target_path = std::move(other.target_path);
@@ -333,25 +312,30 @@ namespace mino::core::zip {
         return *this;
     }
 
-    void zip_archiver::init(const fs::path& zip_path,
+    void zip_archiver::cleanup_on_error() {
+        if (zip_out.is_open()) {
+            zip_out.close();
+        }
+        std::error_code ec;
+        fs::remove(target_path, ec);
+    }
+
+    bool zip_archiver::init(const fs::path& zip_path,
         bool overwrite,
         compression_level default_lvl,
         path_encoding default_enc) {
-        if (is_initialized) {
-            throw std::logic_error("Archiver is already initialized.");
-        }
-        if (zip_path.empty()) {
-            throw std::invalid_argument("Destination zip file path cannot be empty.");
+        if (is_initialized || zip_path.empty()) {
+            return false;
         }
 
         std::error_code ec;
 
         if (fs::exists(zip_path, ec) && fs::is_directory(zip_path, ec)) {
-            throw std::runtime_error("Destination path points to an existing directory: " + zip_path.string());
+            return false;
         }
 
         if (!overwrite && fs::exists(zip_path, ec)) {
-            throw std::runtime_error("Destination zip file already exists and overwrite is set to false: " + zip_path.string());
+            return false;
         }
 
         if (zip_path.has_parent_path()) {
@@ -359,7 +343,7 @@ namespace mino::core::zip {
             if (!fs::exists(parent_dir, ec)) {
                 fs::create_directories(parent_dir, ec);
                 if (ec) {
-                    throw std::runtime_error("Failed to create destination directories: " + parent_dir.string() + " (" + ec.message() + ")");
+                    return false;
                 }
             }
         }
@@ -371,16 +355,14 @@ namespace mino::core::zip {
         cd_headers.clear();
         filenames.clear();
 
-        zip_out.exceptions(std::ios::badbit | std::ios::failbit);
-
-        try {
-            zip_out.open(target_path, std::ios::binary | std::ios::trunc);
-        }
-        catch (const std::exception& e) {
-            throw std::runtime_error("Failed to open output ZIP file: " + target_path.string() + " (" + e.what() + ")");
+        zip_out.clear();
+        zip_out.open(target_path, std::ios::binary | std::ios::trunc);
+        if (!zip_out.is_open() || !zip_out.good()) {
+            return false;
         }
 
         is_initialized = true;
+        return true;
     }
 
     void zip_archiver::set_progress_callback(progress_callback callback, int percent_step) {
@@ -388,52 +370,56 @@ namespace mino::core::zip {
         progress_step = std::clamp(percent_step, 1, 100);
     }
 
-    void zip_archiver::ensure_initialized_and_active() const {
-        if (!is_initialized) {
-            throw std::logic_error("Archiver is not initialized. Call init() before performing operations.");
-        }
-        if (is_finished) {
-            throw std::logic_error("Cannot modify a finished ZIP archive.");
-        }
+    bool zip_archiver::is_valid_state() const {
+        return is_initialized && !is_finished;
     }
 
-    std::string zip_archiver::sanitize_archive_path(const std::string& input_path) const {
+    std::optional<std::string> zip_archiver::sanitize_archive_path(const std::string& input_path) const {
         if (input_path.empty()) {
-            throw std::invalid_argument("Archive entry path cannot be empty.");
+            return std::nullopt;
         }
 
         fs::path p(input_path);
 
         if (p.is_absolute() || p.has_root_name() || p.has_root_directory()) {
-            throw std::invalid_argument("Absolute paths are not allowed in ZIP entry: " + input_path);
+            return std::nullopt;
         }
 
         for (const auto& part : p) {
             if (part == "..") {
-                throw std::invalid_argument("Relative directory traversal ('..') is not allowed: " + input_path);
+                return std::nullopt;
             }
         }
 
         return p.generic_string();
     }
 
-    void zip_archiver::add_file_data(const std::string& raw_archive_path, const std::vector<uint8_t>& content) {
-        add_file_data(raw_archive_path, content, default_level);
+    bool zip_archiver::add_file_data(const std::string& raw_archive_path, const std::vector<uint8_t>& content) {
+        return add_file_data(raw_archive_path, content, default_level);
     }
 
-    void zip_archiver::add_file_data(const std::string& raw_archive_path,
+    bool zip_archiver::add_file_data(const std::string& raw_archive_path,
         const std::vector<uint8_t>& content,
         compression_level level) {
-        ensure_initialized_and_active();
-
-        std::string archive_path = sanitize_archive_path(raw_archive_path);
-        if (archive_path.size() > 0xFFFF) {
-            throw std::length_error("ZIP entry path is too long: " + archive_path);
+        if (!is_valid_state()) {
+            return false;
         }
+
+        auto sanitized = sanitize_archive_path(raw_archive_path);
+        if (!sanitized || sanitized->size() > 0xFFFF) {
+            return false;
+        }
+        std::string archive_path = std::move(*sanitized);
 
         uint32_t local_offset = static_cast<uint32_t>(zip_out.tellp());
         uint32_t file_crc = detail::calculate_crc32(content);
-        std::vector<uint8_t> compressed = detail::compress_deflate(content, level, archive_path, on_progress, progress_step);
+        auto compressed_opt = detail::compress_deflate(content, level, archive_path, on_progress, progress_step);
+
+        if (!compressed_opt) {
+            cleanup_on_error();
+            return false;
+        }
+        const auto& compressed = *compressed_opt;
 
         uint16_t header_flags = (archive_encoding == path_encoding::utf8) ? 0x0800 : 0x0000;
 
@@ -445,16 +431,16 @@ namespace mino::core::zip {
         lfh.uncompressed_size = static_cast<uint32_t>(content.size());
         lfh.filename_length = static_cast<uint16_t>(archive_path.size());
 
-        try {
-            zip_out.write(reinterpret_cast<const char*>(&lfh), sizeof(lfh));
-            zip_out.write(archive_path.data(), archive_path.size());
-            if (!compressed.empty()) {
-                zip_out.write(reinterpret_cast<const char*>(compressed.data()), compressed.size());
-            }
-            zip_out.flush();
+        zip_out.write(reinterpret_cast<const char*>(&lfh), sizeof(lfh));
+        zip_out.write(archive_path.data(), archive_path.size());
+        if (!compressed.empty()) {
+            zip_out.write(reinterpret_cast<const char*>(compressed.data()), compressed.size());
         }
-        catch (const std::ios_base::failure& e) {
-            throw std::runtime_error("Write failure during entry write: " + std::string(e.what()));
+        zip_out.flush();
+
+        if (!zip_out.good()) {
+            cleanup_on_error();
+            return false;
         }
 
         central_directory_header cdh{};
@@ -468,75 +454,77 @@ namespace mino::core::zip {
 
         cd_headers.push_back(cdh);
         filenames.push_back(archive_path);
+        return true;
     }
 
-    void zip_archiver::add_file_from_disk(const fs::path& disk_file_path, const std::string& raw_archive_path) {
-        add_file_from_disk(disk_file_path, raw_archive_path, default_level);
+    bool zip_archiver::add_file_from_disk(const fs::path& disk_file_path, const std::string& raw_archive_path) {
+        return add_file_from_disk(disk_file_path, raw_archive_path, default_level);
     }
 
-    void zip_archiver::add_file_from_disk(const fs::path& disk_file_path,
+    bool zip_archiver::add_file_from_disk(const fs::path& disk_file_path,
         const std::string& raw_archive_path,
         compression_level level) {
-        ensure_initialized_and_active();
+        if (!is_valid_state()) {
+            return false;
+        }
 
         std::error_code ec;
         if (!fs::exists(disk_file_path, ec) || !fs::is_regular_file(disk_file_path, ec)) {
-            throw std::runtime_error("Target file does not exist or is not a regular file: " + disk_file_path.string());
+            return false;
         }
 
         uintmax_t file_size = fs::file_size(disk_file_path, ec);
-        if (ec) {
-            throw std::runtime_error("Failed to query file size: " + disk_file_path.string());
-        }
-
-        if (file_size >= 0xFFFFFFFFULL) {
-            throw std::overflow_error("File size exceeds 4GB standard ZIP limit: " + disk_file_path.string());
+        if (ec || file_size >= 0xFFFFFFFFULL) {
+            return false;
         }
 
         std::ifstream file(disk_file_path, std::ios::binary);
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open source file: " + disk_file_path.string());
+            return false;
         }
 
         std::vector<uint8_t> buffer(file_size);
         if (file_size > 0) {
             file.read(reinterpret_cast<char*>(buffer.data()), file_size);
             if (!file) {
-                throw std::runtime_error("Failed to read complete file content: " + disk_file_path.string());
+                return false;
             }
         }
 
-        add_file_data(raw_archive_path, buffer, level);
+        return add_file_data(raw_archive_path, buffer, level);
     }
 
-    void zip_archiver::finish() {
-        ensure_initialized_and_active();
-
-        try {
-            uint32_t cd_offset = static_cast<uint32_t>(zip_out.tellp());
-
-            for (size_t i = 0; i < cd_headers.size(); ++i) {
-                zip_out.write(reinterpret_cast<const char*>(&cd_headers[i]), sizeof(central_directory_header));
-                zip_out.write(filenames[i].data(), filenames[i].size());
-            }
-
-            uint32_t cd_size = static_cast<uint32_t>(zip_out.tellp()) - cd_offset;
-
-            eocd_record eocd{};
-            eocd.num_entries_this_disk = static_cast<uint16_t>(cd_headers.size());
-            eocd.total_entries = static_cast<uint16_t>(cd_headers.size());
-            eocd.central_directory_size = cd_size;
-            eocd.central_directory_offset = cd_offset;
-
-            zip_out.write(reinterpret_cast<const char*>(&eocd), sizeof(eocd));
-            zip_out.flush();
-            zip_out.close();
-
-            is_finished = true;
+    bool zip_archiver::finish() {
+        if (!is_valid_state()) {
+            return false;
         }
-        catch (const std::ios_base::failure& e) {
-            throw std::runtime_error("Write failure during finalize (EOCD): " + std::string(e.what()));
+
+        uint32_t cd_offset = static_cast<uint32_t>(zip_out.tellp());
+
+        for (size_t i = 0; i < cd_headers.size(); ++i) {
+            zip_out.write(reinterpret_cast<const char*>(&cd_headers[i]), sizeof(central_directory_header));
+            zip_out.write(filenames[i].data(), filenames[i].size());
         }
+
+        uint32_t cd_size = static_cast<uint32_t>(zip_out.tellp()) - cd_offset;
+
+        eocd_record eocd{};
+        eocd.num_entries_this_disk = static_cast<uint16_t>(cd_headers.size());
+        eocd.total_entries = static_cast<uint16_t>(cd_headers.size());
+        eocd.central_directory_size = cd_size;
+        eocd.central_directory_offset = cd_offset;
+
+        zip_out.write(reinterpret_cast<const char*>(&eocd), sizeof(eocd));
+        zip_out.flush();
+
+        if (!zip_out.good()) {
+            cleanup_on_error();
+            return false;
+        }
+
+        zip_out.close();
+        is_finished = true;
+        return true;
     }
 
 } // namespace mino::core::zip

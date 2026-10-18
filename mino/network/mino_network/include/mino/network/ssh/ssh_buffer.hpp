@@ -11,6 +11,7 @@ namespace mino::network::ssh {
     private:
         std::vector<uint8_t> data_;
         size_t rpos_{ 0 };
+        bool error_{ false };
 
     public:
         ssh_buffer();
@@ -19,6 +20,7 @@ namespace mino::network::ssh {
 
         const std::vector<uint8_t>& data() const;
         size_t size() const;
+        bool has_error() const;
 
         void write_byte(uint8_t b);
         void write_uint32(uint32_t val);

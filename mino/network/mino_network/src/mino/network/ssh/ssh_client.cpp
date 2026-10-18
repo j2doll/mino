@@ -2,7 +2,6 @@
 #include <cmath>
 #include <random>
 #include <sstream>
-#include <stdexcept>
 #include <cstring>
 #include <vector>
 
@@ -126,9 +125,12 @@ namespace {
             return r;
         }
 
-        // Aliasing-safe div_mod implementation
         static void div_mod(const bn& num, const bn& den, bn& q_out, bn& rem_out) {
-            if (den.is_zero()) throw std::runtime_error("Division by zero in bn");
+            if (den.is_zero()) {
+                q_out = bn();
+                rem_out = bn();
+                return;
+            }
             int c = cmp(num, den);
             if (c < 0) {
                 q_out = bn();
@@ -293,7 +295,7 @@ namespace mino::network::ssh {
         std::swap(rx_queue_, empty_q);
     }
 
-    void ssh_client::send_raw(const uint8_t* buf, size_t len) {
+    bool ssh_client::send_raw(const uint8_t* buf, size_t len) {
         size_t sent = 0;
         while (sent < len) {
 #ifdef _WIN32
@@ -301,12 +303,13 @@ namespace mino::network::ssh {
 #else
             ssize_t n = ::send(sock_fd_, buf + sent, len - sent, MSG_NOSIGNAL);
 #endif
-            if (n <= 0) throw std::runtime_error("Socket data transmission failed");
+            if (n <= 0) return false;
             sent += n;
         }
+        return true;
     }
 
-    void ssh_client::recv_raw(uint8_t* buf, size_t len) {
+    bool ssh_client::recv_raw(uint8_t* buf, size_t len) {
         size_t recvd = 0;
         while (recvd < len) {
 #ifdef _WIN32
@@ -314,9 +317,10 @@ namespace mino::network::ssh {
 #else
             ssize_t n = ::recv(sock_fd_, buf + recvd, len - recvd, 0);
 #endif
-            if (n <= 0) throw std::runtime_error("The remote host closed the socket");
+            if (n <= 0) return false;
             recvd += n;
         }
+        return true;
     }
 
     std::vector<uint8_t> ssh_client::derive_key(const std::vector<uint8_t>& K, const std::array<uint8_t, 32>& H, char letter, size_t need_len) {
@@ -407,15 +411,18 @@ namespace mino::network::ssh {
         return ok;
     }
 
-    /*
-    void ssh_client::do_handshake() {
+    bool ssh_client::do_handshake() {
         set_state(session_state::handshaking);
-        send_raw(reinterpret_cast<const uint8_t*>(client_banner_.data()), client_banner_.size());
+
+        // --- 배너 교환 ---
+        if (!send_raw(reinterpret_cast<const uint8_t*>(client_banner_.data()), client_banner_.size())) {
+            return false;
+        }
 
         std::string line;
         char ch;
         while (true) {
-            recv_raw(reinterpret_cast<uint8_t*>(&ch), 1);
+            if (!recv_raw(reinterpret_cast<uint8_t*>(&ch), 1)) return false;
             line += ch;
             if (ch == '\n') {
                 if (line.rfind("SSH-", 0) == 0) {
@@ -430,7 +437,7 @@ namespace mino::network::ssh {
         }
         if (logger_) logger_->info("[ssh_client] Receive server banner: {}", server_banner_);
 
-        // 1. KEXINIT
+        // --- 1. KEXINIT 송신 ---
         const std::string supported_kex = "diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha256,curve25519-sha256,curve25519-sha256@libssh.org";
         ssh_buffer kex;
         kex.write_byte(20);
@@ -449,16 +456,18 @@ namespace mino::network::ssh {
         kex.write_uint32(0);
 
         client_kexinit_payload_ = kex.data();
-        send_packet(kex);
+        if (!send_packet(kex)) return false;
 
-        // 2. KEXINIT 확인
-        auto kex_recv = recv_packet();
+        // --- 2. KEXINIT 수신 및 알고리즘 결정 ---
+        ssh_buffer kex_recv;
+        if (!recv_packet(kex_recv)) return false;
         server_kexinit_payload_ = kex_recv.data();
 
         ssh_buffer srv_kex_parse(server_kexinit_payload_);
         srv_kex_parse.read_byte();
         for (int i = 0; i < 16; ++i) srv_kex_parse.read_byte();
         std::string server_kex_algos = srv_kex_parse.read_string();
+        if (srv_kex_parse.has_error()) return false;
 
         auto c_list = split_csv(supported_kex);
         auto s_list = split_csv(server_kex_algos);
@@ -469,7 +478,10 @@ namespace mino::network::ssh {
                 break;
             }
         }
-        if (chosen_kex.empty()) throw std::runtime_error("No matching KEX algorithm found.");
+        if (chosen_kex.empty()) {
+            if (logger_) logger_->error("[ssh_client] No matching KEX algorithm found.");
+            return false;
+        }
         if (logger_) logger_->info("[ssh_client] Negotiated KEX algorithm: {}", chosen_kex);
 
         std::vector<uint8_t> K;
@@ -482,18 +494,19 @@ namespace mino::network::ssh {
             uint32_t max_bits = 4096;
 
             ssh_buffer gex_req;
-            gex_req.write_byte(34); // SSH_MSG_KEX_DH_GEX_REQUEST
+            gex_req.write_byte(34);
             gex_req.write_uint32(min_bits);
             gex_req.write_uint32(n_bits);
             gex_req.write_uint32(max_bits);
-            send_packet(gex_req);
+            if (!send_packet(gex_req)) return false;
 
-            auto gex_group = recv_packet();
-            if (gex_group.read_byte() != 31)
-                throw std::runtime_error("Abnormal GEX Group response (Expected 31)");
+            ssh_buffer gex_group;
+            if (!recv_packet(gex_group)) return false;
+            if (gex_group.read_byte() != 31) return false;
 
             auto p_bytes = gex_group.read_bytes();
             auto g_bytes = gex_group.read_bytes();
+            if (gex_group.has_error()) return false;
 
             bn p = bn::from_bytes(p_bytes.data(), p_bytes.size());
             bn g = bn::from_bytes(g_bytes.data(), g_bytes.size());
@@ -505,24 +518,22 @@ namespace mino::network::ssh {
             x_bytes[0] |= 0x80;
             bn x = bn::from_bytes(x_bytes, 32);
 
-            // Correct mod_exp calculation without aliasing
             bn e_bn = bn::mod_exp(g, x, p);
             std::vector<uint8_t> e_bytes = bn::to_bytes(e_bn);
 
-            // Send packet 32: SSH_MSG_KEX_DH_GEX_INIT
             ssh_buffer gex_init;
             gex_init.write_byte(32);
             gex_init.write_mpint(e_bytes.data(), e_bytes.size());
-            send_packet(gex_init);
+            if (!send_packet(gex_init)) return false;
 
-            // Receive packet 33: SSH_MSG_KEX_DH_GEX_REPLY
-            auto reply = recv_packet();
-            if (reply.read_byte() != 33)
-                throw std::runtime_error("Abnormal GEX Reply response (Expected 33)");
+            ssh_buffer reply;
+            if (!recv_packet(reply)) return false;
+            if (reply.read_byte() != 33) return false;
 
             k_s = reply.read_bytes();
             auto f_bytes = reply.read_bytes();
             auto sig = reply.read_bytes();
+            if (reply.has_error()) return false;
 
             auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
             std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
@@ -530,15 +541,13 @@ namespace mino::network::ssh {
             if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
 
             if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-                throw std::runtime_error("Host key fingerprint verification was rejected.");
+                return false;
             }
 
             bn f_bn = bn::from_bytes(f_bytes.data(), f_bytes.size());
             bn one(1);
             bn p_minus_one = bn::sub(p, one);
-            if (f_bn <= one || f_bn >= p_minus_one) {
-                throw std::runtime_error("Invalid server public key (f)");
-            }
+            if (f_bn <= one || f_bn >= p_minus_one) return false;
 
             bn K_bn = bn::mod_exp(f_bn, x, p);
             K = bn::to_bytes(K_bn);
@@ -579,15 +588,16 @@ namespace mino::network::ssh {
             ssh_buffer dh_init;
             dh_init.write_byte(30);
             dh_init.write_mpint(e_bytes.data(), e_bytes.size());
-            send_packet(dh_init);
+            if (!send_packet(dh_init)) return false;
 
-            auto reply = recv_packet();
-            if (reply.read_byte() != 31)
-                throw std::runtime_error("Abnormal DH Group14 response (Expected 31)");
+            ssh_buffer reply;
+            if (!recv_packet(reply)) return false;
+            if (reply.read_byte() != 31) return false;
 
             k_s = reply.read_bytes();
             auto f_bytes = reply.read_bytes();
             auto sig = reply.read_bytes();
+            if (reply.has_error()) return false;
 
             auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
             std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
@@ -595,15 +605,13 @@ namespace mino::network::ssh {
             if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
 
             if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-                throw std::runtime_error("Host key fingerprint verification was rejected.");
+                return false;
             }
 
             bn f_bn = bn::from_bytes(f_bytes.data(), f_bytes.size());
             bn one(1);
             bn p_minus_one = bn::sub(p, one);
-            if (f_bn <= one || f_bn >= p_minus_one) {
-                throw std::runtime_error("Invalid server public key (f)");
-            }
+            if (f_bn <= one || f_bn >= p_minus_one) return false;
 
             bn K_bn = bn::mod_exp(f_bn, x, p);
             K = bn::to_bytes(K_bn);
@@ -632,15 +640,16 @@ namespace mino::network::ssh {
             ssh_buffer ecdh_init;
             ecdh_init.write_byte(30);
             ecdh_init.write_bytes(pub_c, 32);
-            send_packet(ecdh_init);
+            if (!send_packet(ecdh_init)) return false;
 
-            auto reply = recv_packet();
-            if (reply.read_byte() != 31)
-                throw std::runtime_error("Abnormal ECDH response (Expected 31)");
+            ssh_buffer reply;
+            if (!recv_packet(reply)) return false;
+            if (reply.read_byte() != 31) return false;
 
             k_s = reply.read_bytes();
             auto pub_s = reply.read_bytes();
             auto sig = reply.read_bytes();
+            if (reply.has_error()) return false;
 
             auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
             std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
@@ -648,7 +657,7 @@ namespace mino::network::ssh {
             if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
 
             if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-                throw std::runtime_error("Host key fingerprint verification was rejected.");
+                return false;
             }
 
             K.resize(32);
@@ -671,14 +680,13 @@ namespace mino::network::ssh {
 
         if (session_id_.empty()) session_id_.assign(H.begin(), H.end());
 
-        // 3. NEWKEYS
+        // --- 3. NEWKEYS 교환 ---
         ssh_buffer newkeys;
         newkeys.write_byte(21);
-        send_packet(newkeys);
+        if (!send_packet(newkeys)) return false;
 
-        auto resp_nk = recv_packet();
-        if (resp_nk.read_byte() != 21)
-            throw std::runtime_error("Failed to receive the NEWKEYS packet");
+        ssh_buffer resp_nk;
+        if (!recv_packet(resp_nk) || resp_nk.read_byte() != 21) return false;
 
         auto iv_c2s = derive_key(K, H, 'A', 16);
         auto iv_s2c = derive_key(K, H, 'B', 16);
@@ -694,15 +702,14 @@ namespace mino::network::ssh {
 
         keys_activated_ = true;
 
-        // 4. Userauth
+        // --- 4. 사용자 인증 (Userauth) ---
         ssh_buffer srv;
         srv.write_byte(5);
         srv.write_string("ssh-userauth");
-        send_packet(srv);
+        if (!send_packet(srv)) return false;
 
-        auto srv_resp = recv_packet();
-        if (srv_resp.read_byte() != 6)
-            throw std::runtime_error("Authentication service rejection");
+        ssh_buffer srv_resp;
+        if (!recv_packet(srv_resp) || srv_resp.read_byte() != 6) return false;
 
         ssh_buffer auth;
         auth.write_byte(50);
@@ -711,406 +718,60 @@ namespace mino::network::ssh {
         auth.write_string("password");
         auth.write_byte(0);
         auth.write_string(password_);
-        send_packet(auth);
+        if (!send_packet(auth)) return false;
 
-        auto auth_resp = recv_packet();
-        if (auth_resp.read_byte() != 52)
-            throw std::runtime_error("User password authentication failed");
+        ssh_buffer auth_resp;
+        if (!recv_packet(auth_resp) || auth_resp.read_byte() != 52) return false;
 
-        // 5. Session Channel Open
+        // --- 5. 세션 채널 오픈 및 중간 패킷 처리 ---
         ssh_buffer ch_open;
         ch_open.write_byte(90);
         ch_open.write_string("session");
         ch_open.write_uint32(0);
         ch_open.write_uint32(2 * 1024 * 1024);
         ch_open.write_uint32(32768);
-        send_packet(ch_open);
+        if (!send_packet(ch_open)) return false;
 
+        while (true) {
+            ssh_buffer open_resp;
+            if (!recv_packet(open_resp)) return false;
+            uint8_t msg_type = open_resp.read_byte();
 
-
-        auto open_resp = recv_packet();
-        if (open_resp.read_byte() != 91)
-            throw std::runtime_error("Session channel open failure");
-        open_resp.read_uint32();
-        remote_channel_id_ = open_resp.read_uint32();
-
-        set_state(session_state::authenticated);
-    }
-    //*/
-void ssh_client::do_handshake() {
-    set_state(session_state::handshaking);
-
-    // --- 배너 교환 ---
-    send_raw(reinterpret_cast<const uint8_t*>(client_banner_.data()), client_banner_.size());
-
-    std::string line;
-    char ch;
-    while (true) {
-        recv_raw(reinterpret_cast<uint8_t*>(&ch), 1);
-        line += ch;
-        if (ch == '\n') {
-            if (line.rfind("SSH-", 0) == 0) {
-                server_banner_ = line;
-                while (!server_banner_.empty() && (server_banner_.back() == '\r' || server_banner_.back() == '\n')) {
-                    server_banner_.pop_back();
-                }
+            if (msg_type == 91) {
+                open_resp.read_uint32();
+                remote_channel_id_ = open_resp.read_uint32();
+                if (open_resp.has_error()) return false;
                 break;
             }
-            line.clear();
-        }
-    }
-    if (logger_) logger_->info("[ssh_client] Receive server banner: {}", server_banner_);
-
-    // --- 1. KEXINIT 송신 ---
-    const std::string supported_kex = "diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha256,curve25519-sha256,curve25519-sha256@libssh.org";
-    ssh_buffer kex;
-    kex.write_byte(20); // SSH_MSG_KEXINIT
-    for (int i = 0; i < 16; ++i) kex.write_byte(0x55);
-    kex.write_string(supported_kex);
-    kex.write_string("ssh-ed25519,rsa-sha2-256,rsa-sha2-512,ssh-rsa");
-    kex.write_string("aes128-ctr");
-    kex.write_string("aes128-ctr");
-    kex.write_string("hmac-sha2-256");
-    kex.write_string("hmac-sha2-256");
-    kex.write_string("none");
-    kex.write_string("none");
-    kex.write_string("");
-    kex.write_string("");
-    kex.write_byte(0);
-    kex.write_uint32(0);
-
-    client_kexinit_payload_ = kex.data();
-    send_packet(kex);
-
-    // --- 2. KEXINIT 수신 및 알고리즘 결정 ---
-    auto kex_recv = recv_packet();
-    server_kexinit_payload_ = kex_recv.data();
-
-    ssh_buffer srv_kex_parse(server_kexinit_payload_);
-    srv_kex_parse.read_byte();
-    for (int i = 0; i < 16; ++i) srv_kex_parse.read_byte();
-    std::string server_kex_algos = srv_kex_parse.read_string();
-
-    auto c_list = split_csv(supported_kex);
-    auto s_list = split_csv(server_kex_algos);
-    std::string chosen_kex;
-    for (const auto& c_algo : c_list) {
-        if (std::find(s_list.begin(), s_list.end(), c_algo) != s_list.end()) {
-            chosen_kex = c_algo;
-            break;
-        }
-    }
-    if (chosen_kex.empty()) {
-        throw std::runtime_error("No matching KEX algorithm found.");
-    }
-    if (logger_) logger_->info("[ssh_client] Negotiated KEX algorithm: {}", chosen_kex);
-
-    std::vector<uint8_t> K;
-    std::vector<uint8_t> k_s;
-    std::array<uint8_t, 32> H{};
-
-    if (chosen_kex == "diffie-hellman-group-exchange-sha256") {
-        // [RFC 4419 DH-GEX] 34번 패킷으로 min=1024, n=2048, max=4096 비트 요청
-        uint32_t min_bits = 1024;
-        uint32_t n_bits = 2048;
-        uint32_t max_bits = 4096;
-
-        ssh_buffer gex_req;
-        gex_req.write_byte(34); // SSH_MSG_KEX_DH_GEX_REQUEST
-        gex_req.write_uint32(min_bits);
-        gex_req.write_uint32(n_bits);
-        gex_req.write_uint32(max_bits);
-        send_packet(gex_req);
-
-        // 31번 수신: SSH_MSG_KEX_DH_GEX_GROUP (p, g 소수 그룹 수신)
-        auto gex_group = recv_packet();
-        if (gex_group.read_byte() != 31)
-            throw std::runtime_error("Abnormal GEX Group response (Expected 31)");
-
-        auto p_bytes = gex_group.read_bytes();
-        auto g_bytes = gex_group.read_bytes();
-
-        bn p = bn::from_bytes(p_bytes.data(), p_bytes.size());
-        bn g = bn::from_bytes(g_bytes.data(), g_bytes.size());
-
-        // 256비트 개인키 x 생성 및 e = g^x mod p 계산
-        uint8_t x_bytes[32];
-        std::random_device rd;
-        std::mt19937_64 rng(rd());
-        for (int i = 0; i < 32; ++i) x_bytes[i] = static_cast<uint8_t>(rng());
-        x_bytes[0] |= 0x80;
-        bn x = bn::from_bytes(x_bytes, 32);
-
-        bn e_bn = bn::mod_exp(g, x, p);
-        std::vector<uint8_t> e_bytes = bn::to_bytes(e_bn);
-
-        // 32번 송신: SSH_MSG_KEX_DH_GEX_INIT (e 전송)
-        ssh_buffer gex_init;
-        gex_init.write_byte(32);
-        gex_init.write_mpint(e_bytes.data(), e_bytes.size());
-        send_packet(gex_init);
-
-        // 33번 수신: SSH_MSG_KEX_DH_GEX_REPLY (K_S, f, sig 수신)
-        auto reply = recv_packet();
-        if (reply.read_byte() != 33)
-            throw std::runtime_error("Abnormal GEX Reply response (Expected 33)");
-
-        k_s = reply.read_bytes();
-        auto f_bytes = reply.read_bytes();
-        auto sig = reply.read_bytes();
-
-        auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
-        std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
-        std::string fingerprint = "SHA256:" + mino::core::encoding::base64_encode(hkh_vec);
-        if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
-
-        if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-            throw std::runtime_error("Host key fingerprint verification was rejected.");
-        }
-
-        bn f_bn = bn::from_bytes(f_bytes.data(), f_bytes.size());
-        bn one(1);
-        bn p_minus_one = bn::sub(p, one);
-        if (f_bn <= one || f_bn >= p_minus_one) {
-            throw std::runtime_error("Invalid server public key (f)");
-        }
-
-        bn K_bn = bn::mod_exp(f_bn, x, p);
-        K = bn::to_bytes(K_bn);
-
-        // 교환 해시 H 계산 (RFC 4419 Section 3)
-        ssh_buffer h_buf;
-        std::string client_id = client_banner_;
-        while (!client_id.empty() && (client_id.back() == '\r' || client_id.back() == '\n')) client_id.pop_back();
-        h_buf.write_string(client_id);
-        h_buf.write_string(server_banner_);
-        h_buf.write_bytes(client_kexinit_payload_.data(), client_kexinit_payload_.size());
-        h_buf.write_bytes(server_kexinit_payload_.data(), server_kexinit_payload_.size());
-        h_buf.write_bytes(k_s.data(), k_s.size());
-        h_buf.write_uint32(min_bits);
-        h_buf.write_uint32(n_bits);
-        h_buf.write_uint32(max_bits);
-        h_buf.write_mpint(p_bytes.data(), p_bytes.size());
-        h_buf.write_mpint(g_bytes.data(), g_bytes.size());
-        h_buf.write_mpint(e_bytes.data(), e_bytes.size());
-        h_buf.write_mpint(f_bytes.data(), f_bytes.size());
-        h_buf.write_mpint(K.data(), K.size());
-
-        H = mino::core::crypt::sha256::hash(h_buf.data().data(), h_buf.size());
-    }
-    else if (chosen_kex == "diffie-hellman-group14-sha256") {
-        // [RFC 4253 고정 MODP Group 14]
-        uint8_t x_bytes[32];
-        std::random_device rd;
-        std::mt19937_64 rng(rd());
-        for (int i = 0; i < 32; ++i) x_bytes[i] = static_cast<uint8_t>(rng());
-        x_bytes[0] |= 0x80;
-
-        bn p = bn::from_bytes(DH_GROUP14_P, 256);
-        bn g(2);
-        bn x = bn::from_bytes(x_bytes, 32);
-
-        bn e_bn = bn::mod_exp(g, x, p);
-        std::vector<uint8_t> e_bytes = bn::to_bytes(e_bn);
-
-        // 30번 송신: SSH_MSG_KEXDH_INIT
-        ssh_buffer dh_init;
-        dh_init.write_byte(30);
-        dh_init.write_mpint(e_bytes.data(), e_bytes.size());
-        send_packet(dh_init);
-
-        // 31번 수신: SSH_MSG_KEXDH_REPLY
-        auto reply = recv_packet();
-        if (reply.read_byte() != 31)
-            throw std::runtime_error("Abnormal DH Group14 response (Expected 31)");
-
-        k_s = reply.read_bytes();
-        auto f_bytes = reply.read_bytes();
-        auto sig = reply.read_bytes();
-
-        auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
-        std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
-        std::string fingerprint = "SHA256:" + mino::core::encoding::base64_encode(hkh_vec);
-        if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
-
-        if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-            throw std::runtime_error("Host key fingerprint verification was rejected.");
-        }
-
-        bn f_bn = bn::from_bytes(f_bytes.data(), f_bytes.size());
-        bn one(1);
-        bn p_minus_one = bn::sub(p, one);
-        if (f_bn <= one || f_bn >= p_minus_one) {
-            throw std::runtime_error("Invalid server public key (f)");
-        }
-
-        bn K_bn = bn::mod_exp(f_bn, x, p);
-        K = bn::to_bytes(K_bn);
-
-        ssh_buffer h_buf;
-        std::string client_id = client_banner_;
-        while (!client_id.empty() && (client_id.back() == '\r' || client_id.back() == '\n')) client_id.pop_back();
-        h_buf.write_string(client_id);
-        h_buf.write_string(server_banner_);
-        h_buf.write_bytes(client_kexinit_payload_.data(), client_kexinit_payload_.size());
-        h_buf.write_bytes(server_kexinit_payload_.data(), server_kexinit_payload_.size());
-        h_buf.write_bytes(k_s.data(), k_s.size());
-        h_buf.write_mpint(e_bytes.data(), e_bytes.size());
-        h_buf.write_mpint(f_bytes.data(), f_bytes.size());
-        h_buf.write_mpint(K.data(), K.size());
-
-        H = mino::core::crypt::sha256::hash(h_buf.data().data(), h_buf.size());
-    }
-    else {
-        // [RFC 8731 Curve25519]
-        uint8_t priv_c[32], pub_c[32], base[32] = { 9 };
-        std::random_device rd;
-        std::mt19937_64 rng(rd());
-        for (int i = 0; i < 32; ++i) priv_c[i] = static_cast<uint8_t>(rng());
-        mino::core::crypt::x25519::curve25519(pub_c, priv_c, base);
-
-        ssh_buffer ecdh_init;
-        ecdh_init.write_byte(30);
-        ecdh_init.write_bytes(pub_c, 32);
-        send_packet(ecdh_init);
-
-        auto reply = recv_packet();
-        if (reply.read_byte() != 31)
-            throw std::runtime_error("Abnormal ECDH response (Expected 31)");
-
-        k_s = reply.read_bytes();
-        auto pub_s = reply.read_bytes();
-        auto sig = reply.read_bytes();
-
-        auto hostkey_hash = mino::core::crypt::sha256::hash(k_s.data(), k_s.size());
-        std::vector<uint8_t> hkh_vec(hostkey_hash.begin(), hostkey_hash.end());
-        std::string fingerprint = "SHA256:" + mino::core::encoding::base64_encode(hkh_vec);
-        if (logger_) logger_->info("[ssh_client] Host fingerprint: {}", fingerprint);
-
-        if (host_key_verifier_cb_ && !host_key_verifier_cb_(host_, fingerprint)) {
-            throw std::runtime_error("Host key fingerprint verification was rejected.");
-        }
-
-        K.resize(32);
-        mino::core::crypt::x25519::curve25519(K.data(), priv_c, pub_s.data());
-
-        ssh_buffer h_buf;
-        std::string client_id = client_banner_;
-        while (!client_id.empty() && (client_id.back() == '\r' || client_id.back() == '\n')) client_id.pop_back();
-        h_buf.write_string(client_id);
-        h_buf.write_string(server_banner_);
-        h_buf.write_bytes(client_kexinit_payload_.data(), client_kexinit_payload_.size());
-        h_buf.write_bytes(server_kexinit_payload_.data(), server_kexinit_payload_.size());
-        h_buf.write_bytes(k_s.data(), k_s.size());
-        h_buf.write_bytes(pub_c, 32);
-        h_buf.write_bytes(pub_s.data(), pub_s.size());
-        h_buf.write_mpint(K.data(), K.size());
-
-        H = mino::core::crypt::sha256::hash(h_buf.data().data(), h_buf.size());
-    }
-
-    if (session_id_.empty()) session_id_.assign(H.begin(), H.end());
-
-    // --- 3. NEWKEYS 교환 ---
-    ssh_buffer newkeys;
-    newkeys.write_byte(21); // SSH_MSG_NEWKEYS
-    send_packet(newkeys);
-
-    auto resp_nk = recv_packet();
-    if (resp_nk.read_byte() != 21)
-        throw std::runtime_error("Failed to receive the NEWKEYS packet");
-
-    auto iv_c2s = derive_key(K, H, 'A', 16);
-    auto iv_s2c = derive_key(K, H, 'B', 16);
-    auto key_c2s = derive_key(K, H, 'C', 16);
-    auto key_s2c = derive_key(K, H, 'D', 16);
-    auto mac_c2s = derive_key(K, H, 'E', 32);
-    auto mac_s2c = derive_key(K, H, 'F', 32);
-
-    enc_out_.init(key_c2s.data(), iv_c2s.data());
-    enc_in_.init(key_s2c.data(), iv_s2c.data());
-    std::memcpy(mac_key_out_.data(), mac_c2s.data(), 32);
-    std::memcpy(mac_key_in_.data(), mac_s2c.data(), 32);
-
-    keys_activated_ = true;
-
-    // --- 4. 사용자 인증 (Userauth) ---
-    ssh_buffer srv;
-    srv.write_byte(5); // SSH_MSG_SERVICE_REQUEST
-    srv.write_string("ssh-userauth");
-    send_packet(srv);
-
-    auto srv_resp = recv_packet();
-    if (srv_resp.read_byte() != 6) // SSH_MSG_SERVICE_ACCEPT
-        throw std::runtime_error("Authentication service rejection");
-
-    ssh_buffer auth;
-    auth.write_byte(50); // SSH_MSG_USERAUTH_REQUEST
-    auth.write_string(username_);
-    auth.write_string("ssh-connection");
-    auth.write_string("password");
-    auth.write_byte(0);
-    auth.write_string(password_);
-    send_packet(auth);
-
-    auto auth_resp = recv_packet();
-    if (auth_resp.read_byte() != 52) // SSH_MSG_USERAUTH_SUCCESS
-        throw std::runtime_error("User password authentication failed");
-
-    // --- 5. 세션 채널 오픈 및 중간 패킷 처리 ---
-    ssh_buffer ch_open;
-    ch_open.write_byte(90); // SSH_MSG_CHANNEL_OPEN
-    ch_open.write_string("session");
-    ch_open.write_uint32(0);              // Sender channel ID
-    ch_open.write_uint32(2 * 1024 * 1024); // Window size (2MB)
-    ch_open.write_uint32(32768);           // Max packet size (32KB)
-    send_packet(ch_open);
-
-    while (true) {
-        auto open_resp = recv_packet();
-        uint8_t msg_type = open_resp.read_byte();
-
-        if (msg_type == 91) { // SSH_MSG_CHANNEL_OPEN_CONFIRMATION
-            open_resp.read_uint32(); // Sender channel ID (0)
-            remote_channel_id_ = open_resp.read_uint32();
-            break;
-        }
-        else if (msg_type == 92) { // SSH_MSG_CHANNEL_OPEN_FAILURE
-            open_resp.read_uint32();
-            uint32_t reason = open_resp.read_uint32();
-            std::string desc = open_resp.read_string();
-            throw std::runtime_error("Server rejected channel open. Code: " +
-                std::to_string(reason) + ", Desc: " + desc);
-        }
-        else if (msg_type == 80) { // SSH_MSG_GLOBAL_REQUEST (OpenSSH hostkeys 등)
-            std::string req_name = open_resp.read_string();
-            uint8_t want_reply = open_resp.read_byte();
-            if (want_reply) {
-                ssh_buffer reply;
-                reply.write_byte(82); // SSH_MSG_REQUEST_FAILURE
-                send_packet(reply);
+            else if (msg_type == 92) {
+                return false;
+            }
+            else if (msg_type == 80) {
+                std::string req_name = open_resp.read_string();
+                uint8_t want_reply = open_resp.read_byte();
+                if (open_resp.has_error()) return false;
+                if (want_reply) {
+                    ssh_buffer reply;
+                    reply.write_byte(82);
+                    if (!send_packet(reply)) return false;
+                }
+            }
+            else if (msg_type == 4 || msg_type == 2) {
+                continue;
+            }
+            else if (msg_type == 1) {
+                return false;
+            }
+            else {
+                return false;
             }
         }
-        else if (msg_type == 4 || msg_type == 2) { // DEBUG(4) / IGNORE(2)
-            continue;
-        }
-        else if (msg_type == 1) { // SSH_MSG_DISCONNECT
-            uint32_t reason = open_resp.read_uint32();
-            std::string desc = open_resp.read_string();
-            throw std::runtime_error("Disconnected by server during channel open. Reason: " +
-                std::to_string(reason) + ", Desc: " + desc);
-        }
-        else {
-            throw std::runtime_error("Unexpected packet type during channel open: " +
-                std::to_string(msg_type));
-        }
+
+        set_state(session_state::authenticated);
+        return true;
     }
 
-    set_state(session_state::authenticated);
-}
-
-
-    void ssh_client::send_packet(const ssh_buffer& payload_buf) {
+    bool ssh_client::send_packet(const ssh_buffer& payload_buf) {
         std::lock_guard<std::mutex> lock(send_mutex_);
         const auto& payload = payload_buf.data();
         size_t block_size = keys_activated_ ? 16 : 8;
@@ -1136,7 +797,7 @@ void ssh_client::do_handshake() {
         }
 
         if (!keys_activated_) {
-            send_raw(plain.data(), plain.size());
+            if (!send_raw(plain.data(), plain.size())) return false;
         }
         else {
             ssh_buffer mac_buf;
@@ -1147,29 +808,29 @@ void ssh_client::do_handshake() {
             std::vector<uint8_t> enc(plain.size());
             enc_out_.process(plain.data(), enc.data(), plain.size());
 
-            send_raw(enc.data(), enc.size());
-            send_raw(mac.data(), mac.size());
+            if (!send_raw(enc.data(), enc.size())) return false;
+            if (!send_raw(mac.data(), mac.size())) return false;
         }
         seq_out_++;
+        return true;
     }
 
-    ssh_buffer ssh_client::recv_packet() {
+    bool ssh_client::recv_packet(ssh_buffer& out_packet) {
         uint8_t head[4];
-        recv_raw(head, 4);
+        if (!recv_raw(head, 4)) return false;
 
         if (keys_activated_) enc_in_.process(head, head, 4);
 
         uint32_t packet_len = (head[0] << 24) | (head[1] << 16) | (head[2] << 8) | head[3];
-        if (packet_len > 35000)
-            throw std::runtime_error("Permission packet size exceeded");
+        if (packet_len > 35000) return false;
 
         std::vector<uint8_t> body(packet_len);
-        recv_raw(body.data(), packet_len);
+        if (!recv_raw(body.data(), packet_len)) return false;
 
         if (keys_activated_) {
             enc_in_.process(body.data(), body.data(), packet_len);
             uint8_t mac_remote[32];
-            recv_raw(mac_remote, 32);
+            if (!recv_raw(mac_remote, 32)) return false;
 
             ssh_buffer mac_buf;
             mac_buf.write_uint32(seq_in_);
@@ -1177,17 +838,17 @@ void ssh_client::do_handshake() {
             mac_buf.write_raw(body.data(), body.size());
             auto mac_local = mino::core::crypt::hmac_sha256(mac_key_in_.data(), 32, mac_buf.data().data(), mac_buf.size());
             if (std::memcmp(mac_remote, mac_local.data(), 32) != 0) {
-                throw std::runtime_error("HMAC Integrity Verification Failure");
+                return false;
             }
         }
         seq_in_++;
 
         uint8_t pad_len = body[0];
-        if (pad_len + 1 > packet_len) {
-            throw std::runtime_error("The padding length of the packet is not correct.");
-        }
+        if (pad_len + 1 > packet_len) return false;
+
         size_t payload_len = packet_len - 1 - pad_len;
-        return ssh_buffer(std::vector<uint8_t>(body.begin() + 1, body.begin() + 1 + payload_len));
+        out_packet = ssh_buffer(std::vector<uint8_t>(body.begin() + 1, body.begin() + 1 + payload_len));
+        return true;
     }
 
     void ssh_client::send_window_adjust(uint32_t bytes_to_add) {
@@ -1200,96 +861,101 @@ void ssh_client::do_handshake() {
 
     void ssh_client::receive_loop() {
         while (!stop_flag_ && is_connected()) {
-            try {
-                auto p = recv_packet();
-                uint8_t type = p.read_byte();
-
-                switch (type) {
-
-                case 93: { // SSH_MSG_CHANNEL_WINDOW_ADJUST
-                    uint32_t ch_id = p.read_uint32();
-                    uint32_t bytes_to_add = p.read_uint32();
-                    // 서버가 보낸 윈도우 조절 패킷 정상 소비
-                    break;
-                }
-
-                case 94: {
-                    uint32_t ch_id = p.read_uint32();
-                    std::string data = p.read_string();
-
-                    send_window_adjust(static_cast<uint32_t>(data.size()));
-
-                    {
-                        std::lock_guard<std::mutex> lock(channel_rx_mutex_);
-                        channel_rx_buf_.insert(channel_rx_buf_.end(), data.begin(), data.end());
-                    }
-                    channel_rx_cv_.notify_all();
-
-                    {
-                        std::lock_guard<std::mutex> lock(rx_queue_mutex_);
-                        rx_queue_.push({ rx_event_type::stdout_data, ch_id, std::move(data) });
-                    }
-                    rx_cv_.notify_one();
-                    break;
-                }
-                case 95: {
-                    uint32_t ch_id = p.read_uint32();
-                    uint32_t code = p.read_uint32();
-                    std::string data = p.read_string();
-
-                    send_window_adjust(static_cast<uint32_t>(data.size()));
-
-                    {
-                        std::lock_guard<std::mutex> lock(rx_queue_mutex_);
-                        rx_queue_.push({ rx_event_type::stderr_data, ch_id, std::move(data) });
-                    }
-                    rx_cv_.notify_one();
-                    break;
-                }
-                case 99: {
-                    {
-                        std::lock_guard<std::mutex> lock(channel_req_mutex_);
-                        channel_req_success_ = true;
-                        channel_req_done_ = true;
-                    }
-                    channel_req_cv_.notify_all();
-                    break;
-                }
-                case 100: {
-                    {
-                        std::lock_guard<std::mutex> lock(channel_req_mutex_);
-                        channel_req_success_ = false;
-                        channel_req_done_ = true;
-                    }
-                    channel_req_cv_.notify_all();
-                    break;
-                }
-                case 80: {
-                    std::string req_name = p.read_string();
-                    uint8_t want_reply = p.read_byte();
-                    if (want_reply) {
-                        ssh_buffer reply;
-                        reply.write_byte(82);
-                        send_packet(reply);
-                    }
-                    break;
-                }
-                case 1: {
-                    uint32_t reason = p.read_uint32();
-                    std::string desc = p.read_string();
-                    reset_session_state();
-                    if (on_disconnect_cb_) on_disconnect_cb_(reason, desc);
-                    break;
-                }
-                default:
-                    break;
-                }
-            }
-            catch (const std::exception& e) {
+            ssh_buffer p;
+            if (!recv_packet(p)) {
                 if (!stop_flag_) {
                     reset_session_state();
-                    if (on_disconnect_cb_) on_disconnect_cb_(0, e.what());
+                    if (on_disconnect_cb_) on_disconnect_cb_(0, "Socket closed or packet transmission error");
                 }
+                break;
+            }
+
+            uint8_t type = p.read_byte();
+            if (p.has_error()) {
+                if (!stop_flag_) {
+                    reset_session_state();
+                    if (on_disconnect_cb_) on_disconnect_cb_(0, "Packet decode error");
+                }
+                break;
+            }
+
+            switch (type) {
+            case 93: {
+                uint32_t ch_id = p.read_uint32();
+                uint32_t bytes_to_add = p.read_uint32();
+                break;
+            }
+            case 94: {
+                uint32_t ch_id = p.read_uint32();
+                std::string data = p.read_string();
+                if (p.has_error()) break;
+
+                send_window_adjust(static_cast<uint32_t>(data.size()));
+
+                {
+                    std::lock_guard<std::mutex> lock(channel_rx_mutex_);
+                    channel_rx_buf_.insert(channel_rx_buf_.end(), data.begin(), data.end());
+                }
+                channel_rx_cv_.notify_all();
+
+                {
+                    std::lock_guard<std::mutex> lock(rx_queue_mutex_);
+                    rx_queue_.push({ rx_event_type::stdout_data, ch_id, std::move(data) });
+                }
+                rx_cv_.notify_one();
+                break;
+            }
+            case 95: {
+                uint32_t ch_id = p.read_uint32();
+                uint32_t code = p.read_uint32();
+                std::string data = p.read_string();
+                if (p.has_error()) break;
+
+                send_window_adjust(static_cast<uint32_t>(data.size()));
+
+                {
+                    std::lock_guard<std::mutex> lock(rx_queue_mutex_);
+                    rx_queue_.push({ rx_event_type::stderr_data, ch_id, std::move(data) });
+                }
+                rx_cv_.notify_one();
+                break;
+            }
+            case 99: {
+                {
+                    std::lock_guard<std::mutex> lock(channel_req_mutex_);
+                    channel_req_success_ = true;
+                    channel_req_done_ = true;
+                }
+                channel_req_cv_.notify_all();
+                break;
+            }
+            case 100: {
+                {
+                    std::lock_guard<std::mutex> lock(channel_req_mutex_);
+                    channel_req_success_ = false;
+                    channel_req_done_ = true;
+                }
+                channel_req_cv_.notify_all();
+                break;
+            }
+            case 80: {
+                std::string req_name = p.read_string();
+                uint8_t want_reply = p.read_byte();
+                if (want_reply) {
+                    ssh_buffer reply;
+                    reply.write_byte(82);
+                    send_packet(reply);
+                }
+                break;
+            }
+            case 1: {
+                uint32_t reason = p.read_uint32();
+                std::string desc = p.read_string();
+                reset_session_state();
+                if (on_disconnect_cb_) on_disconnect_cb_(reason, desc);
+                return;
+            }
+            default:
                 break;
             }
         }
@@ -1309,11 +975,8 @@ void ssh_client::do_handshake() {
                 rx_queue_.pop();
             }
 
-            try {
-                if (ev.type == rx_event_type::stdout_data && on_stdout_cb_) on_stdout_cb_(ev.channel_id, ev.data);
-                else if (ev.type == rx_event_type::stderr_data && on_stderr_cb_) on_stderr_cb_(ev.channel_id, ev.data);
-            }
-            catch (...) {}
+            if (ev.type == rx_event_type::stdout_data && on_stdout_cb_) on_stdout_cb_(ev.channel_id, ev.data);
+            else if (ev.type == rx_event_type::stderr_data && on_stderr_cb_) on_stderr_cb_(ev.channel_id, ev.data);
         }
     }
 
@@ -1323,13 +986,12 @@ void ssh_client::do_handshake() {
             reset_session_state();
 
             if (establish_tcp()) {
-                try {
-                    do_handshake();
+                if (do_handshake()) {
                     attempts = 0;
                     if (on_authenticated_cb_) on_authenticated_cb_();
                     receive_loop();
                 }
-                catch (...) {
+                else {
                     reset_session_state();
                 }
             }
@@ -1389,10 +1051,7 @@ void ssh_client::do_handshake() {
         policy_.enabled = false;
 
         if (!establish_tcp()) return false;
-        try {
-            do_handshake();
-        }
-        catch (...) {
+        if (!do_handshake()) {
             reset_session_state();
             return false;
         }
@@ -1415,7 +1074,7 @@ void ssh_client::do_handshake() {
         req.write_string("subsystem");
         req.write_byte(1);
         req.write_string(subsystem);
-        send_packet(req);
+        if (!send_packet(req)) return false;
 
         std::unique_lock<std::mutex> lock(channel_req_mutex_);
         if (!channel_req_cv_.wait_for(lock, timeout, [this]() { return channel_req_done_.load(); })) {

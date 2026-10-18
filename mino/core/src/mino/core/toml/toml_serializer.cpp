@@ -1,12 +1,11 @@
 #include "mino/core/toml/toml_serializer.hpp"
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <cctype>
 #include <cmath>
-#include <stdexcept>
+#include <cstdlib>
 
 namespace mino::core::toml {
 
@@ -14,22 +13,22 @@ namespace mino::core::toml {
     // Lexer 구현
     // ===========================================================================
 
-    lexer::lexer(std::string_view source) : src(source) {}
+    lexer::lexer(std::string_view source) noexcept : src(source) {}
 
-    char lexer::peek(int offset) const {
+    char lexer::peek(int offset) const noexcept {
         int64_t target = static_cast<int64_t>(pos) + offset;
         if (target < 0 || target >= static_cast<int64_t>(src.size())) return '\0';
         return src[target];
     }
 
-    char lexer::advance() {
+    char lexer::advance() noexcept {
         if (pos >= src.size()) return '\0';
         char c = src[pos++];
         if (c == '\n') cur_line++;
         return c;
     }
 
-    token lexer::next_token() {
+    token lexer::next_token() noexcept {
         while (pos < src.size()) {
             char c = peek();
 
@@ -84,7 +83,7 @@ namespace mino::core::toml {
         return { token_type::eof, "", 0, 0.0, false, {}, cur_line };
     }
 
-    void lexer::append_utf8(std::string& out, uint32_t cp) {
+    void lexer::append_utf8(std::string& out, uint32_t cp) noexcept {
         if (cp <= 0x7F) {
             out += static_cast<char>(cp);
         }
@@ -105,7 +104,7 @@ namespace mino::core::toml {
         }
     }
 
-    token lexer::parse_string() {
+    token lexer::parse_string() noexcept {
         char quote = advance();
         bool multiline = (peek() == quote && peek(1) == quote);
         if (multiline) {
@@ -127,7 +126,7 @@ namespace mino::core::toml {
                     return { token_type::string_literal, result, 0, 0.0, false, {}, cur_line };
                 }
                 if (peek() == '\n') {
-                    throw std::runtime_error("Newline in single-line string at line " + std::to_string(cur_line));
+                    return { token_type::error, "Newline in single-line string", 0, 0.0, false, {}, cur_line };
                 }
             }
 
@@ -153,7 +152,7 @@ namespace mino::core::toml {
                     uint32_t cp = 0;
                     for (int i = 0; i < 4; ++i) {
                         char h = advance();
-                        cp = (cp << 4) | (std::isdigit(h) ? h - '0' : std::tolower(h) - 'a' + 10);
+                        cp = (cp << 4) | (std::isdigit(static_cast<unsigned char>(h)) ? h - '0' : std::tolower(static_cast<unsigned char>(h)) - 'a' + 10);
                     }
                     append_utf8(result, cp);
                     break;
@@ -162,7 +161,7 @@ namespace mino::core::toml {
                     uint32_t cp = 0;
                     for (int i = 0; i < 8; ++i) {
                         char h = advance();
-                        cp = (cp << 4) | (std::isdigit(h) ? h - '0' : std::tolower(h) - 'a' + 10);
+                        cp = (cp << 4) | (std::isdigit(static_cast<unsigned char>(h)) ? h - '0' : std::tolower(static_cast<unsigned char>(h)) - 'a' + 10);
                     }
                     append_utf8(result, cp);
                     break;
@@ -174,10 +173,10 @@ namespace mino::core::toml {
                 result += cur;
             }
         }
-        throw std::runtime_error("Unterminated string at line " + std::to_string(cur_line));
+        return { token_type::error, "Unterminated string", 0, 0.0, false, {}, cur_line };
     }
 
-    bool lexer::parse_rfc3339(const std::string& s, date_time& dt) {
+    bool lexer::parse_rfc3339(const std::string& s, date_time& dt) noexcept {
         int y, M, d, h, m, sec;
         if (sscanf(s.c_str(), "%d-%d-%dT%d:%d:%d", &y, &M, &d, &h, &m, &sec) >= 6 ||
             sscanf(s.c_str(), "%d-%d-%d %d:%d:%d", &y, &M, &d, &h, &m, &sec) >= 6) {
@@ -200,7 +199,7 @@ namespace mino::core::toml {
         return false;
     }
 
-    token lexer::parse_bare_or_literal() {
+    token lexer::parse_bare_or_literal() noexcept {
         size_t start = pos;
         while (pos < src.size()) {
             char c = peek();
@@ -269,11 +268,11 @@ namespace mino::core::toml {
     // Parser 구현
     // ===========================================================================
 
-    parser::parser(std::string_view src) : lex(src) {
+    parser::parser(std::string_view src) noexcept : lex(src) {
         advance();
     }
 
-    toml_table parser::parse() {
+    std::optional<toml_table> parser::parse() noexcept {
         toml_table root;
         toml_table* cur_table = &root;
 
@@ -284,47 +283,56 @@ namespace mino::core::toml {
             if (cur_tok.type == token_type::lbracket) {
                 advance();
                 auto keys = parse_key_path();
-                consume(token_type::rbracket, "Expected ']'");
-                cur_table = &navigate_to_table(root, keys);
+                if (!keys || !consume(token_type::rbracket)) return std::nullopt;
+                cur_table = &navigate_to_table(root, *keys);
             }
             else if (cur_tok.type == token_type::double_lbracket) {
                 advance();
                 auto keys = parse_key_path();
-                consume(token_type::double_rbracket, "Expected ']]'");
-                cur_table = &append_array_table(root, keys);
+                if (!keys || !consume(token_type::double_rbracket)) return std::nullopt;
+                cur_table = &append_array_table(root, *keys);
             }
             else {
                 auto keys = parse_key_path();
-                consume(token_type::equals, "Expected '='");
-                toml_value val = parse_value();
-                assign_value_at_path(*cur_table, keys, std::move(val));
+                if (!keys || !consume(token_type::equals)) return std::nullopt;
+                auto val = parse_value();
+                if (!val) return std::nullopt;
+                assign_value_at_path(*cur_table, *keys, std::move(*val));
             }
+
+            if (has_error_) return std::nullopt;
         }
         return root;
     }
 
-    void parser::advance() {
+    void parser::advance() noexcept {
         cur_tok = lex.next_token();
+        if (cur_tok.type == token_type::error) {
+            has_error_ = true;
+        }
     }
 
-    void parser::skip_newlines() {
+    void parser::skip_newlines() noexcept {
         while (cur_tok.type == token_type::newline) {
             advance();
         }
     }
 
-    void parser::consume(token_type type, const std::string& err) {
+    bool parser::consume(token_type type) noexcept {
         if (cur_tok.type != type) {
-            throw std::runtime_error(err + " at line " + std::to_string(cur_tok.line));
+            has_error_ = true;
+            return false;
         }
         advance();
+        return true;
     }
 
-    std::vector<std::string> parser::parse_key_path() {
+    std::optional<std::vector<std::string>> parser::parse_key_path() noexcept {
         std::vector<std::string> keys;
         while (true) {
             if (cur_tok.type != token_type::identifier && cur_tok.type != token_type::string_literal) {
-                throw std::runtime_error("Invalid key token at line " + std::to_string(cur_tok.line));
+                has_error_ = true;
+                return std::nullopt;
             }
             keys.push_back(cur_tok.text);
             advance();
@@ -339,12 +347,12 @@ namespace mino::core::toml {
         return keys;
     }
 
-    toml_value parser::parse_value() {
+    std::optional<toml_value> parser::parse_value() noexcept {
         switch (cur_tok.type) {
         case token_type::string_literal: {
             std::string s = cur_tok.text;
             advance();
-            return toml_value{ s };
+            return toml_value{ std::move(s) };
         }
         case token_type::integer_literal: {
             int64_t v = cur_tok.int_val;
@@ -371,19 +379,22 @@ namespace mino::core::toml {
         case token_type::lbrace:
             return parse_inline_table();
         default:
-            throw std::runtime_error("Unexpected token in value at line " + std::to_string(cur_tok.line));
+            has_error_ = true;
+            return std::nullopt;
         }
     }
 
-    toml_value parser::parse_array() {
-        consume(token_type::lbracket, "Expected '['");
+    std::optional<toml_value> parser::parse_array() noexcept {
+        if (!consume(token_type::lbracket)) return std::nullopt;
         toml_array arr;
 
         while (true) {
             skip_newlines();
             if (cur_tok.type == token_type::rbracket) break;
 
-            arr.push_back(parse_value());
+            auto val = parse_value();
+            if (!val) return std::nullopt;
+            arr.push_back(std::move(*val));
             skip_newlines();
 
             if (cur_tok.type == token_type::comma) {
@@ -394,21 +405,23 @@ namespace mino::core::toml {
                 break;
             }
         }
-        consume(token_type::rbracket, "Expected ']'");
-        return toml_value{ arr };
+        if (!consume(token_type::rbracket)) return std::nullopt;
+        return toml_value{ std::move(arr) };
     }
 
-    toml_value parser::parse_inline_table() {
-        consume(token_type::lbrace, "Expected '{'");
+    std::optional<toml_value> parser::parse_inline_table() noexcept {
+        if (!consume(token_type::lbrace)) return std::nullopt;
         toml_table tbl;
 
         while (true) {
             if (cur_tok.type == token_type::rbrace) break;
 
             auto keys = parse_key_path();
-            consume(token_type::equals, "Expected '='");
-            toml_value val = parse_value();
-            assign_value_at_path(tbl, keys, std::move(val));
+            if (!keys || !consume(token_type::equals)) return std::nullopt;
+
+            auto val = parse_value();
+            if (!val) return std::nullopt;
+            assign_value_at_path(tbl, *keys, std::move(*val));
 
             if (cur_tok.type == token_type::comma) {
                 advance();
@@ -417,11 +430,11 @@ namespace mino::core::toml {
                 break;
             }
         }
-        consume(token_type::rbrace, "Expected '}'");
-        return toml_value{ tbl };
+        if (!consume(token_type::rbrace)) return std::nullopt;
+        return toml_value{ std::move(tbl) };
     }
 
-    void parser::assign_value_at_path(toml_table& root, const std::vector<std::string>& path, toml_value val) {
+    void parser::assign_value_at_path(toml_table& root, const std::vector<std::string>& path, toml_value val) noexcept {
         toml_table* cur = &root;
         for (size_t i = 0; i + 1 < path.size(); ++i) {
             const auto& key = path[i];
@@ -433,7 +446,7 @@ namespace mino::core::toml {
         (*cur)[path.back()] = std::move(val);
     }
 
-    toml_table& parser::navigate_to_table(toml_table& root, const std::vector<std::string>& path) {
+    toml_table& parser::navigate_to_table(toml_table& root, const std::vector<std::string>& path) noexcept {
         toml_table* cur = &root;
         for (const auto& key : path) {
             if (!(*cur)[key].is<toml_table>()) {
@@ -444,7 +457,7 @@ namespace mino::core::toml {
         return *cur;
     }
 
-    toml_table& parser::append_array_table(toml_table& root, const std::vector<std::string>& path) {
+    toml_table& parser::append_array_table(toml_table& root, const std::vector<std::string>& path) noexcept {
         toml_table* cur = &root;
         for (size_t i = 0; i + 1 < path.size(); ++i) {
             const auto& key = path[i];
@@ -467,7 +480,7 @@ namespace mino::core::toml {
     // 직렬화 구현
     // ===========================================================================
 
-    void serialize_date_time(std::ostream& os, const date_time& dt) {
+    void serialize_date_time(std::ostream& os, const date_time& dt) noexcept {
         if (dt.has_date) {
             os << std::setfill('0') << std::setw(4) << dt.year << "-"
                 << std::setw(2) << dt.month << "-"
@@ -493,7 +506,7 @@ namespace mino::core::toml {
         }
     }
 
-    void serialize_string(std::ostream& os, const std::string& str) {
+    void serialize_string(std::ostream& os, const std::string& str) noexcept {
         os << '"';
         for (char c : str) {
             switch (c) {
@@ -510,7 +523,7 @@ namespace mino::core::toml {
         os << '"';
     }
 
-    void serialize_value(std::ostream& os, const toml_value& val) {
+    void serialize_value(std::ostream& os, const toml_value& val) noexcept {
         std::visit([&os](const auto& arg) {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, std::monostate>) {
@@ -557,7 +570,7 @@ namespace mino::core::toml {
             }, val.data);
     }
 
-    void dump_table_recursive(std::ostream& os, const toml_table& tbl, const std::string& prefix) {
+    void dump_table_recursive(std::ostream& os, const toml_table& tbl, const std::string& prefix) noexcept {
         for (const auto& [key, val] : tbl) {
             if (!val.is<toml_table>() && !(val.is<toml_array>() && !val.as<toml_array>().empty() && val.as<toml_array>()[0].is<toml_table>())) {
                 os << key << " = ";
@@ -589,37 +602,37 @@ namespace mino::core::toml {
     // 공개 API 구현
     // ===========================================================================
 
-    toml_table parse_toml(std::string_view content) {
+    std::optional<toml_table> parse_toml(std::string_view content) noexcept {
         parser p(content);
         return p.parse();
     }
 
-    toml_table load_file(const std::string& path) {
+    std::optional<toml_table> load_file(const std::string& path) noexcept {
         std::ifstream file(path);
-        if (!file.is_open()) throw std::runtime_error("Could not open file: " + path);
+        if (!file.is_open()) return std::nullopt;
         std::stringstream ss;
         ss << file.rdbuf();
         return parse_toml(ss.str());
     }
 
-    toml_table load_file(const std::filesystem::path& path) {
+    std::optional<toml_table> load_file(const std::filesystem::path& path) noexcept {
         return load_file(path.string());
     }
 
-    std::string dump_toml(const toml_table& root) {
+    std::string dump_toml(const toml_table& root) noexcept {
         std::ostringstream ss;
         dump_table_recursive(ss, root, "");
         return ss.str();
     }
 
-    bool dump_file(const std::string& path, const toml_table& root) {
+    bool dump_file(const std::string& path, const toml_table& root) noexcept {
         std::ofstream file(path);
         if (!file.is_open()) return false;
         file << dump_toml(root);
         return true;
     }
 
-    bool dump_file(const std::filesystem::path& path, const toml_table& root) {
+    bool dump_file(const std::filesystem::path& path, const toml_table& root) noexcept {
         return dump_file(path.string(), root);
     }
 

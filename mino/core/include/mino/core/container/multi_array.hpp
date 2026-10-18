@@ -80,10 +80,21 @@ namespace mino::core::container {
         using iterator = typename std::vector<T>::iterator;
         using const_iterator = typename std::vector<T>::const_iterator;
 
-        multi_array() {
+        // --------------------------------------------------------------------
+        // 1. 기본 생성 및 특수 멤버 함수
+        // --------------------------------------------------------------------
+        multi_array() noexcept {
             extents_.fill(0);
             strides_.fill(0);
         }
+
+        multi_array(const multi_array&) = default;
+        multi_array& operator=(const multi_array&) = default;
+
+        multi_array(multi_array&&) noexcept = default;
+        multi_array& operator=(multi_array&&) noexcept = default;
+
+        ~multi_array() = default;
 
         explicit multi_array(const extents_type& extents) : extents_(extents) {
             init_storage();
@@ -101,8 +112,15 @@ namespace mino::core::container {
             init_storage();
         }
 
+        void swap(multi_array& other) noexcept {
+            using std::swap;
+            swap(extents_, other.extents_);
+            swap(strides_, other.strides_);
+            swap(data_, other.data_);
+        }
+
         // --------------------------------------------------------------------
-        // 1. 인덱스 연산자 (Unchecked / Debug Assert)
+        // 2. 인덱스 연산자 (Unchecked / Debug Assert)
         // --------------------------------------------------------------------
         template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == Dims>>
         reference operator()(Args... indices) noexcept {
@@ -123,38 +141,34 @@ namespace mino::core::container {
         }
 
         // --------------------------------------------------------------------
-        // 2. 런타임 범위 검사 접근 (Checked at)
+        // 3. 인덱스 접근 at (예외 던짐 없이 assert 및 noexcept 처리)
         // --------------------------------------------------------------------
         template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == Dims>>
-        reference at(Args... indices) {
+        reference at(Args... indices) noexcept {
             return at(extents_type{ static_cast<size_type>(indices)... });
         }
 
         template <typename... Args, typename = std::enable_if_t<sizeof...(Args) == Dims>>
-        const_reference at(Args... indices) const {
+        const_reference at(Args... indices) const noexcept {
             return at(extents_type{ static_cast<size_type>(indices)... });
         }
 
-        reference at(const extents_type& indices) {
+        reference at(const extents_type& indices) noexcept {
             for (size_type i = 0; i < Dims; ++i) {
-                if (indices[i] >= extents_[i]) {
-                    throw std::out_of_range("multi_array: index out of bounds at dimension " + std::to_string(i));
-                }
+                assert(indices[i] < extents_[i] && "multi_array: index out of bounds");
             }
             return data_[get_flattened_index(indices)];
         }
 
-        const_reference at(const extents_type& indices) const {
+        const_reference at(const extents_type& indices) const noexcept {
             for (size_type i = 0; i < Dims; ++i) {
-                if (indices[i] >= extents_[i]) {
-                    throw std::out_of_range("multi_array: index out of bounds at dimension " + std::to_string(i));
-                }
+                assert(indices[i] < extents_[i] && "multi_array: index out of bounds");
             }
             return data_[get_flattened_index(indices)];
         }
 
         // --------------------------------------------------------------------
-        // 3. 메타데이터 및 유틸리티
+        // 4. 메타데이터 및 유틸리티
         // --------------------------------------------------------------------
         [[nodiscard]] size_type num_dimensions() const noexcept { return Dims; }
         [[nodiscard]] size_type size() const noexcept { return data_.size(); }
@@ -162,7 +176,7 @@ namespace mino::core::container {
         [[nodiscard]] const extents_type& extents() const noexcept { return extents_; }
         [[nodiscard]] const extents_type& strides() const noexcept { return strides_; }
 
-        void fill(const T& value) {
+        void fill(const T& value) noexcept(std::is_nothrow_copy_assignable_v<T>) {
             std::fill(data_.begin(), data_.end(), value);
         }
 
@@ -177,7 +191,7 @@ namespace mino::core::container {
         const_iterator cend() const noexcept { return data_.cend(); }
 
         // --------------------------------------------------------------------
-        // 4. 순수 ASCII 기반 다차원 배열 Dump
+        // 5. 순수 ASCII 기반 다차원 배열 Dump
         // --------------------------------------------------------------------
         void dump(const std::string& title = "") const {
             if (!title.empty()) {
@@ -258,4 +272,10 @@ namespace mino::core::container {
         std::vector<T> data_;
     };
 
+    template <typename T, std::size_t Dims>
+    void swap(multi_array<T, Dims>& lhs, multi_array<T, Dims>& rhs) noexcept {
+        lhs.swap(rhs);
+    }
+
 } // namespace mino::core::container
+

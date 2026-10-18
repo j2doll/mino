@@ -229,54 +229,7 @@ namespace mino::core::string
     // - 현대 개발/보존 목적에서는 UTF-8이 필수 선택입니다.
     /////////////////////////////////////////////////////////////////////
 
-    //--------------------------------------------------------------------
-    // 실패 시 예외(exception)를 던지는(throw) 문자열 변환 함수 타입.
-    // NOTICE: 반드시 try ... catch 구문으로 감싸서 사용하여야 함.
-    //   실패 시 std::runtime_error 예외 발생.
-
-    // UTF-8(string) <-> UTF-16(u16string)
-    std::u16string utf8_to_utf16_or_throw(const std::string& utf8);
-    std::string    utf16_to_utf8_or_throw(const std::u16string& u16);
-
-    // UTF-8(string) <-> UTF-32(u32string)
-    std::u32string utf8_to_utf32_or_throw(const std::string& utf8);
-    std::string    utf32_to_utf8_or_throw(const std::u32string& u32);
-
-    // UTF-16(u16string) <-> UTF-32(u32string)
-    std::u32string utf16_to_utf32_or_throw(const std::u16string& u16);
-    std::u16string utf32_to_utf16_or_throw(const std::u32string& u32);
-
-    // CP949(string) <-> UTF-8(string)
-    std::string    utf8_to_cp949_or_throw(const std::string& utf8);
-    std::string    cp949_to_utf8_or_throw(const std::string& cp949);
-
-    // CP949(string) <-> UTF-16(u16string)
-    std::string    utf16_to_cp949_or_throw(const std::u16string& u16);
-    std::u16string cp949_to_utf16_or_throw(const std::string& cp949);
-
-    // ISO-2022-KR(string) <-> UTF-8(string)
-    std::string    utf8_to_iso2022kr_or_throw(const std::string& utf8);
-    std::string    iso2022kr_to_utf8_or_throw(const std::string& iso2022kr);
-
-    // ISO-2022-KR(string) <-> UTF-16(u16string)
-    std::u16string iso2022kr_to_utf16_or_throw(const std::string& iso2022kr);
-    std::string    utf16_to_iso2022kr_or_throw(const std::u16string& u16);
-
-    // JOHAB(string) <-> UTF-8(string)
-    std::string    utf8_to_johab_or_throw(const std::string& utf8);
-    std::string    johab_to_utf8_or_throw(const std::string& johab);
-
-    // JOHAB(string) <-> UTF-16(u16string)
-    std::u16string johab_to_utf16_or_throw(const std::string& johab);
-    std::string    utf16_to_johab_or_throw(const std::u16string& u16);
-
-    // MacKorean(string) <-> UTF-8(string)
-    std::string    utf8_to_mackorean_or_throw(const std::string& utf8);
-    std::string    mackorean_to_utf8_or_throw(const std::string& mackor);
-
-    // MacKorean(string) <-> UTF-16(u16string)
-    std::u16string mackorean_to_utf16_or_throw(const std::string& mackor);
-    std::string    utf16_to_mackorean_or_throw(const std::u16string& u16);
+ 
 
 
 

@@ -50,7 +50,7 @@ namespace mino::external::log::spd {
     };
 
     // UTF-8 -> CP949 변환 함수 선언
-     std::string convert_utf8_to_cp949(const std::string& utf8_str);
+    std::string convert_utf8_to_cp949(const std::string& utf8_str);
 
     // ============================================================================
     template<typename Mutex>
@@ -98,7 +98,7 @@ namespace mino::external::log::spd {
         void flush_() override;
 
     protected:
-        std::shared_ptr<std::atomic<bool>> skip_handler_; // changed to shared atomic
+        std::shared_ptr<std::atomic<bool>> skip_handler_;
         log_encoding encoding_;
         line_ending line_ending_;
         bool write_bom_;
@@ -109,7 +109,6 @@ namespace mino::external::log::spd {
         time_zone_type timezone_;
         std::shared_ptr<::spdlog::logger> console_logger_;
         std::shared_ptr<::spdlog::sinks::rotating_file_sink<Mutex>> backend_sink_;
-
     };
 
     // ============================================================================
@@ -138,7 +137,7 @@ namespace mino::external::log::spd {
         void flush_() override;
 
     protected:
-        std::shared_ptr<std::atomic<bool>> skip_handler_; // changed to shared atomic
+        std::shared_ptr<std::atomic<bool>> skip_handler_;
         log_encoding encoding_;
         line_ending line_ending_;
         bool write_bom_;
@@ -160,4 +159,4 @@ namespace mino::external::log::spd {
     using encoding_daily_zipping_sink_mt = encoding_daily_zipping_sink<std::mutex>;
     using encoding_daily_zipping_sink_st = encoding_daily_zipping_sink<::spdlog::details::null_mutex>;
 
-} 
+} // namespace mino::external::log::spd

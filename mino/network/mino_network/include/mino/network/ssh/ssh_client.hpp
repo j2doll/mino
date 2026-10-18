@@ -115,16 +115,16 @@ namespace mino::network::ssh {
 
         void set_state(session_state s);
 
-        void send_raw(const uint8_t* buf, size_t len);
-        void recv_raw(uint8_t* buf, size_t len);
+        bool send_raw(const uint8_t* buf, size_t len);
+        bool recv_raw(uint8_t* buf, size_t len);
 
         std::vector<uint8_t> derive_key(const std::vector<uint8_t>& K, const std::array<uint8_t, 32>& H, char letter, size_t need_len);
         void reset_session_state();
         void clear_rx_queue();
         bool establish_tcp();
-        void do_handshake();
-        void send_packet(const ssh_buffer& payload_buf);
-        ssh_buffer recv_packet();
+        bool do_handshake();
+        bool send_packet(const ssh_buffer& payload_buf);
+        bool recv_packet(ssh_buffer& out);
 
         void receive_loop();
         void rx_dispatch_loop();

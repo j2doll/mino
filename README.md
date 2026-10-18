@@ -94,7 +94,7 @@
 - 🏛️ [expected](example/core/expected/main.cpp)
     - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
 - 🏛️ [exception](example/core/exception/main.cpp)
-    - `C++17` 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
+    - `C++17`용 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
 - 🏛️ [file](example/core/file/)
     - [실행 파일 경로](example/core/file/test_01_executable_path.cpp)
     - [UTF8 문자열 → 경로 변환](example/core/file/test_02_path_from_utf8.cpp)

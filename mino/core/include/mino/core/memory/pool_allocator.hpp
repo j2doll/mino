@@ -35,9 +35,9 @@ namespace mino::core::memory {
 
         ~pool_allocator() = default;
 
-        T* allocate(std::size_t n) {
+        T* allocate(std::size_t n) noexcept  {
             if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
-                throw std::bad_array_new_length();
+                return nullptr; // 요청 크기가 너무 커서 오버플로우 발생 가능
             }
 
             // 단일 객체 요청이고 메모리 풀의 블록 크기 범위 내인 경우 풀에서 할당

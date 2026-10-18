@@ -45,41 +45,6 @@ endif()
 # 4-4. Link threading library
 target_link_libraries(mino_core PUBLIC Threads::Threads)
 
-# -------------------------------------------------------------
-# 4-5. Platform-specific settings: Stack trace and debug symbols
-# -------------------------------------------------------------
-if(WIN32)
-    # Windows: Link DbgHelp for stack trace symbol resolution (e.g., SymFromAddr)
-    target_link_libraries(mino_core PUBLIC dbghelp)
-
-    if(MSVC)
-        target_compile_options(mino_core PRIVATE
-            $<$<CONFIG:Debug>:/Zi>
-        )
-        target_link_options(mino_core INTERFACE
-            $<$<CONFIG:Debug>:/DEBUG>
-        )
-    endif()
-
-elseif(APPLE)
-    # macOS: Clang / AppleClang settings
-    target_compile_options(mino_core PRIVATE
-        $<$<CONFIG:Debug>:-g>
-    )
-    # Ensure symbols are preserved in consumers of this library
-    set_target_properties(mino_core PROPERTIES ENABLE_EXPORTS ON)
-
-elseif(UNIX)
-    # Linux: Link dl for dynamic symbol resolution (dladdr)
-    target_link_libraries(mino_core PUBLIC ${CMAKE_DL_LIBS})
-
-    target_compile_options(mino_core PRIVATE
-        $<$<CONFIG:Debug>:-g>
-    )
-    # Export dynamic symbols for backtraces in dependent executables
-    target_link_options(mino_core INTERFACE -rdynamic)
-endif()
-
 # 5. Header search paths
 # Distinguish build directory paths from installed deployment paths
 target_include_directories(

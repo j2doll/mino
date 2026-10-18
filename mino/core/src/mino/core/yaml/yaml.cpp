@@ -5,13 +5,15 @@
 #include <sstream>
 #include <charconv>
 #include <cctype>
-#include <stdexcept>
 #include <algorithm>
 
 namespace mino::core::yaml {
 
+    // 접근 실패 시 참조로 반환할 불변/가변 더미 노드
+    static node g_dummy_node;
+
     // =============================================================
-    // node 멤버 함수 구현 (순서 보존 vector<pair> 대응)
+    // node 멤버 함수 구현
     // =============================================================
     node::node() : data(null_type{}) {}
     node::node(null_type v) : data(v) {}
@@ -50,7 +52,8 @@ namespace mino::core::yaml {
     node& node::operator[](const std::string& key) {
         if (is_null()) data = mapping{};
         if (!is_map()) {
-            throw std::runtime_error("Node is not a mapping type");
+            g_dummy_node = node{};
+            return g_dummy_node;
         }
         auto& map = std::get<mapping>(data);
         for (auto& pair : map) {
@@ -62,33 +65,47 @@ namespace mino::core::yaml {
 
     const node& node::operator[](const std::string& key) const {
         if (!is_map()) {
-            throw std::runtime_error("Node is not a mapping type");
+            static const node empty_node;
+            return empty_node;
         }
         const auto& map = std::get<mapping>(data);
         for (const auto& pair : map) {
             if (pair.first == key) return pair.second;
         }
-        throw std::out_of_range("Key not found in YAML mapping: " + key);
+        static const node empty_node;
+        return empty_node;
     }
 
     node& node::operator[](size_t index) {
         if (!is_seq()) {
-            throw std::runtime_error("Node is not a sequence type");
+            g_dummy_node = node{};
+            return g_dummy_node;
         }
-        return std::get<sequence>(data).at(index);
+        auto& seq = std::get<sequence>(data);
+        if (index >= seq.size()) {
+            g_dummy_node = node{};
+            return g_dummy_node;
+        }
+        return seq[index];
     }
 
     const node& node::operator[](size_t index) const {
         if (!is_seq()) {
-            throw std::runtime_error("Node is not a sequence type");
+            static const node empty_node;
+            return empty_node;
         }
-        return std::get<sequence>(data).at(index);
+        const auto& seq = std::get<sequence>(data);
+        if (index >= seq.size()) {
+            static const node empty_node;
+            return empty_node;
+        }
+        return seq[index];
     }
 
     void node::push_back(node item) {
         if (is_null()) data = sequence{};
         if (!is_seq()) {
-            throw std::runtime_error("Node is not a sequence type");
+            return;
         }
         std::get<sequence>(data).push_back(std::move(item));
     }
@@ -107,7 +124,6 @@ namespace mino::core::yaml {
         sv = trim(sv);
         if (sv.empty() || sv == "~" || sv == "null") return node{ null_type{} };
 
-        // 1. 따옴표로 감싸진 문자열은 공백/숫자 여부와 무관하게 항상 string으로 취급
         if (sv.size() >= 2 && ((sv.front() == '"' && sv.back() == '"') || (sv.front() == '\'' && sv.back() == '\''))) {
             return node{ std::string(sv.substr(1, sv.size() - 2)) };
         }
@@ -115,25 +131,23 @@ namespace mino::core::yaml {
         if (sv == "true") return node{ true };
         if (sv == "false") return node{ false };
 
-        // 2. 정수 파싱
+        // 1. 정수 파싱 (from_chars: 예외 없음)
         int64_t int_val = 0;
         auto [p1, ec1] = std::from_chars(sv.data(), sv.data() + sv.size(), int_val);
         if (ec1 == std::errc{} && p1 == sv.data() + sv.size()) {
             return node{ int_val };
         }
 
-        // 3. 실수 파싱 (소수점 '.' 또는 지수 'e/E'가 포함된 경우)
+        // 2. 실수 파싱 (from_chars: 예외 없음)
         if (sv.find('.') != std::string_view::npos || sv.find('e') != std::string_view::npos || sv.find('E') != std::string_view::npos) {
-            try {
-                size_t idx = 0;
-                std::string s(sv);
-                double d = std::stod(s, &idx);
-                if (idx == s.size()) return node{ d };
+            double d_val = 0.0;
+            auto [p2, ec2] = std::from_chars(sv.data(), sv.data() + sv.size(), d_val);
+            if (ec2 == std::errc{} && p2 == sv.data() + sv.size()) {
+                return node{ d_val };
             }
-            catch (...) {}
         }
 
-        // 4. 공백을 포함한 일반 텍스트 문자열
+        // 3. 일반 문자열
         return node{ std::string(sv) };
     }
 
@@ -146,7 +160,6 @@ namespace mino::core::yaml {
             std::string_view raw = src.substr(pos, next - pos);
             pos = next + 1;
 
-            // 주석(#) 제거 (단, 따옴표 내부의 #은 무시하는 간단한 보호 로직)
             bool in_double_quote = false;
             bool in_single_quote = false;
             size_t comment_pos = std::string_view::npos;
@@ -240,14 +253,15 @@ namespace mino::core::yaml {
         return parse_block(lines, idx, lines[0].indent);
     }
 
-    node parser::parse_file(const std::filesystem::path& file_path) {
+    std::optional<node> parser::parse_file(const std::filesystem::path& file_path) {
         std::ifstream file(file_path, std::ios::in | std::ios::binary);
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open YAML file for reading: " + file_path.string());
+            return std::nullopt;
         }
         std::ostringstream ss;
         ss << file.rdbuf();
-        return parse(std::string_view(ss.str()));
+        std::string content = ss.str();
+        return parse(content);
     }
 
     // =============================================================
@@ -271,14 +285,12 @@ namespace mino::core::yaml {
                 std::ostringstream dss;
                 dss << arg;
                 std::string s = dss.str();
-                // 1.0 같은 값이 1로 출력되는 것을 방지하기 위해 .0 붙이기
                 if (s.find('.') == std::string::npos && s.find('e') == std::string::npos && s.find('E') == std::string::npos) {
                     s += ".0";
                 }
                 out << s << "\n";
             }
             else if constexpr (std::is_same_v<target_type, std::string>) {
-                // 공백, 특수문자가 포함된 경우 따옴표로 감싸기
                 bool need_quotes = arg.empty() ||
                     arg.find(' ') != std::string::npos ||
                     arg.find(':') != std::string::npos ||
@@ -330,12 +342,13 @@ namespace mino::core::yaml {
         return ss.str();
     }
 
-    void emitter::dump_file(const node& root, const std::filesystem::path& file_path) {
+    bool emitter::dump_file(const node& root, const std::filesystem::path& file_path) {
         std::ofstream file(file_path, std::ios::out | std::ios::trunc);
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open YAML file for writing: " + file_path.string());
+            return false;
         }
         dump(root, file);
+        return true;
     }
 
 } // namespace mino::core::yaml

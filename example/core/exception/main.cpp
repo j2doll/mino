@@ -5,7 +5,6 @@
 #include "mino/core/exception/exception.hpp"
 
 extern void test_traceable_exception(); 
-extern void test_stack_traced_exception();
 
 int main(int argc, char* argv[]) {
     namespace mce = mino::core::exception;
@@ -16,9 +15,6 @@ int main(int argc, char* argv[]) {
 
     // traceable_exception 테스트
     test_traceable_exception();
-
-    // stack_traced_exception 테스트
-    test_stack_traced_exception(); 
 
     return 0;
 }

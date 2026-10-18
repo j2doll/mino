@@ -72,18 +72,7 @@ void test_encodings() {
         TEST_CHECK(!utf8_from_mac.empty());
     }
 
-    try {
-        TEST_CHECK(mcs::utf8_to_utf16_or_throw(utf8_sample) == u16_out);
-        TEST_CHECK(mcs::utf16_to_utf8_or_throw(u16_out) == utf8_sample);
-        TEST_CHECK(mcs::utf8_to_utf32_or_throw(utf8_sample) == u32_out);
-        TEST_CHECK(mcs::utf32_to_utf8_or_throw(u32_out) == utf8_sample);
-        TEST_CHECK(mcs::utf16_to_utf32_or_throw(u16_out) == u32_out);
-        TEST_CHECK(mcs::utf32_to_utf16_or_throw(u32_out) == u16_out);
-    }
-    catch (const std::exception& ex) {
-        eprint(std::endl, tce("[EXCEPTION ERROR] "), ex.what());
-        TEST_CHECK(false);
-    }
+ 
 
     // Console encoding
     std::string console_bytes = mcs::to_console_encoding(utf8_sample);

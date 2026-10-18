@@ -1,5 +1,4 @@
 #include "mino/network/ssh/ssh_buffer.hpp"
-#include <stdexcept>
 
 namespace mino::network::ssh {
 
@@ -15,6 +14,10 @@ namespace mino::network::ssh {
 
     size_t ssh_buffer::size() const {
         return data_.size();
+    }
+
+    bool ssh_buffer::has_error() const {
+        return error_;
     }
 
     void ssh_buffer::write_byte(uint8_t b) {
@@ -76,12 +79,18 @@ namespace mino::network::ssh {
     }
 
     uint8_t ssh_buffer::read_byte() {
-        if (rpos_ >= data_.size()) throw std::runtime_error("Buffer underflow (byte)");
+        if (rpos_ >= data_.size()) {
+            error_ = true;
+            return 0;
+        }
         return data_[rpos_++];
     }
 
     uint32_t ssh_buffer::read_uint32() {
-        if (rpos_ + 4 > data_.size()) throw std::runtime_error("Buffer underflow (uint32)");
+        if (rpos_ + 4 > data_.size()) {
+            error_ = true;
+            return 0;
+        }
         uint32_t val = (static_cast<uint32_t>(data_[rpos_]) << 24) |
             (static_cast<uint32_t>(data_[rpos_ + 1]) << 16) |
             (static_cast<uint32_t>(data_[rpos_ + 2]) << 8) |
@@ -98,7 +107,10 @@ namespace mino::network::ssh {
 
     std::string ssh_buffer::read_string() {
         uint32_t len = read_uint32();
-        if (rpos_ + len > data_.size()) throw std::runtime_error("Buffer underflow (string)");
+        if (error_ || rpos_ + len > data_.size()) {
+            error_ = true;
+            return {};
+        }
         std::string s(data_.begin() + rpos_, data_.begin() + rpos_ + len);
         rpos_ += len;
         return s;
@@ -106,7 +118,10 @@ namespace mino::network::ssh {
 
     std::vector<uint8_t> ssh_buffer::read_bytes() {
         uint32_t len = read_uint32();
-        if (rpos_ + len > data_.size()) throw std::runtime_error("Buffer underflow (bytes)");
+        if (error_ || rpos_ + len > data_.size()) {
+            error_ = true;
+            return {};
+        }
         std::vector<uint8_t> v(data_.begin() + rpos_, data_.begin() + rpos_ + len);
         rpos_ += len;
         return v;

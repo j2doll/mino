@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <mutex>
 #include <cstdint>
+#include <cassert>
 
 #include <libssh2.h>
 
@@ -29,22 +30,12 @@ namespace mino::network_libssh2::ssh2 {
 
     private:
         platform_network_initializer() {
-#ifdef _WIN32
-            WSADATA wsa_data;
-            if (::WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-                throw std::runtime_error("WSAStartup failed");
-            }
-#endif
-            if (::libssh2_init(0) != 0) {
-                throw std::runtime_error("libssh2_init failed");
-            }
+            auto ret = ::libssh2_init(0);
+            assert(ret == 0 && "libssh2 initialization failed");
         }
 
         ~platform_network_initializer() {
             ::libssh2_exit();
-#ifdef _WIN32
-            ::WSACleanup();
-#endif
         }
 
         platform_network_initializer(const platform_network_initializer&) = delete;

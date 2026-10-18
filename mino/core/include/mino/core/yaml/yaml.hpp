@@ -9,11 +9,11 @@
 #include <cstddef>
 #include <iosfwd>
 #include <filesystem>
+#include <optional>
 
 namespace mino::core::yaml {
 
     struct node;
-    // 순서 보존을 위해 std::vector<std::pair> 기반으로 변경
     using sequence = std::vector<node>;
     using mapping = std::vector<std::pair<std::string, node>>;
     using null_type = std::monostate;
@@ -34,20 +34,19 @@ namespace mino::core::yaml {
             mapping
         };
 
-        // node 구조체 내부 메서드
         node_type type() const {
             return static_cast<node_type>(data.index());
         }
 
         std::string_view type_name() const {
             switch (type()) {
-                case node_type::null_val:  return "null";
-                case node_type::boolean:   return "bool";
-                case node_type::integer:   return "int";
-                case node_type::floating:  return "double";
-                case node_type::string:    return "string";
-                case node_type::sequence:  return "sequence";
-                case node_type::mapping:   return "mapping";
+            case node_type::null_val:  return "null";
+            case node_type::boolean:   return "bool";
+            case node_type::integer:   return "int";
+            case node_type::floating:  return "double";
+            case node_type::string:    return "string";
+            case node_type::sequence:  return "sequence";
+            case node_type::mapping:   return "mapping";
             }
             return "unknown";
         }
@@ -78,7 +77,7 @@ namespace mino::core::yaml {
         bool has_key(const std::string& key) const;
         size_t size() const;
 
-        // 데이터 접근 연산자
+        // 데이터 접근 연산자 (예외를 던지지 않고 유효하지 않은 경우 정적 dummy node 반환)
         node& operator[](const std::string& key);
         const node& operator[](const std::string& key) const;
         node& operator[](size_t index);
@@ -86,15 +85,21 @@ namespace mino::core::yaml {
 
         void push_back(node item);
 
-        // 템플릿 변환 함수
+        // 안전한 변환 함수 (std::get_if 활용, 미일치 시 기본값 반환)
         template <typename T>
-        const T& as() const {
-            return std::get<T>(data);
+        T as(const T& default_val = T{}) const {
+            if (const T* val = std::get_if<T>(&data)) {
+                return *val;
+            }
+            return default_val;
         }
 
         template <typename T>
-        T& as() {
-            return std::get<T>(data);
+        std::optional<T> as_opt() const {
+            if (const T* val = std::get_if<T>(&data)) {
+                return *val;
+            }
+            return std::nullopt;
         }
     };
 
@@ -104,7 +109,7 @@ namespace mino::core::yaml {
     class parser {
     public:
         static node parse(std::string_view yaml_str);
-        static node parse_file(const std::filesystem::path& file_path);
+        static std::optional<node> parse_file(const std::filesystem::path& file_path);
 
     private:
         struct line {
@@ -125,7 +130,7 @@ namespace mino::core::yaml {
     public:
         static std::string dump(const node& root);
         static void dump(const node& root, std::ostream& out);
-        static void dump_file(const node& root, const std::filesystem::path& file_path);
+        static bool dump_file(const node& root, const std::filesystem::path& file_path);
 
     private:
         static void emit_node(const node& n, std::ostream& out, int indent_level);
@@ -138,7 +143,7 @@ namespace mino::core::yaml {
         return parser::parse(yaml_str);
     }
 
-    inline node parse_yaml_file(const std::filesystem::path& path) {
+    inline std::optional<node> parse_yaml_file(const std::filesystem::path& path) {
         return parser::parse_file(path);
     }
 
@@ -146,8 +151,8 @@ namespace mino::core::yaml {
         return emitter::dump(root);
     }
 
-    inline void dump_yaml_file(const node& root, const std::filesystem::path& path) {
-        emitter::dump_file(root, path);
+    inline bool dump_yaml_file(const node& root, const std::filesystem::path& path) {
+        return emitter::dump_file(root, path);
     }
 
 } // namespace mino::core::yaml

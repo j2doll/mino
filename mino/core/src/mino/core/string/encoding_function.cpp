@@ -338,11 +338,6 @@ namespace {
 
 #endif // _WIN32
 
-    // 공통 예외 헬퍼
-    static inline void throw_conv_err(const char* what) {
-        throw std::runtime_error(what);
-    }
-
 } // namespace (anon)
 
 namespace mino::core::string
@@ -433,7 +428,7 @@ namespace mino::core::string
             nullptr,
             0,
             nullptr,
-            nullptr); 
+            nullptr);
         if (needed <= 0) {
             // DWORD err = ::GetLastError(); 
             return std::string{};
@@ -443,14 +438,14 @@ namespace mino::core::string
         out.resize(static_cast<std::size_t>(needed));
 
         int written = ::WideCharToMultiByte(
-                codepage,
-                0,
-                utf16.data(),
-                static_cast<int>(utf16.size()),
-                &out[0],
-                needed,
-                nullptr,
-                nullptr);
+            codepage,
+            0,
+            utf16.data(),
+            static_cast<int>(utf16.size()),
+            &out[0],
+            needed,
+            nullptr,
+            nullptr);
         if (written != needed) {
             // DWORD err = ::GetLastError(); 
             return std::string{};
@@ -791,99 +786,4 @@ namespace mino::core::string
 #endif
     }
 
-    // =============================
-    // 기존 throwing helpers + 추가 코덱 throwing
-    // =============================
-    std::u16string utf8_to_utf16_or_throw(const std::string& utf8)
-    {
-        std::u16string out; if (!utf8_to_utf16(utf8, out)) throw_conv_err("utf8_to_utf16 failed"); return out;
-    }
-    std::string utf16_to_utf8_or_throw(const std::u16string& u16)
-    {
-        std::string out; if (!utf16_to_utf8(u16, out)) throw_conv_err("utf16_to_utf8 failed"); return out;
-    }
-    std::u32string utf8_to_utf32_or_throw(const std::string& utf8)
-    {
-        std::u32string out; if (!utf8_to_utf32(utf8, out)) throw_conv_err("utf8_to_utf32 failed"); return out;
-    }
-    std::string utf32_to_utf8_or_throw(const std::u32string& u32)
-    {
-        std::string out; if (!utf32_to_utf8(u32, out)) throw_conv_err("utf32_to_utf8 failed"); return out;
-    }
-    std::u32string utf16_to_utf32_or_throw(const std::u16string& u16)
-    {
-        std::u32string out; if (!utf16_to_utf32(u16, out)) throw_conv_err("utf16_to_utf32 failed"); return out;
-    }
-    std::u16string utf32_to_utf16_or_throw(const std::u32string& u32)
-    {
-        std::u16string out; if (!utf32_to_utf16(u32, out)) throw_conv_err("utf32_to_utf16 failed"); return out;
-    }
-    std::string utf8_to_cp949_or_throw(const std::string& utf8)
-    {
-        std::string out; if (!utf8_to_cp949(utf8, out)) throw_conv_err("utf8_to_cp949 failed"); return out;
-    }
-    std::string cp949_to_utf8_or_throw(const std::string& cp949)
-    {
-        std::string out; if (!cp949_to_utf8(cp949, out)) throw_conv_err("cp949_to_utf8 failed"); return out;
-    }
-    std::string utf16_to_cp949_or_throw(const std::u16string& u16)
-    {
-        std::string out; if (!utf16_to_cp949(u16, out)) throw_conv_err("utf16_to_cp949 failed"); return out;
-    }
-    std::u16string cp949_to_utf16_or_throw(const std::string& cp949)
-    {
-        std::u16string out; if (!cp949_to_utf16(cp949, out)) throw_conv_err("cp949_to_utf16 failed"); return out;
-    }
-
-    std::string utf8_to_iso2022kr_or_throw(const std::string& utf8)
-    {
-        std::string out; if (!utf8_to_iso2022kr(utf8, out)) throw_conv_err("utf8_to_iso2022kr failed"); return out;
-    }
-    std::string iso2022kr_to_utf8_or_throw(const std::string& iso2022kr)
-    {
-        std::string out; if (!iso2022kr_to_utf8(iso2022kr, out)) throw_conv_err("iso2022kr_to_utf8 failed"); return out;
-    }
-    std::u16string iso2022kr_to_utf16_or_throw(const std::string& iso2022kr)
-    {
-        std::u16string out; if (!iso2022kr_to_utf16(iso2022kr, out)) throw_conv_err("iso2022kr_to_utf16 failed"); return out;
-    }
-    std::string utf16_to_iso2022kr_or_throw(const std::u16string& u16)
-    {
-        std::string out; if (!utf16_to_iso2022kr(u16, out)) throw_conv_err("utf16_to_iso2022kr failed"); return out;
-    }
-
-    std::string utf8_to_johab_or_throw(const std::string& utf8)
-    {
-        std::string out; if (!utf8_to_johab(utf8, out)) throw_conv_err("utf8_to_johab failed"); return out;
-    }
-    std::string johab_to_utf8_or_throw(const std::string& johab)
-    {
-        std::string out; if (!johab_to_utf8(johab, out)) throw_conv_err("johab_to_utf8 failed"); return out;
-    }
-    std::u16string johab_to_utf16_or_throw(const std::string& johab)
-    {
-        std::u16string out; if (!johab_to_utf16(johab, out)) throw_conv_err("johab_to_utf16 failed"); return out;
-    }
-    std::string utf16_to_johab_or_throw(const std::u16string& u16)
-    {
-        std::string out; if (!utf16_to_johab(u16, out)) throw_conv_err("utf16_to_johab failed"); return out;
-    }
-
-    std::string utf8_to_mackorean_or_throw(const std::string& utf8)
-    {
-        std::string out; if (!utf8_to_mackorean(utf8, out)) throw_conv_err("utf8_to_mackorean failed"); return out;
-    }
-    std::string mackorean_to_utf8_or_throw(const std::string& mackor)
-    {
-        std::string out; if (!mackorean_to_utf8(mackor, out)) throw_conv_err("mackorean_to_utf8 failed"); return out;
-    }
-    std::u16string mackorean_to_utf16_or_throw(const std::string& mackor)
-    {
-        std::u16string out; if (!mackorean_to_utf16(mackor, out)) throw_conv_err("mackorean_to_utf16 failed"); return out;
-    }
-    std::string utf16_to_mackorean_or_throw(const std::u16string& u16)
-    {
-        std::string out; if (!utf16_to_mackorean(u16, out)) throw_conv_err("utf16_to_mackorean failed"); return out;
-    }
-
-} 
+} // namespace mino::core::string

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <iosfwd>
 #include <filesystem>
+#include <optional>
 
 namespace mino::core::toml {
 
@@ -50,18 +51,28 @@ namespace mino::core::toml {
         value_type data;
 
         template <typename T>
-        bool is() const {
+        bool is() const noexcept {
             return std::holds_alternative<T>(data);
         }
 
         template <typename T>
-        const T& as() const {
-            return std::get<T>(data);
+        const T* get_if() const noexcept {
+            return std::get_if<T>(&data);
         }
 
         template <typename T>
-        T& as() {
-            return std::get<T>(data);
+        T* get_if() noexcept {
+            return std::get_if<T>(&data);
+        }
+
+        template <typename T>
+        const T& as() const noexcept {
+            return *std::get_if<T>(&data);
+        }
+
+        template <typename T>
+        T& as() noexcept {
+            return *std::get_if<T>(&data);
         }
     };
 
@@ -71,6 +82,7 @@ namespace mino::core::toml {
 
     enum class token_type {
         eof,
+        error,
         newline,
         equals,
         dot,
@@ -101,18 +113,18 @@ namespace mino::core::toml {
 
     class lexer {
     public:
-        explicit lexer(std::string_view source);
+        explicit lexer(std::string_view source) noexcept;
 
-        token next_token();
+        token next_token() noexcept;
 
     private:
-        char peek(int offset = 0) const;
-        char advance();
-        token parse_string();
-        token parse_bare_or_literal();
+        char peek(int offset = 0) const noexcept;
+        char advance() noexcept;
+        token parse_string() noexcept;
+        token parse_bare_or_literal() noexcept;
 
-        static void append_utf8(std::string& out, uint32_t cp);
-        static bool parse_rfc3339(const std::string& s, date_time& dt);
+        static void append_utf8(std::string& out, uint32_t cp) noexcept;
+        static bool parse_rfc3339(const std::string& s, date_time& dt) noexcept;
 
         std::string_view src;
         size_t pos = 0;
@@ -125,51 +137,52 @@ namespace mino::core::toml {
 
     class parser {
     public:
-        explicit parser(std::string_view src);
+        explicit parser(std::string_view src) noexcept;
 
-        toml_table parse();
+        std::optional<toml_table> parse() noexcept;
 
     private:
-        void advance();
-        void skip_newlines();
-        void consume(token_type type, const std::string& err);
+        void advance() noexcept;
+        void skip_newlines() noexcept;
+        bool consume(token_type type) noexcept;
 
-        std::vector<std::string> parse_key_path();
-        toml_value parse_value();
-        toml_value parse_array();
-        toml_value parse_inline_table();
+        std::optional<std::vector<std::string>> parse_key_path() noexcept;
+        std::optional<toml_value> parse_value() noexcept;
+        std::optional<toml_value> parse_array() noexcept;
+        std::optional<toml_value> parse_inline_table() noexcept;
 
-        static void assign_value_at_path(toml_table& root, const std::vector<std::string>& path, toml_value val);
-        static toml_table& navigate_to_table(toml_table& root, const std::vector<std::string>& path);
-        static toml_table& append_array_table(toml_table& root, const std::vector<std::string>& path);
+        static void assign_value_at_path(toml_table& root, const std::vector<std::string>& path, toml_value val) noexcept;
+        static toml_table& navigate_to_table(toml_table& root, const std::vector<std::string>& path) noexcept;
+        static toml_table& append_array_table(toml_table& root, const std::vector<std::string>& path) noexcept;
 
         lexer lex;
         token cur_tok;
+        bool has_error_ = false;
     };
 
     // ===========================================================================
     // 직렬화 보조 함수 선언
     // ===========================================================================
 
-    void serialize_date_time(std::ostream& os, const date_time& dt);
-    void serialize_string(std::ostream& os, const std::string& str);
-    void serialize_value(std::ostream& os, const toml_value& val);
-    void dump_table_recursive(std::ostream& os, const toml_table& tbl, const std::string& prefix);
+    void serialize_date_time(std::ostream& os, const date_time& dt) noexcept;
+    void serialize_string(std::ostream& os, const std::string& str) noexcept;
+    void serialize_value(std::ostream& os, const toml_value& val) noexcept;
+    void dump_table_recursive(std::ostream& os, const toml_table& tbl, const std::string& prefix) noexcept;
 
     // ===========================================================================
     // 공개 API 선언
     // ===========================================================================
 
-    toml_table parse_toml(std::string_view content);
+    std::optional<toml_table> parse_toml(std::string_view content) noexcept;
 
-    // 파일 로드 (문자열 경로 및 std::filesystem::path 지원)
-    toml_table load_file(const std::string& path);
-    toml_table load_file(const std::filesystem::path& path);
+    // 파일 로드 (실패 시 std::nullopt 반환)
+    std::optional<toml_table> load_file(const std::string& path) noexcept;
+    std::optional<toml_table> load_file(const std::filesystem::path& path) noexcept;
 
-    std::string dump_toml(const toml_table& root);
+    std::string dump_toml(const toml_table& root) noexcept;
 
-    // 파일 저장 (문자열 경로 및 std::filesystem::path 지원)
-    bool dump_file(const std::string& path, const toml_table& root);
-    bool dump_file(const std::filesystem::path& path, const toml_table& root);
+    // 파일 저장
+    bool dump_file(const std::string& path, const toml_table& root) noexcept;
+    bool dump_file(const std::filesystem::path& path, const toml_table& root) noexcept;
 
 } // namespace mino::core::toml

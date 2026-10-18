@@ -7,6 +7,7 @@
 #include <fstream>
 #include <functional>
 #include <array>
+#include <optional>
 
 namespace mino::core::zip {
 
@@ -90,14 +91,12 @@ namespace mino::core::zip {
 
     namespace detail {
 
-        // DEFLATE 알고리즘 파라미터 구조체 선언
         struct deflate_params {
             size_t window_size;
             size_t max_chain;
             size_t good_length;
         };
 
-        // DEFLATE 비트 단위 쓰기 클래스 선언
         class bit_writer {
         public:
             void write_bits(uint32_t bits, int count);
@@ -110,13 +109,12 @@ namespace mino::core::zip {
             int bit_count = 0;
         };
 
-        // 내부 헬퍼 함수 선언
         uint32_t calculate_crc32(const std::vector<uint8_t>& data);
         void write_huffman_code(bit_writer& bw, uint32_t code, int length);
         void write_fixed_literal(bit_writer& bw, uint32_t lit);
         void write_fixed_distance(bit_writer& bw, uint32_t dist_code);
         deflate_params get_params_for_level(compression_level level);
-        std::vector<uint8_t> compress_deflate(const std::vector<uint8_t>& input,
+        std::optional<std::vector<uint8_t>> compress_deflate(const std::vector<uint8_t>& input,
             compression_level level,
             const std::string& entry_name,
             const progress_callback& callback,
@@ -124,7 +122,6 @@ namespace mino::core::zip {
 
     } // namespace detail
 
-    // ZIP 아카이버 클래스 선언
     class zip_archiver {
     public:
         zip_archiver();
@@ -136,30 +133,31 @@ namespace mino::core::zip {
         zip_archiver(zip_archiver&&) noexcept;
         zip_archiver& operator=(zip_archiver&&) noexcept;
 
-        void init(const fs::path& zip_path,
+        bool init(const fs::path& zip_path,
             bool overwrite = true,
             compression_level default_lvl = compression_level::default_level,
             path_encoding default_enc = path_encoding::utf8);
 
         void set_progress_callback(progress_callback callback, int percent_step = 1);
 
-        void add_file_data(const std::string& raw_archive_path,
+        bool add_file_data(const std::string& raw_archive_path,
             const std::vector<uint8_t>& content);
-        void add_file_data(const std::string& raw_archive_path,
+        bool add_file_data(const std::string& raw_archive_path,
             const std::vector<uint8_t>& content,
             compression_level level);
 
-        void add_file_from_disk(const fs::path& disk_file_path,
+        bool add_file_from_disk(const fs::path& disk_file_path,
             const std::string& raw_archive_path);
-        void add_file_from_disk(const fs::path& disk_file_path,
+        bool add_file_from_disk(const fs::path& disk_file_path,
             const std::string& raw_archive_path,
             compression_level level);
 
-        void finish();
+        bool finish();
 
     private:
-        void ensure_initialized_and_active() const;
-        std::string sanitize_archive_path(const std::string& input_path) const;
+        bool is_valid_state() const;
+        std::optional<std::string> sanitize_archive_path(const std::string& input_path) const;
+        void cleanup_on_error();
 
         fs::path target_path;
         std::ofstream zip_out;

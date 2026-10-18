@@ -10,6 +10,15 @@ void test_multi_array_all_public() {
 
     namespace container = mino::core::container;
 
+    // noexcept 명세 컴파일 타임 검증
+    using Arr2D = container::multi_array<int, 2>;
+    static_assert(std::is_nothrow_default_constructible_v<Arr2D>);
+    static_assert(std::is_nothrow_move_constructible_v<Arr2D>);
+    static_assert(std::is_nothrow_move_assignable_v<Arr2D>);
+    static_assert(noexcept(std::declval<Arr2D&>()(0, 0)));
+    static_assert(noexcept(std::declval<Arr2D&>()[std::declval<std::array<std::size_t, 2>>()]));
+    static_assert(noexcept(std::declval<Arr2D&>().at(0, 0))); // at() 역시 noexcept
+
     // 1. 2D multi_array (3x4)
     container::multi_array<int, 2> arr2d(3, 4);
     assert(arr2d.num_dimensions() == 2);
@@ -34,16 +43,8 @@ void test_multi_array_all_public() {
     assert(arr2d(2, 3) == 20);
     assert(arr2d[idx2d] == 20);
 
-    // at 범위 검사
+    // at 검증 (정상 범위 접근)
     assert(arr2d.at(1, 2) == 10);
-    bool out_of_bounds_thrown = false;
-    try {
-        arr2d.at(3, 0);
-    }
-    catch (const std::out_of_range&) {
-        out_of_bounds_thrown = true;
-    }
-    assert(out_of_bounds_thrown);
 
     // 선형 데이터 접근 및 fill
     int* raw_data = arr2d.data();
@@ -63,7 +64,6 @@ void test_multi_array_all_public() {
     arr3d(1, 2, 3) = 2.71;
     assert(arr3d(0, 1, 2) == 3.14);
 
-    // 전처리기 매크로(assert) 쉼표 충돌 방지를 위해 std::array 변수 사용
     std::array<std::size_t, 3> idx3d = { 1, 2, 3 };
     assert(arr3d[idx3d] == 2.71);
 
