@@ -6,7 +6,7 @@ from collections import defaultdict
 import re
 
 def infer_cpp_type(val_str: str) -> str:
-    """문자열 값을 분석하여 적절한 C++ 타입을 추론합니다."""
+    """Infer an appropriate C++ type by analyzing a string value."""
     val = val_str.strip()
     if not val:
         return "std::string"
@@ -25,13 +25,13 @@ def infer_cpp_type(val_str: str) -> str:
     return "std::string"
 
 def clean_tag(tag: str) -> str:
-    """XML 태그/네임스페이스를 C++ 식별자(PascalCase)로 정규화합니다."""
+    """Normalize XML tags/namespaces to C++ identifiers (PascalCase)."""
     tag = re.sub(r"\{.*?\}", "", tag)
     parts = tag.replace("-", "_").split("_")
     return "".join(p.capitalize() for p in parts)
 
 def generate_cpp_structs(xml_content: str) -> str:
-    """XML 문자열로부터 직렬화/역직렬화 메서드가 포함된 C++ 구조체를 생성합니다."""
+    """Generate C++ structs with serialization/deserialization methods from an XML string."""
     if isinstance(xml_content, str):
         root = ET.fromstring(xml_content.encode("utf-8"))
     else:
@@ -43,7 +43,7 @@ def generate_cpp_structs(xml_content: str) -> str:
     def parse_element(elem: ET.Element) -> str:
         struct_name = clean_tag(elem.tag)
 
-        # 자식 엘리먼트 그룹화 (문자열 태그만 수집하여 주석 필터링)
+        # Group child elements (collect only string tags, filtering comments)
         child_groups = defaultdict(list)
         for child in elem:
             if isinstance(child.tag, str):
@@ -51,7 +51,7 @@ def generate_cpp_structs(xml_content: str) -> str:
 
         fields = []
 
-        # 1. XML 속성(Attribute) 수집
+        # 1. Collect XML attributes
         for attr_name, attr_val in elem.attrib.items():
             attr_type = infer_cpp_type(attr_val)
             safe_name = attr_name.replace("-", "_")
@@ -64,7 +64,7 @@ def generate_cpp_structs(xml_content: str) -> str:
                 "kind": "attribute"
             })
 
-        # 2. 자식 요소가 없고 텍스트와 속성을 동시에 가지는 경우 (예: <price unit="KRW">25000</price>)
+        # 2. Case where there are no child elements but both text and attributes exist (e.g., <price unit="KRW">25000</price>)
         has_children = len(child_groups) > 0
         has_text = elem.text and elem.text.strip()
         if not has_children and len(elem.attrib) > 0 and has_text:
@@ -78,11 +78,11 @@ def generate_cpp_structs(xml_content: str) -> str:
                 "kind": "text_body"
             })
 
-        # 3. 자식 요소(Element) 수집
+        # 3. Collect child elements
         for tag, children in child_groups.items():
             is_array = len(children) > 1
             sample = children[0]
-            # 자식이 또 다른 하위 태그를 갖거나 속성을 가지면 복합 구조체로 판정
+            # If a child has further sub-tags or attributes, treat as a complex struct
             is_nested = (len(sample) > 0 or len(sample.attrib) > 0)
             safe_name = tag.replace("-", "_")
 
@@ -108,13 +108,13 @@ def generate_cpp_structs(xml_content: str) -> str:
         if struct_name not in generated_structs:
             lines = [f"struct {struct_name} {{"]
 
-            # 멤버 변수 정의
+            # Member variable definitions
             for f in fields:
                 lines.append(f"    {f['cpp_type']} {f['name']};")
             lines.append("")
 
             # -------------------------------------------------------------
-            # 역직렬화 (deserialize)
+            # Deserialization (deserialize)
             # -------------------------------------------------------------
             lines.append("    void deserialize(const pugi::xml_node& node) {")
             lines.append(f'        if (node.empty()) throw std::runtime_error("Node {struct_name} is empty or not found.");')
@@ -192,7 +192,7 @@ def generate_cpp_structs(xml_content: str) -> str:
             lines.append("")
 
             # -------------------------------------------------------------
-            # 직렬화 (serialize)
+            # Serialization (serialize)
             # -------------------------------------------------------------
             lines.append("    void serialize(pugi::xml_node& node) const {")
             lines.append(f'        if (node.empty()) throw std::runtime_error("Cannot serialize {struct_name} into an empty XML node.");')
@@ -273,7 +273,7 @@ SAMPLE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 def show_example():
-    """인자가 없을 때 영문 도움말 및 예제 결과를 출력합니다."""
+    """Print English help and example output when no arguments are provided."""
     print("=" * 70)
     print("[INFO] No arguments provided. Showing usage and sample output.")
     print("=" * 70)

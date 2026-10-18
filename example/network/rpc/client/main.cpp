@@ -106,7 +106,10 @@ private:
     // mino::core::json::value -> task_response (RPC 응답 구조체) 역직렬화
     res_t parse_response(const json& val) {
         if (!val.is_object()) {
-            throw std::invalid_argument("Response payload is not a JSON object");
+            res_t res;
+            res.is_success = false;
+            res.message = "Response payload is not a JSON object";
+            return res;
         }
 
         res_t res;

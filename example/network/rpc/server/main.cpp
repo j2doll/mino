@@ -62,7 +62,11 @@ private:
     // json -> task_request (RPC 요청 구조체) 변환
     req_t parse_request(const json& val) {
         if (!val.is_object()) {
-            throw std::invalid_argument("Request payload is not a JSON object");
+            req_t req;
+            req.command = "";
+            req.count = 0;
+            req.parameters.clear();
+            return req;
         }
 
         req_t req;
@@ -72,7 +76,10 @@ private:
             req.command = const_cast<json&>(val)["command"].get_string();
         }
         else {
-            throw std::invalid_argument("Missing required field: 'command'");
+            req.command = ""; // 필수 필드가 없으면 빈 문자열로 초기화
+            req.count = 0;
+            req.parameters.clear();
+            return req;
         }
 
         // task_request 의 필드 "count" 처리

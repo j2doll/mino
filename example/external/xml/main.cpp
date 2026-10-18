@@ -4,7 +4,7 @@
 #define PUGIXML_HEADER_ONLY
 #include "pugixml/pugixml.hpp"
 
-#include "catalog.hpp" // xml2xpp.py로 생성된 헤더 파일
+#include "catalog.hpp" // xml2cpp.py로 자동 생성된 헤더 파일
 
 int main() {
     std::string cmake_dir = CMAKE_SOURCE_DIR_PATH;
@@ -21,6 +21,8 @@ int main() {
     }
 
     Catalog catalog;
+    // NOTICE: xml2cpp.py로 자동 생성된 헤더의 객체는
+    //         try ... catch 블록으로 감싸서 예외 처리를 수행해야 함.
 
     // 2. 역직렬화 및 예외 처리 검증
     try {

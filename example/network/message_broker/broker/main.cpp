@@ -103,7 +103,8 @@ int main(int argc, char* argv[]) {
     try {
         port = static_cast<unsigned short>(std::stoi(port_str));
         if (port < 1 || port > 65535) {
-            throw std::out_of_range("Port number must be between 1 and 65535");
+            std::cerr << "Invalid port: " << port_str << "\n\n" << cmd.usage() << std::endl;
+            return 1;
         }
     }
     catch (const std::exception& ex) {
