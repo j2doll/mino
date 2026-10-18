@@ -1,6 +1,6 @@
 #include "mino/external/log/sqlite/sqlite_logger.hpp"
 
-#include "mino/external/third-party/sqlite3/sqlite3.h"
+#include "sqlite3/sqlite3.h"
 
 #include <filesystem>
 #include <iostream>

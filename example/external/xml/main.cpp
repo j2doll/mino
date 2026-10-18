@@ -2,7 +2,7 @@
 #include <filesystem>
 
 #define PUGIXML_HEADER_ONLY
-#include "mino/external/third-party/pugixml/pugixml.hpp"
+#include "pugixml/pugixml.hpp"
 
 #include "catalog.hpp" // xml2xpp.py로 생성된 헤더 파일
 

@@ -24,7 +24,7 @@ file(
 )
 
 # 4-1. Add SQLite3 Amalgamation source file
-set(SQLITE3_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party/sqlite3")
+set(SQLITE3_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third-party/sqlite3")
 list(APPEND SRC_FILES
   "${SQLITE3_DIR}/sqlite3.c"
 )
@@ -66,11 +66,12 @@ target_include_directories(
 )
 
 # 5-2. Third-party library header directory (SYSTEM PUBLIC: suppress warnings)
+# 변경: 설치 시에는 ${CMAKE_INSTALL_PREFIX}/third-party 로 복사되도록 설정
 target_include_directories(
   mino_external
   SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mino/external/third-party>
-    $<INSTALL_INTERFACE:include/mino/external/third-party>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party>
+    $<INSTALL_INTERFACE:third-party>
 )
 
 # 6. Link libraries (Threads and dynamic loading libraries across platforms)
@@ -93,3 +94,20 @@ install(
 )
 
 install(DIRECTORY include/mino DESTINATION include)
+
+# 8. Install third-party directory to the install prefix root: <prefix>/third-party
+install(
+  DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party/"
+  DESTINATION third-party
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+#####################################
+# # 1) 소스에 슬래시를 붙이면: 소스 디렉터리의 "내용"을 대상 디렉터리에 복사
+# install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party/" DESTINATION third-party)
+# # 결과 -> ${CMAKE_INSTALL_PREFIX}/third-party/ (소스 third-party 내부 파일들이 이곳에 들어감)
+#####################################
+# # 2) 소스에 슬래시가 없으면: 소스 디렉터리 자체가 DESTINATION 아래에 생성되어 복사
+# install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third-party" DESTINATION third-party)
+# # 결과 -> ${CMAKE_INSTALL_PREFIX}/third-party/third-party/ (마지막 경로 컴포넌트가 하위 디렉터리로 생성)
+#####################################

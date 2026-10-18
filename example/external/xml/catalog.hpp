@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include "mino/external/third-party/pugixml/pugixml.hpp"
+
+#include "pugixml/pugixml.hpp"
 
 struct Price {
     std::string unit;

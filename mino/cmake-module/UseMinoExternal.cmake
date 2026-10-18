@@ -64,7 +64,7 @@ function(use_mino_external EXE_NAME MINO_DIR)
         endif()
 
         target_include_directories(${EXE_NAME} PRIVATE
-            "${MINO_DIR}/include/mino/external/third-party")
+            "${MINO_DIR}/third-party")
 
         if(TARGET mino_external::mino_external)
             target_link_libraries(${EXE_NAME} PRIVATE mino_external::mino_external)
