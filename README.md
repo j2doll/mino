@@ -645,8 +645,10 @@ C:\opt>eza --tree mino
  |           +- 📁 xxx/
  |               +- 📄 *.hpp
  +- 📁 lib/
-     +- 📁 cmake/
-     +- 📄 mino_*.lib
+ |   +- 📁 cmake/
+ |   +- 📄 mino_*.lib
+ +- 📁 third-party/
+
  ```
 
 ```
@@ -658,8 +660,10 @@ $ eza --tree mino
  |           +- 📁 xxx/
  |               +- 📄 *.hpp
  +- 📁 lib/
-     +- 📁 cmake/
-     +- 📄 libmino_*.a
+ |   +- 📁 cmake/
+ |   +- 📄 libmino_*.a
+ +- 📁 third-party/
+
  ```
 
 <br />

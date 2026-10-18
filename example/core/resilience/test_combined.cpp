@@ -50,16 +50,19 @@ void test_combined() {
             print(tce("  요청 "), id, tce(": 벌크헤드 거부"));
             return;
         }
+
         if (!limiter.try_acquire()) { // 2) 호출 속도 제한
             print(tce("  요청 "), id, tce(": 속도 제한 거부 (재시도까지 "),
                 limiter.retry_after().count(), tce(" ms)"));
             return;
         }
+
         cb.execute([id, fail]() { // 3) 써킷 브레이커 + 실제 호출
             if (fail) {
                 throw std::runtime_error("외부 서비스 오류");
             }
-            });
+        });
+
         print(tce("  요청 "), id, fail ? tce(": 호출 실패") : tce(": 호출 성공"));
     };
 

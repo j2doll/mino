@@ -77,7 +77,7 @@ void test_circuit_breaker() {
             print(tce("  호출 "), i, tce(" 시도 중... 예외 발생!"));
 
             throw std::runtime_error("DB 연결 실패");
-            });
+        });
 
         print(tce("  -> 현재 상태: "), state_to_string(cb.current_state()));
         // i가 1이면, 현재 상태: CLOSED
