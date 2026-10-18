@@ -6,6 +6,8 @@
 #include <charconv>
 #include <cctype>
 #include <algorithm>
+#include <cstdlib>
+#include <cerrno>
 
 namespace mino::core::yaml {
 
@@ -138,13 +140,25 @@ namespace mino::core::yaml {
             return node{ int_val };
         }
 
-        // 2. 실수 파싱 (from_chars: 예외 없음)
+        // 2. 실수 파싱
+        // std::from_chars(double) may not be available on older libstdc++; fall back to std::strtod.
         if (sv.find('.') != std::string_view::npos || sv.find('e') != std::string_view::npos || sv.find('E') != std::string_view::npos) {
-            double d_val = 0.0;
-            auto [p2, ec2] = std::from_chars(sv.data(), sv.data() + sv.size(), d_val);
-            if (ec2 == std::errc{} && p2 == sv.data() + sv.size()) {
+            std::string tmp(sv); // null-terminated buffer for strtod
+            char* endptr = nullptr;
+            errno = 0;
+            double d_val = std::strtod(tmp.c_str(), &endptr);
+            if (endptr == tmp.c_str() + tmp.size() && errno == 0) {
                 return node{ d_val };
             }
+
+#if defined(__cpp_lib_from_chars) && (__cpp_lib_from_chars >= 201611)
+            // If floating-point from_chars is available, try it as a secondary attempt.
+            double d_val2 = 0.0;
+            auto [p2, ec2] = std::from_chars(sv.data(), sv.data() + sv.size(), d_val2);
+            if (ec2 == std::errc{} && p2 == sv.data() + sv.size()) {
+                return node{ d_val2 };
+            }
+#endif
         }
 
         // 3. 일반 문자열
