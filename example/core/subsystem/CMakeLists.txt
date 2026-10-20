@@ -9,7 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # mino 라이브러리 루트 경로
-set(MINO_DIR "${CMAKE_SOURCE_DIR}/mino")
+if(NOT DEFINED MINO_DIR)
+   set(MINO_DIR "${CMAKE_SOURCE_DIR}/mino")
+endif()
 # set(MINO_DIR "C:/opt/mino")
 
 # 1. 서브시스템 워커 실행 파일 (example_worker)
