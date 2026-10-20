@@ -33,11 +33,11 @@ else()
     endif()
 endif()
 # It must be called in reverse order of the dependencies.
-use_mino_network_curl(${EXE_NAME} "${MINO_DIR}")
-use_mino_network_ssh2(${EXE_NAME} "${MINO_DIR}")
-use_mino_network_openssl(${EXE_NAME} "${MINO_DIR}")
-use_mino_network(${EXE_NAME} "${MINO_DIR}")
-use_mino_external(${EXE_NAME} "${MINO_DIR}")
+use_mino_network_curl(${EXE_NAME} "${MINO_DIR}") # mino_core, mino_network
+use_mino_network_ssh2(${EXE_NAME} "${MINO_DIR}") # mino_core, mino_network
+use_mino_network_openssl(${EXE_NAME} "${MINO_DIR}") # mino_core, mino_network
+use_mino_network(${EXE_NAME} "${MINO_DIR}") # mino_core
+use_mino_external(${EXE_NAME} "${MINO_DIR}") # mino_core
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 
 

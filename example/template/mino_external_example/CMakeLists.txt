@@ -33,7 +33,7 @@ else()
     endif()
 endif()
 # It must be called in reverse order of the dependencies.
-use_mino_external(${EXE_NAME} "${MINO_DIR}") 
+use_mino_external(${EXE_NAME} "${MINO_DIR}")  # mino_core 
 use_mino_core(${EXE_NAME} "${MINO_DIR}")
 
 
