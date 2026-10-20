@@ -727,7 +727,7 @@ cmake -S . -B build -G "Ninja" \
  -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug \
  -DMINO_DIR="/home/jaytwo/mino" 
 
-# 예제 빌드 
+# 실행 프로그램 빌드 
 cmake --build build -j
 
 ```
