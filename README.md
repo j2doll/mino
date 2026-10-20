@@ -666,6 +666,72 @@ $ eza --tree mino
 
  ```
 
+#### 실행 프로그램 프로젝트 구성
+
+- mino를 적용할 실행 프로그램 <sub>(또는 라이브러리)</sub> 의 `CMakeListds.txt` 구성 방법
+```cmake
+cmake_minimum_required(VERSION 3.24)
+
+project(mino_all_example_project VERSION 0.1 LANGUAGES CXX)
+set(EXE_NAME "mino_all_example")
+
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+###########################
+# 추가할 부분 {{
+if(NOT DEFINED MINO_DIR)
+   set(MINO_DIR "${CMAKE_SOURCE_DIR}/mino")
+endif()
+
+file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+add_executable(${EXE_NAME} ${SRC_FILES})
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake-module")
+    file(GLOB MINO_CMAKE_FILES "${CMAKE_SOURCE_DIR}/mino/cmake-module/Use*.cmake")
+    foreach(FILE ${MINO_CMAKE_FILES})
+        include(${FILE})
+    endforeach()    
+else()
+    if(EXISTS "${MINO_DIR}/lib/cmake/mino")
+        file(GLOB MINO_CMAKE_FILES "${MINO_DIR}/lib/cmake/mino/Use*.cmake")
+        foreach(FILE ${MINO_CMAKE_FILES})
+            include(${FILE})
+        endforeach()    
+    else()
+        message(FATAL_ERROR "Please check MINO_DIR path.")
+    endif()
+endif()
+# 종속성이 있는 경우 종속성이 낮은 것을 가장 뒤에 위치함
+use_mino_network_curl(${EXE_NAME} "${MINO_DIR}") # 종속성: mino_core, mino_network
+use_mino_network_ssh2(${EXE_NAME} "${MINO_DIR}") # 종속성: mino_core, mino_network
+use_mino_network_openssl(${EXE_NAME} "${MINO_DIR}") # 종속성: mino_core, mino_network
+use_mino_network(${EXE_NAME} "${MINO_DIR}") # 종속성: mino_core
+use_mino_external(${EXE_NAME} "${MINO_DIR}") # 종속성: mino_core
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
+
+# 위의 모듈 중 사용하는 것만 추가하여 사용하면 됨
+
+# 추가할 부분 }}
+###########################
+
+```
+
+- 빌드 시 다음과 같이 `cmake`를 호출
+```bash
+# mino 라이브러리가 설치된 경로인 MINO_DIR 를 설정
+cmake -S . -B build -G "Ninja" \
+ -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Debug \
+ -DMINO_DIR="/home/jaytwo/mino" 
+
+# 예제 빌드 
+cmake --build build -j
+
+```
+
 <br />
 
 ---
