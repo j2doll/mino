@@ -12,15 +12,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
     if(TARGET mino_network)
         message(STATUS "Linking to in-tree target: mino_network")
         target_link_libraries(${EXE_NAME} PRIVATE mino_network)
-
-    # elseif(TARGET mino_core)
-    #     message(STATUS "Linking to in-tree target: mino_core")
-    #     if(UNIX AND NOT APPLE)
-    #         target_link_libraries(${EXE_NAME} PRIVATE mino_core rt)
-    #     else()
-    #         target_link_libraries(${EXE_NAME} PRIVATE mino_core)
-    #     endif()
-
     else()
         message(STATUS "Linking to out-of-tree target: mino_network")
 
@@ -49,7 +40,6 @@ function(use_mino_network EXE_NAME MINO_DIR)
         find_package(Threads REQUIRED)
         if(UNIX AND NOT APPLE)
 	        target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
-
 	        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
 		        target_link_libraries(${EXE_NAME} PRIVATE stdc++fs)
 	        endif()

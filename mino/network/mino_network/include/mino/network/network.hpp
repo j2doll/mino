@@ -10,6 +10,7 @@
 #include "mino/network/mqtt/mqtt.hpp"
 #include "mino/network/rpc/rpc.hpp"
 #include "mino/network/sftp/sftp.hpp"
+#include "mino/network/ssh/ssh.hpp"
 #include "mino/network/tcp/tcp.hpp"
 #include "mino/network/udp/udp.hpp"
 #include "mino/network/util/util.hpp"
