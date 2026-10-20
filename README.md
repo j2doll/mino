@@ -589,17 +589,31 @@ rmdir /s /q build
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: cmake 설정 (vcpkg 사용 시) (Debug)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+cmake -B build ^
+  -S . ^
+  -G "Ninja" ^
+ -DCMAKE_BUILD_TYPE=Debug ^
+ -DCMAKE_INSTALL_PREFIX="C:\opt\mino" ^
+ -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 :: -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능.
 :: %VCPKG_ROOT% 는 환경설정 정보로 vcpkg.exe가 있는 경로.
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: cmake 설정 (vcpkg 사용 시) (Release)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
+cmake -B build ^
+ -S . ^
+ -G "Ninja" ^
+ -DCMAKE_BUILD_TYPE=Release ^
+ -DCMAKE_INSTALL_PREFIX="C:\opt\mino" ^
+ -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: cmake 설정 (Windows) (vcpkg 미사용) (Release)
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
+cmake -B build ^
+ -S . ^
+ -G "Ninja" ^
+ -DCMAKE_BUILD_TYPE=Release ^
+ -DCMAKE_INSTALL_PREFIX="C:\opt\mino"
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 빌드
@@ -608,6 +622,7 @@ cmake --build build -j
 ::::::::::::::::::::::::::::::::::::::::::::::::::
 :: 설치
 cmake --install build
+
 ```
 
 <br />
@@ -620,7 +635,12 @@ rm -rf build
 
 #############################################
 # cmake 설정 (Linux)
-cmake -B build -S . -G "Ninja" -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="~/mino"
+cmake -B build \
+ -S .\
+ -G "Ninja" \
+ -DCMAKE_CXX_STANDARD=17 \
+ -DCMAKE_BUILD_TYPE=Release \
+ -DCMAKE_INSTALL_PREFIX="~/mino"
 # -DCMAKE_CXX_STANDARD=17 를 이용하여 C++ 표준 버전 설정 가능
 
 #############################################
@@ -634,6 +654,7 @@ cmake --build build -j "$(nproc)"
 #############################################
 # 설치
 cmake --install build
+
 ```
 - 설치 후 디렉토리 구조 확인
 ```
@@ -649,7 +670,7 @@ C:\opt>eza --tree mino
  |   +- 📄 mino_*.lib
  +- 📁 third-party/
 
- ```
+```
 
 ```
 $ eza --tree mino
@@ -666,7 +687,7 @@ $ eza --tree mino
 
  ```
 
-#### 실행 프로그램 프로젝트 구성
+#### 🌰 실행 프로그램 프로젝트 구성
 
 - mino를 적용할 실행 프로그램 <sub>(또는 라이브러리)</sub> 의 `CMakeListds.txt` 구성 방법
 ```cmake
