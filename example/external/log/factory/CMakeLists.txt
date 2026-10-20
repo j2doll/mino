@@ -29,6 +29,7 @@ else()
     else()
         message(FATAL_ERROR "Please check MINO_DIR path.")
     endif()
-endif() 
+endif()
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
 use_mino_external(${EXE_NAME} "${MINO_DIR}")
 
