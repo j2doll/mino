@@ -98,6 +98,16 @@ if(WIN32)
     target_link_libraries(mino_network_curl PRIVATE ws2_32 iphlpapi)
 endif()
 
+if(UNIX AND NOT APPLE)
+	target_link_libraries(mino_network_curl PRIVATE Threads::Threads rt)
+
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+		target_link_libraries(mino_network_curl PRIVATE stdc++fs)
+	endif()
+else()
+	target_link_libraries(mino_network_curl PRIVATE Threads::Threads)
+endif()
+
 # ==============================================================================
 # Target Linking
 # ==============================================================================

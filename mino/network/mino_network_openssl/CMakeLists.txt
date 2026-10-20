@@ -44,6 +44,7 @@ file(
 # Create Library
 add_library(mino_network_openssl STATIC ${SRC_FILES})
 
+#-------------------------------------------------------------
 # Include Directories for Third-Party Libraries
 target_include_directories(mino_network_openssl SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third-party
@@ -61,6 +62,16 @@ target_compile_definitions(mino_network_openssl PUBLIC USE_OPENSSL=1)
 # Compiler & Platform-Specific Configurations
 if(MSVC)
     target_compile_options(mino_network_openssl PRIVATE "/utf-8")
+endif()
+
+if(UNIX AND NOT APPLE)
+	target_link_libraries(mino_network_openssl PRIVATE Threads::Threads rt)
+
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+		target_link_libraries(mino_network_openssl PRIVATE stdc++fs)
+	endif()
+else()
+	target_link_libraries(mino_network_openssl PRIVATE Threads::Threads)
 endif()
 
 # GCC / Clang / AppleClang options

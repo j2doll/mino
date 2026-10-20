@@ -48,9 +48,13 @@ function(use_mino_network EXE_NAME MINO_DIR)
 
         find_package(Threads REQUIRED)
         if(UNIX AND NOT APPLE)
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+	        target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads rt)
+
+	        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+		        target_link_libraries(${EXE_NAME} PRIVATE stdc++fs)
+	        endif()
         else()
-            target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
+	        target_link_libraries(${EXE_NAME} PRIVATE Threads::Threads)
         endif()
 
         find_package(OpenSSL REQUIRED)

@@ -47,6 +47,16 @@ target_include_directories(
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
+if(UNIX AND NOT APPLE)
+	target_link_libraries(mino_network_libssh2 PRIVATE Threads::Threads rt)
+
+	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+		target_link_libraries(mino_network_libssh2 PRIVATE stdc++fs)
+	endif()
+else()
+	target_link_libraries(mino_network_libssh2 PRIVATE Threads::Threads)
+endif()
+
 # Compiler Options
 if(MSVC)
     target_compile_options(mino_network_libssh2 PRIVATE "/utf-8")
