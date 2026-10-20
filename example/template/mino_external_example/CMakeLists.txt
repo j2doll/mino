@@ -32,8 +32,10 @@ else()
         message(FATAL_ERROR "Please check MINO_DIR path.")
     endif()
 endif()
-use_mino_core(${EXE_NAME} "${MINO_DIR}")
+# It must be called in reverse order of the dependencies.
 use_mino_external(${EXE_NAME} "${MINO_DIR}") 
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
+
 
 
 

@@ -32,18 +32,17 @@ else()
         message(FATAL_ERROR "Please check MINO_DIR path.")
     endif()
 endif()
-use_mino_core(${EXE_NAME} "${MINO_DIR}")
+# It must be called in reverse order of the dependencies.
 use_mino_network(${EXE_NAME} "${MINO_DIR}")
+use_mino_core(${EXE_NAME} "${MINO_DIR}")
 
-# CMAKE_SOURCE_DIR_PATH 변수를 main.cpp 에서 사용 가능.
+# The CMAKE_SOURCE_DIR_PATH variable can be used in main.cpp.
 target_compile_definitions(${EXE_NAME} PRIVATE CMAKE_SOURCE_DIR_PATH="${CMAKE_CURRENT_LIST_DIR}")
 
-# [필수] logger_manager 를 사용하는 프로그램은 컴파일타임 활성 레벨을 TRACE로 설정
+# [Required] Programs using logger_manager must set the compile-time active level to TRACE
 target_compile_definitions(${EXE_NAME} PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 # NOTE:
-#  SPDLOG_ACTIVE_LEVEL은 매크로를 사용한 코드 자체를
-#  컴파일 단계에서 지워버릴지 말지를 결정합니다.
-#  예를 들어 SPDLOG_ACTIVE_LEVEL을 SPDLOG_LEVEL_INFO로 설정하면,
-#  SPDLOG_LEVEL_DEBUG나 SPDLOG_LEVEL_TRACE 레벨의 로그 코드는
-#  컴파일러에 의해 아예 빌드 결과물(바이너리)에서 제외됩니다.
+# SPDLOG_ACTIVE_LEVEL determines whether code utilizing these macros is stripped out during the compilation phase.
+# For example, if you set SPDLOG_ACTIVE_LEVEL to SPDLOG_LEVEL_INFO, any logging code at the SPDLOG_LEVEL_DEBUG or SPDLOG_LEVEL_TRACE levels will be completely excluded from the final build artifact (the binary) by the compiler.
+
 
