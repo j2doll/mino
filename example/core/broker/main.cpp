@@ -33,13 +33,15 @@ int test_object_broker() {
 
     // 테스트용 샘플 클래스들
     struct ServiceA {
-        std::string name;                             // 서비스의 이름을 저장
-        explicit ServiceA(std::string n) : name(std::move(n)) {} // 생성자: 이름 초기화
+        std::string name; // 서비스 이름
+        explicit ServiceA(std::string n)
+            : name(std::move(n)) {} 
     };
 
     struct ServiceB {
-        int id;                                       // 서비스 식별자 저장
-        explicit ServiceB(int i) : id(i) {}           // 생성자: id 초기화
+        int id; // 서비스 식별자
+        explicit ServiceB(int i)
+            : id(i) {} 
     };
 
     std::cout << "[1] Testing internal structs (key, key_hash)..." << std::endl;
@@ -47,17 +49,20 @@ int test_object_broker() {
         // 키 생성: 동일 타입/이름 k1, k2와 다른 타입 k3
         object_broker::key k1{ typeid(ServiceA), "test" }; // ServiceA 타입, 이름 "test"
         object_broker::key k2{ typeid(ServiceA), "test" }; // 동일한 키 (동치여야 함)
-        object_broker::key k3{ typeid(ServiceB), "test" }; // 다른 타입의 키
+        object_broker::key k3{ typeid(ServiceB), "test" }; // ServiceB 타입, 이름 "test" (다른 타입)
 
-        assert(k1 == k2);                     // k1과 k2는 같은 타입과 이름 -> 같아야 함
-        assert(!(k1 == k3));                  // k1과 k3는 타입이 다르므로 같지 않아야 함
+        assert(k1 == k2); // k1과 k2는 같은 타입과 이름 -> 같아야 함 (동치)
+        assert(!(k1 == k3)); // k1과 k3는 타입이 다르므로 같지 않아야 함
 
-        object_broker::key_hash hasher;       // 키 해시 생성기
-        assert(hasher(k1) == hasher(k2));    // 동치 키는 동일한 해시값을 생성해야 함
+        object_broker::key_hash hasher; // 키 해시 생성기
+        assert(hasher(k1) == hasher(k2)); // 동치 키는 동일한 해시값을 생성해야 함
         std::cout << " -> key and key_hash verification passed\n" << std::endl;
     }
 
-    std::cout << "[2] Testing instance registration and lookup (register_instance, get, contains, get_optional)..." << std::endl;
+    std::cout
+        << "[2] Testing instance registration and lookup"
+        << " (register_instance, get, contains, get_optional)..."
+        << std::endl;
     {
         // 서비스 인스턴스 생성: 기본 등록용, 이름이 있는 등록용, 다른 타입용
         auto serviceA1 = std::make_shared<ServiceA>("ServiceA_Default"); // 기본 이름으로 등록할 인스턴스
@@ -72,9 +77,9 @@ int test_object_broker() {
         object_broker::register_instance<ServiceB>("custom_b", serviceB1);
 
         // contains() 검증: 등록된 항목들이 존재해야 함
-        assert(object_broker::contains<ServiceA>());               // 기본 ServiceA 존재
-        assert(object_broker::contains<ServiceA>("custom_a"));    // custom_a 이름 존재
-        assert(object_broker::contains<ServiceB>("custom_b"));    // custom_b 이름 존재
+        assert(object_broker::contains<ServiceA>()); // 기본 ServiceA 존재
+        assert(object_broker::contains<ServiceA>("custom_a")); // custom_a 이름 존재
+        assert(object_broker::contains<ServiceB>("custom_b")); // custom_b 이름 존재
         assert(!object_broker::contains<ServiceA>("non_existent")); // 없는 이름은 false
 
         // get() 검증: 올바른 포인터가 반환되는지 확인

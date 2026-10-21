@@ -42,7 +42,7 @@
 - 🏛️ [bit](example/core/bit/main.cpp)
    - 비트 단위 연산
 - 🏛️ [broker](example/core/broker/main.cpp)
-   - 인메모리+경량 메시지 브로커
+   - 싱글톤 기반 인-메모리 서비스 중개자(`Service Locator/Registry`)
 - 🏛️ [cli](example/core/cli/main.cpp)
    - 명령행 인자 파서
 - 🏛️ [config](example/core/config/main.cpp)
@@ -85,14 +85,28 @@
        - [문자열 포맷팅](example/core/datetime/util/test_formatting_functions.cpp)
        - [시간 문자열 파싱](example/core/datetime/util/test_parsing_functions.cpp) : `Strict`, `ISO-8601` & `RFC-3339`
        - [현재 시간 문자열 생성](example/core/datetime/util/test_current_time_functions.cpp)  
-- 🏛️ [dispatch](example/core/dispatch/main.cpp)
-    - 이벤트 디스패치
-- 🏛️ [encoding](example/core/encoding/main.cpp)
-    - `Base64`, `URL`, `hex` 인코딩/디코딩
+- 🏛️ `dispatch`
+    - [dynamic_event_dispatcher](example/core/dispatch/test_dynamic_event_dispatcher.cpp) : 동적 힙 메모리(`std::string`, `std::vector`)와 참조 횟수 기반 자원 관리(`std::shared_ptr`)를 포함하는 비-`POD` 구조체
+    - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : 동적 바이너리 페이로드(`std::vector<uint8_t>`) 포함
+    - [static_dispatcher](example/core/dispatch/test_static_dispatcher.cpp) : 힙 할당이 전혀 발생하지 않는 스택 기반 데이터 구조
+    - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 
+- 🏛️ `encoding`
+    - `Base64` 인코딩/디코딩
+        - [기본 문자열 인코딩 / 디코딩 테스트](example/core/encoding/test_base64_encoding_decoding.cpp)
+        - [RFC 4648 표준 테스트 벡터 및 패딩](example/core/encoding/test_rfc_4648_encoding_decoding.cpp)
+        - [잘못된 형식의 Base64 입력 시 예외/에러 처리 검증](example/core/encoding/test_base64_error.cpp)
+        - [바이너리 데이터 테스트](example/core/encoding/test_base64_binary.cpp)
+    - `Hex`
+        - [Hex 상호 변환 및 대소문자 검증](example/core/encoding/test_hex.cpp)
+        - [Hex 비정상 입력 에러 처리 검증](example/core/encoding/test_hex_error.cpp)
+    - `URL` 인코딩/디코딩
+        - [URL 인코딩/디코딩 검증(RFC 3986 및 공백 처리)](example/core/encoding/test_url_encoding.cpp)
+        - [UTF-8 한글 문자열 URL 인코딩/디코딩 통합 검증](example/core/encoding/test_url_korean.cpp)
+        - [URL 디코딩 비정상 입력 에러 처리 검증](example/core/encoding/test_invalid_url.cpp)
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
-    - 성공값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
+    - 성공값/기대값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
 - 🏛️ [exception](example/core/exception/main.cpp)
     - `C++17`용 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
 - 🏛️ [file](example/core/file/)
@@ -105,8 +119,11 @@
     - [파일 감시자](example/core/file/test_08_file_watcher.cpp)
 - 🏛️ [findfile](example/core/findfile/main.cpp)
     - 파일에서 찾기 (`Find in files`)
-- 🏛️ [hash](example/core/hash/main.cpp) 
-    - `MD5`, `SHA-256`, `HMAC-SHA256`, `KDF(PBKDF2)`
+- 🏛️ `hash`
+    - [MD5](example/core/hash/test_generate_md5.cpp)
+    - [SHA-256](example/core/hash/test_generate_sha256.cpp)
+    - [HMAC-SHA256](example/core/hash/test_generate_hmac_sha256.cpp)
+    - [PBKDF2](example/core/hash/test_derive_key_pbkdf2.cpp)
 - 🏛️ [ini](example/core/ini/main.cpp)
     - [`.ini`](example/core/ini/sample.ini) 파일 파서
 - 🏛️ [json](example/core/json/main.cpp)
@@ -175,12 +192,16 @@
     - [format](example/core/string/test_format.cpp) : 문자열 포맷팅 기능
 - 🏛️ [subsystem](example/core/subsystem/) 
     - `std in/out/err`를 사용하여 마스터([example_master](example/core/subsystem/example_master.cpp))와 워커([example_worker](example/core/subsystem/example_worker.cpp)) 간 통신
-- 🏛️ [system](example/core/system/main.cpp) 
-    - 환경변수, 경로 변환, 호스트/프로세스 정보 조회
+- 🏛️ `system`
+    - [command_line](example/core/system/test_command_line.cpp) : 명령줄
+    - [device_id_generator](example/core/system/test_device_id_generator.cpp) : 장치 ID 생성
+    - [resource_monitor](example/core/system/test_resource_monitor.cpp) : CPU, 메모리, 디스크, 네트워크 사용량 모니터링
+    - [process_runner](example/core/system/test_process_runner.cpp) : 프로세스 실행
+    - [crash_handler](example/core/system/test_crash_handler.cpp) : 크래시 핸들러
 - 🏛️ [thread](example/core/thread/main.cpp)
     - 동적 스레드·동시성
 - 🏛️ [time](example/core/time/main.cpp)
-    - 타이머 (1회성, 주기적, 타이머 취소)
+    - 타이머(`hierarchical_timer_wheel`) : 주기적, 1회성, 타이머 취소
 - 🏛️ [toml](example/core/toml/main.cpp)
     - `.toml` 파싱·직렬화
 - 🏛️ [tpm](example/core/tpm/main.cpp)
