@@ -86,10 +86,10 @@
        - [시간 문자열 파싱](example/core/datetime/util/test_parsing_functions.cpp) : `Strict`, `ISO-8601` & `RFC-3339`
        - [현재 시간 문자열 생성](example/core/datetime/util/test_current_time_functions.cpp)  
 - 🏛️ `dispatch`
-    - [dynamic_event_dispatcher](example/core/dispatch/test_dynamic_event_dispatcher.cpp) : 동적 힙 메모리(`std::string`, `std::vector`)와 참조 횟수 기반 자원 관리(`std::shared_ptr`)를 포함하는 비-`POD` 구조체
-    - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : 동적 바이너리 페이로드(`std::vector<uint8_t>`) 포함
-    - [static_dispatcher](example/core/dispatch/test_static_dispatcher.cpp) : 힙 할당이 전혀 발생하지 않는 스택 기반 데이터 구조
-    - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 
+    - [dynamic_event_dispatcher](example/core/dispatch/test_dynamic_event_dispatcher.cpp) : <sub> 동적 힙 메모리(`std::string`, `std::vector`)와 참조 횟수 기반 자원 관리(`std::shared_ptr`)를 포함하는 비-`POD` 구조체 </sub>
+    - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : <sub> 동적 바이너리 페이로드(`std::vector<uint8_t>`) 포함 </sub>
+    - [static_dispatcher](example/core/dispatch/test_static_dispatcher.cpp) : <sub> 힙 할당이 전혀 발생하지 않는 스택 기반 데이터 구조 </sub>
+    - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : <sub> 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 </sub>
 - 🏛️ `encoding`
     - `Base64` 인코딩/디코딩
         - [기본 문자열 인코딩 / 디코딩 테스트](example/core/encoding/test_base64_encoding_decoding.cpp)
@@ -128,12 +128,20 @@
     - [`.ini`](example/core/ini/sample.ini) 파일 파서
 - 🏛️ [json](example/core/json/main.cpp)
     - `.json` 직렬화/역직렬화
-- 🏛️ [log](example/core/log/main.cpp)
-    - 콘솔 로깅 싱크, 파일 로깅 싱크, 싱크 통합 로거
+- 🏛️ `log`
+    - [로깅 유틸리티](example/core/log/test_utility_functions.cpp)
+    - [console_sink](example/core/log/test_console_sink.cpp)
+    - [rolling_file_sink](example/core/log/test_rolling_file_sink.cpp)
+    - [logger](example/core/log/test_logger.cpp)]
 - 🏛️ [macro](example/core/macro/main.cpp)
     - 함수 시도(`TRY_OPT`) 계열 매크로
-- 🏛️ [memory](example/core/memory/main.cpp)
-    - 메모리 직렬화/역직렬화. 딥 카피. 고정 메모리 풀. 풀 할당자. 
+- 🏛️ `memory`
+    - [기본 타입 및 POD 직렬화 역직렬화](example/core/memory/test_basic_and_pod.cpp)
+    - [std::string 및 std::vector 직렬화/역직렬화](example/core/memory/test_string_and_vector.cpp)
+    - [구조체 벡터 직렬화/역직렬화](example/core/memory/test_vector_of_structs.cpp)
+    - [깊은 복사](example/core/memory/test_deep_copier.cpp)
+    - [fixed_memory_pool 기본 블록 할당/해제](example/core/memory/test_fixed_memory_pool.cpp)
+    - [pool_allocator 및 STL 컨테이너 연동](example/core/memory/test_pool_allocator_with_stl.cpp)
 - 🏛️ [notification](example/core/notification/main.cpp)
     - 옵저버 등록 및 경고 알림.
 - 🏛️ [notifications](example/core/notifications/main.cpp)
