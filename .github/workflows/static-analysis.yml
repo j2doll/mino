@@ -57,9 +57,10 @@ jobs:
             --inline-suppr \
             --max-configs=1 \
             --error-exitcode=0 \
+            -i mino/external/third-party \
+            -i mino/network/mino_network_openssl/third-party \
             --output-file=cppcheck-report.txt
           cat cppcheck-report.txt
-          # Fail only if CRITICAL errors exist (not warnings)
           if grep -q "error:" cppcheck-report.txt; then
             exit 1
           fi
@@ -67,8 +68,10 @@ jobs:
       - name: Run Clang-Tidy
         continue-on-error: true
         run: |
-          find mino tests -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cxx" -o -name "*.h" \) | head -20 | \
+          find mino tests \
+            -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cxx" -o -name "*.h" \) \
+            ! -path "*/mino/external/third-party/*" \
+            ! -path "*/mino/network/mino_network_openssl/third-party/*" | \
             xargs -r clang-tidy -p build 2>&1 | tee clang-tidy-report.txt
-          # Report but don't fail on warnings alone
           echo "Clang-Tidy analysis complete."
 
