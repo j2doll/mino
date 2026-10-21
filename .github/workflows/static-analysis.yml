@@ -1,0 +1,49 @@
+name: C++ Static Analysis
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies & Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build clang-tidy cppcheck
+
+      - name: Configure CMake (Export Compile Commands)
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build Unit Test Target
+        run: |
+          cmake --build build --target mino_unittest --parallel
+
+      - name: Run Unit Tests (Catch2)
+        run: |
+          ./build/tests/unittest/mino_unittest
+
+      - name: Run Cppcheck
+        run: |
+          cppcheck --project=build/compile_commands.json \
+            --enable=all \
+            --suppress=missingIncludeSystem \
+            --suppress=unmatchedSuppression \
+            --error-exitcode=1 \
+            --inline-suppr
+
+      - name: Run Clang-Tidy
+        run: |
+          find mino tests -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cxx" -o -name "*.h" \) \
+            | xargs -r clang-tidy -p build --warnings-as-errors='*'
+
