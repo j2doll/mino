@@ -74,8 +74,7 @@ namespace mino::core::string::detail {
     std::string format_tuple_impl(const Tuple& t, std::index_sequence<Is...>) noexcept {
         try {
             std::string result = "(";
-            std::size_t idx = 0;
-            ((result += (idx++ > 0 ? ", " : "") + to_string_helper(std::get<Is>(t))), ...);
+            ((result += (Is == 0 ? "" : ", ") + to_string_helper(std::get<Is>(t))), ...);
             result += ")";
             return result;
         }

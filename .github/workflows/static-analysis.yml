@@ -54,11 +54,14 @@ jobs:
             --enable=all \
             --suppress=missingIncludeSystem \
             --suppress=unmatchedSuppression \
+            --suppress=toomanyconfigs \
             --inline-suppr \
-            --max-configs=1 \
+            --max-configs=32 \
             --error-exitcode=0 \
             -i mino/external/third-party \
             -i mino/network/mino_network_openssl/third-party \
+            -i tests/unittest/catch_amalgamated.hpp \
+            -i tests/unittest/catch_amalgamated.cpp \
             --output-file=cppcheck-report.txt
           cat cppcheck-report.txt
           if grep -q "error:" cppcheck-report.txt; then
@@ -71,7 +74,9 @@ jobs:
           find mino tests \
             -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cxx" -o -name "*.h" \) \
             ! -path "*/mino/external/third-party/*" \
-            ! -path "*/mino/network/mino_network_openssl/third-party/*" | \
+            ! -path "*/mino/network/mino_network_openssl/third-party/*" \
+            ! -name "catch_amalgamated.hpp" \
+            ! -name "catch_amalgamated.cpp" | \
             xargs -r clang-tidy -p build 2>&1 | tee clang-tidy-report.txt
           echo "Clang-Tidy analysis complete."
 
