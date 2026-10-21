@@ -207,7 +207,19 @@ void test_format() {
     TEST_CHECK(res4 == "Server starting on http://127.0.0.1:8080 (Mode: Production)");
 
     /////////////////////////////////////////////////////
-    // 14. 빈 괄호 {} 기반의 기존 포맷팅도 오버로딩을 통해 문제없이 동작합니다.
+    // 14. std::map 기반 포맷 예제 (formatss 사용)
+    std::map<std::string, int> user_scores = {
+        {"Alice", 95},
+        {"Bob", 88}
+    };
+
+    // std::map을 formatss에 직접 전달
+    std::string result = mcsf::formatss("Alice: {Alice}, Bob: {Bob}", user_scores);
+    // 결과 -> "Alice: 95, Bob: 88"
+    TEST_CHECK(result == "Alice: 95, Bob: 88");
+
+    /////////////////////////////////////////////////////
+    // 15. 빈 괄호 {} 기반의 기존 포맷팅도 오버로딩을 통해 문제없이 동작합니다.
     std::vector<int> numbers = { 1, 2, 3 };
     std::string res5 = mcsf::format("List: {}, Size: {}", numbers, numbers.size());
     TEST_CHECK(res5 == "List: [1, 2, 3], Size: 3");
