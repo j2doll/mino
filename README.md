@@ -81,42 +81,42 @@
 - 🏛️ `datetime` : 날짜·시간 처리 
     - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
     - `util`
-       - [시간 단위 변환](example/core/datetime/util/test_conversion_functions.cpp) : `std::tm` <-> `time_t` <-> `time_point`
-       - [문자열 포맷팅](example/core/datetime/util/test_formatting_functions.cpp)
-       - [시간 문자열 파싱](example/core/datetime/util/test_parsing_functions.cpp) : `Strict`, `ISO-8601` & `RFC-3339`
-       - [현재 시간 문자열 생성](example/core/datetime/util/test_current_time_functions.cpp)  
+       - [conversion_functions](example/core/datetime/util/test_conversion_functions.cpp) : 시간 단위 변환 <sub> `std::tm` <-> `time_t` <-> `time_point` </sub>
+       - [formatting_functions](example/core/datetime/util/test_formatting_functions.cpp) : 문자열 포맷팅
+       - [parsing_functions](example/core/datetime/util/test_parsing_functions.cpp) : 시간 문자열 파싱 <sub> `Strict`, `ISO-8601`, `RFC-3339` </sub>
+       - [current_time_functions](example/core/datetime/util/test_current_time_functions.cpp) : 현재 시간 문자열 생성
 - 🏛️ `dispatch`
-    - [dynamic_event_dispatcher](example/core/dispatch/test_dynamic_event_dispatcher.cpp) : <sub> 동적 힙 메모리(`std::string`, `std::vector`)와 참조 횟수 기반 자원 관리(`std::shared_ptr`)를 포함하는 비-`POD` 구조체 </sub>
-    - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : <sub> 동적 바이너리 페이로드(`std::vector<uint8_t>`) 포함 </sub>
+    - [dynamic_event_dispatcher](example/core/dispatch/test_dynamic_event_dispatcher.cpp) : <sub> 동적 힙 메모리(`string`,`vector`)와 참조 횟수 기반 자원 관리(`shared_ptr`)를 포함하는 비-`POD` 구조체 </sub>
+    - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : <sub> 동적 바이너리 페이로드(`vector<uint8_t>`) 포함 </sub>
     - [static_dispatcher](example/core/dispatch/test_static_dispatcher.cpp) : <sub> 힙 할당이 전혀 발생하지 않는 스택 기반 데이터 구조 </sub>
     - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : <sub> 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 </sub>
 - 🏛️ `encoding`
     - `Base64` 인코딩/디코딩
-        - [기본 문자열 인코딩 / 디코딩 테스트](example/core/encoding/test_base64_encoding_decoding.cpp)
-        - [RFC 4648 표준 테스트 벡터 및 패딩](example/core/encoding/test_rfc_4648_encoding_decoding.cpp)
-        - [잘못된 형식의 Base64 입력 시 예외/에러 처리 검증](example/core/encoding/test_base64_error.cpp)
-        - [바이너리 데이터 테스트](example/core/encoding/test_base64_binary.cpp)
+        - [base64_encoding_decoding](example/core/encoding/test_base64_encoding_decoding.cpp) : 기본 문자열 인코딩 / 디코딩 테스트
+        - [rfc_4648_encoding_decoding](example/core/encoding/test_rfc_4648_encoding_decoding.cpp) : RFC 4648 표준 테스트 벡터 및 패딩
+        - [base64_error](example/core/encoding/test_base64_error.cpp) : 잘못된 형식의 Base64 입력 시 예외/에러 처리 검증
+        - [base64_binary](example/core/encoding/test_base64_binary.cpp) : Base64 바이너리 데이터 테스트
     - `Hex`
-        - [Hex 상호 변환 및 대소문자 검증](example/core/encoding/test_hex.cpp)
-        - [Hex 비정상 입력 에러 처리 검증](example/core/encoding/test_hex_error.cpp)
+        - [hex](example/core/encoding/test_hex.cpp) : Hex 상호 변환 및 대소문자 검증
+        - [hex_error](example/core/encoding/test_hex_error.cpp) : Hex 비정상 입력 에러 처리 검증
     - `URL` 인코딩/디코딩
-        - [URL 인코딩/디코딩 검증(RFC 3986 및 공백 처리)](example/core/encoding/test_url_encoding.cpp)
-        - [UTF-8 한글 문자열 URL 인코딩/디코딩 통합 검증](example/core/encoding/test_url_korean.cpp)
-        - [URL 디코딩 비정상 입력 에러 처리 검증](example/core/encoding/test_invalid_url.cpp)
+        - [url_encoding](example/core/encoding/test_url_encoding.cpp) : URL 인코딩/디코딩 검증(RFC 3986 및 공백 처리)
+        - [url_korean](example/core/encoding/test_url_korean.cpp) : UTF-8 한글 문자열 URL 인코딩/디코딩 통합 검증
+        - [test_invalid_url](example/core/encoding/test_invalid_url.cpp) : URL 디코딩 비정상 입력 에러 처리 검증
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
     - 성공값/기대값(`T`) 또는 에러값(`E`) 중 하나를 처리하는 패턴
 - 🏛️ [exception](example/core/exception/main.cpp)
     - `C++17`용 예외 처리 보완 기능 <sub> `std::source_location`, `std::stacktrace` 유사 기능 </sub>
-- 🏛️ [file](example/core/file/)
-    - [실행 파일 경로](example/core/file/test_01_executable_path.cpp)
-    - [UTF8 문자열 → 경로 변환](example/core/file/test_02_path_from_utf8.cpp)
-    - [파일 정보](example/core/file/test_04_finfo.cpp)
-    - [파일 권한](example/core/file/test_05_permissions_info.cpp)
-    - [파일 크기 형식화](example/core/file/test_06_file_size_formatter.cpp)
-    - [파일 찾기](example/core/file/test_07_file_finder.cpp)
-    - [파일 감시자](example/core/file/test_08_file_watcher.cpp)
+- 🏛️ `file`
+    - [executable_path](example/core/file/test_01_executable_path.cpp) : 실행 파일 경로
+    - [path_from_utf8](example/core/file/test_02_path_from_utf8.cpp) : UTF8 문자열 → 경로 변환
+    - [finfo](example/core/file/test_04_finfo.cpp) : 파일 정보
+    - [permissions_info](example/core/file/test_05_permissions_info.cpp) : 파일 권한
+    - [file_size_formatter](example/core/file/test_06_file_size_formatter.cpp) : 파일 크기 형식화
+    - [file_finder](example/core/file/test_07_file_finder.cpp) : 파일 찾기
+    - [file_watcher](example/core/file/test_08_file_watcher.cpp) : 파일 감시자
 - 🏛️ [findfile](example/core/findfile/main.cpp)
     - 파일에서 찾기 (`Find in files`)
 - 🏛️ `hash`
@@ -129,43 +129,43 @@
 - 🏛️ [json](example/core/json/main.cpp)
     - `.json` 직렬화/역직렬화
 - 🏛️ `log`
-    - [로깅 유틸리티](example/core/log/test_utility_functions.cpp)
-    - [console_sink](example/core/log/test_console_sink.cpp)
-    - [rolling_file_sink](example/core/log/test_rolling_file_sink.cpp)
-    - [logger](example/core/log/test_logger.cpp)]
+    - [utility_functions](example/core/log/test_utility_functions.cpp) : 로깅 유틸리티
+    - [console_sink](example/core/log/test_console_sink.cpp) : 콘솔 싱크
+    - [rolling_file_sink](example/core/log/test_rolling_file_sink.cpp) : 회전 파일 싱크
+    - [logger](example/core/log/test_logger.cpp) : 로거
 - 🏛️ [macro](example/core/macro/main.cpp)
     - 함수 시도(`TRY_OPT`) 계열 매크로
 - 🏛️ `memory`
-    - [기본 타입 및 POD 직렬화 역직렬화](example/core/memory/test_basic_and_pod.cpp)
-    - [std::string 및 std::vector 직렬화/역직렬화](example/core/memory/test_string_and_vector.cpp)
-    - [구조체 벡터 직렬화/역직렬화](example/core/memory/test_vector_of_structs.cpp)
-    - [깊은 복사](example/core/memory/test_deep_copier.cpp)
-    - [fixed_memory_pool 기본 블록 할당/해제](example/core/memory/test_fixed_memory_pool.cpp)
-    - [pool_allocator 및 STL 컨테이너 연동](example/core/memory/test_pool_allocator_with_stl.cpp)
+    - [basic_and_pod](example/core/memory/test_basic_and_pod.cpp) : 기본 타입 및 POD 직렬화 역직렬화
+    - [string_and_vector](example/core/memory/test_string_and_vector.cpp) : string 및 vector 직렬화/역직렬화
+    - [vector_of_structs](example/core/memory/test_vector_of_structs.cpp) : 구조체 vector 직렬화/역직렬화
+    - [deep_copier](example/core/memory/test_deep_copier.cpp) : 깊은 복사
+    - [fixed_memory_pool](example/core/memory/test_fixed_memory_pool.cpp) : 메모리 풀 기본 블록 할당/해제
+    - [pool_allocator_with_stl](example/core/memory/test_pool_allocator_with_stl.cpp) : 풀 할당자 및 STL 컨테이너 연동
 - 🏛️ [notification](example/core/notification/main.cpp)
     - 옵저버 등록 및 경고 알림.
 - 🏛️ [notifications](example/core/notifications/main.cpp)
     - 이벤트 등록 및 알림/해제. 
 - 🏛️ [overload](example/core/overload/main.cpp)
-    - 다중 타입 처리.
+    - 다중 타입 처리
 - 🏛️ [pfr](example/core/pfr/main.cpp) : 플랫 리플렉션(PFR)
-    - 구조체 필드의 값 및 타입 접근. 
+    - 구조체 필드의 값 및 타입 접근 
 - 🏛️ [process_util](example/core/process_util/main.cpp)
-    - 프로세스 목록 및 정보 얻기.
+    - 프로세스 목록 및 정보 얻기
 - 🏛️ [reflect](example/core/reflect/main.cpp)
-    - 구조체의 직렬화/역직렬화 매크로.
+    - 구조체의 직렬화/역직렬화 매크로
 - 🏛️ `resilience`
     - [`bulkhead`](example/core/resilience/test_bulkhead.cpp) : 동시 몇 개까지 제한
     - [`circuit breaker`](example/core/resilience/test_circuit_breaker.cpp) : 장애가 발생 시 호출 차단
     - [`paginated list`](example/core/resilience/test_paginated_list.cpp) : 페이지 단위로 나누어 조회
     - [`retry helper`](example/core/resilience/test_retry_helper.cpp) : 실패 가능성 작업을 자동 재시도
-    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp) : 최근 시간(윈도우) 내 요청 횟수를 제한
+    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp) : 최근 시간(윈도우) 이내 요청 횟수 제한
     - [`token bucket`](example/core/resilience/test_token_bucket.cpp) : 빈도를 조절할 때 사용
-    - [벌크헤드, 토큰 버킷, 서킷 브레이커 조합 예제](example/core/resilience/test_combined.cpp)
-    - [레이트 리미터 예제1](example/core/resilience/test_rate_limiters.cpp)
-    - [레이트 리미터 예제2](example/core/resilience/test_rate_limiter_example.cpp)
+    - [test_combined](example/core/resilience/test_combined.cpp) : `bulkhead`, `token bucket`, `circuit breaker` 조합 예제
+    - [rate_limiters](example/core/resilience/test_rate_limiters.cpp) : 레이트 리미터 예제1
+    - [rate_limiter_example](example/core/resilience/test_rate_limiter_example.cpp) : 레이트 리미터 예제2
 - 🏛️ [result](example/core/result/main.cpp)
-    - 타입 별 성공/실패 처리.
+    - 타입 별 성공/실패 처리
 - 🏛️ `schedule`  
     - [task](example/core/schedule/task/main.cpp) : 단일/지연/주기 작업 등록·취소
     - [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
