@@ -8,12 +8,13 @@
 #include "mino/core/string/to_console_encoding.hpp" 
 #include "mino/core/string/to_string.hpp"
 
-#include "mino/core/string/u8/u8.hpp"
-
-#include "mino/core/string/print/print.hpp"
+#include "mino/core/string/detail/detail.hpp"
 
 #include "mino/core/string/format/format.hpp"
 
+#include "mino/core/string/print/print.hpp"
+
+#include "mino/core/string/u8/u8.hpp"
 
 
 
