@@ -159,11 +159,10 @@
     - [`circuit breaker`](example/core/resilience/test_circuit_breaker.cpp) : 장애가 발생 시 호출 차단
     - [`paginated list`](example/core/resilience/test_paginated_list.cpp) : 페이지 단위로 나누어 조회
     - [`retry helper`](example/core/resilience/test_retry_helper.cpp) : 실패 가능성 작업을 자동 재시도
-    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp) : 최근 시간(윈도우) 이내 요청 횟수 제한
-    - [`token bucket`](example/core/resilience/test_token_bucket.cpp) : 빈도를 조절할 때 사용
+    - [`sliding window limiter`](example/core/resilience/test_sliding_window_limiter.cpp) : 최근 시간(`window`) 이내 요청 횟수 제한
+    - [`token bucket`](example/core/resilience/test_token_bucket.cpp) : 빈도 조절 시 사용
     - [test_combined](example/core/resilience/test_combined.cpp) : `bulkhead`, `token bucket`, `circuit breaker` 조합 예제
-    - [rate_limiters](example/core/resilience/test_rate_limiters.cpp) : 레이트 리미터 예제1
-    - [rate_limiter_example](example/core/resilience/test_rate_limiter_example.cpp) : 레이트 리미터 예제2
+    - [rate_limiters](example/core/resilience/test_rate_limiters.cpp) : 레이트 리미터 예제
 - 🏛️ [result](example/core/result/main.cpp)
     - 타입 별 성공/실패 처리
 - 🏛️ `schedule`  
@@ -175,8 +174,8 @@
     - 서버를 위한 기본 구조
 - 🏛️ [service](example/core/service/main.cpp) 
     - 서비스 등록, 시작/중지, 상태 확인
-- 🏛️ [shared_memory](example/core/shared_memory/main.cpp) : 공유 메모리 `IPC` 
-    - 메모리 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리 예.  
+- 🏛️ [shared_memory](example/core/shared_memory/main.cpp)  
+    - 공유 메모리의 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리
 - 🏛️ [singleton](example/core/singleton/main.cpp)
     - 싱글톤 패턴  
 - 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
