@@ -37,6 +37,8 @@ extern void test_bulkhead_blocking();
 extern void test_bulkhead_close_wakes_waiter();
 extern void test_bulkhead_concurrency_limit();
 
+extern int run_rate_limiters();
+
 // -----------------------------------------------------------------------------
 // main 함수
 // -----------------------------------------------------------------------------
@@ -73,6 +75,7 @@ int main(int argc, char* argv[]) {
             test_bulkhead_blocking();
             test_bulkhead_close_wakes_waiter();
             test_bulkhead_concurrency_limit();
+            assert(run_rate_limiters() == 0); 
         }
     }
     catch (const std::exception& ex) {

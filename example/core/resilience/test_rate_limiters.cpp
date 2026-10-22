@@ -3,9 +3,8 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include <stdexcept>
-#include <memory>
 #include <atomic>
+#include <memory>
 
 #include "mino/core/resilience/resilience.hpp"
 #include "mino/core/string/string.hpp"
@@ -20,14 +19,14 @@ using namespace mino::core::resilience;
 // 즉 하위 기능(알고리즘, 파라미터, 동작 모드 등)을 포함하는 상위 개념입니다.
 //---------------------------------------------------
 
-// ===================================================
-// Part 1. 사용 예제 (Examples)
-// ===================================================
+// ============================================================================
+// Part 1: 동작 예제 (Examples)
+// ============================================================================
 
 // 토큰 버킷: 초당 5개 보충, 최대 버스트 3
 void example_token_bucket()
 {
-    std::cout << "\n[Example: token_bucket]" << std::endl;
+    std::cout << "[token_bucket]" << std::endl;
 
     token_bucket::config_t cfg;
     cfg.capacity = 3;
@@ -56,7 +55,7 @@ void example_token_bucket()
 // 슬라이딩 윈도우: 1초 안에 최대 3회
 void example_sliding_window()
 {
-    std::cout << "\n[Example: sliding_window_limiter]" << std::endl;
+    std::cout << "[sliding_window_limiter]" << std::endl;
 
     sliding_window_limiter::config_t cfg;
     cfg.max_requests = 3;
@@ -76,7 +75,7 @@ void example_sliding_window()
 // 벌크헤드: 동시에 2개 작업까지만 실행
 void example_bulkhead()
 {
-    std::cout << "\n[Example: bulkhead]" << std::endl;
+    std::cout << "[bulkhead]" << std::endl;
 
     bulkhead::config_t cfg;
     cfg.max_concurrent = 2;
@@ -103,9 +102,9 @@ void example_bulkhead()
     }
 }
 
-// ===================================================
-// Part 2. 단위 테스트 (Unit Tests)
-// ===================================================
+// ============================================================================
+// Part 2: 단위 검증 테스트 (Unit Tests)
+// ============================================================================
 
 namespace {
     static int g_failures = 0; // 테스트 실패 횟수
@@ -135,7 +134,6 @@ namespace {
             ++g_failures;                                                             \
         }                                                                             \
     } while (0)
-// CHECK()는 조건이 false일 때 실패 메시지를 출력하고 g_failures를 증가시킵니다.
 
 void test_token_bucket_basic()
 {
@@ -440,22 +438,23 @@ void test_bulkhead_concurrency_limit()
     CHECK(peak.load() <= 3);
 }
 
-// ===================================================
-// Part 3. Main 실행 진입점
-// ===================================================
+// ============================================================================
+// Part 3: 통합 실행 함수 (main.cpp에서 호출)
+// ============================================================================
 
-int main()
+int run_rate_limiters()
 {
-    std::cout << "========================================" << std::endl;
-    std::cout << " Running Examples" << std::endl;
-    std::cout << "========================================" << std::endl;
+    std::cout << "===== Running Examples =====" << std::endl;
     example_token_bucket();
+    std::cout << std::endl;
     example_sliding_window();
+    std::cout << std::endl;
     example_bulkhead();
+    std::cout << std::endl;
 
-    std::cout << "\n========================================" << std::endl;
-    std::cout << " Running Unit Tests" << std::endl;
-    std::cout << "========================================" << std::endl;
+    std::cout << "===== Running Tests =====" << std::endl;
+    g_failures = 0;
+
     test_token_bucket_basic();
     test_token_bucket_partial_period();
     test_token_bucket_config_normalize();
@@ -473,12 +472,12 @@ int main()
 
     if (g_failures == 0)
     {
-        std::cout << "\n[PASS] All tests passed successfully!" << std::endl;
-        return 0;
+        std::cout << "All rate limiter tests passed!" << std::endl;
     }
     else
     {
-        std::cerr << "\n[FAIL] Total failures: " << g_failures << std::endl;
-        return 1;
+        std::cerr << g_failures << " test(s) failed." << std::endl;
     }
+
+    return g_failures;
 }
