@@ -92,8 +92,8 @@
     - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : <sub> 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 </sub>
 - 🏛️ `encoding`
     - `Base64` 인코딩/디코딩
-        - [base64_encoding_decoding](example/core/encoding/test_base64_encoding_decoding.cpp) : 기본 문자열 인코딩 / 디코딩 테스트
-        - [rfc_4648_encoding_decoding](example/core/encoding/test_rfc_4648_encoding_decoding.cpp) : RFC 4648 표준 테스트 벡터 및 패딩
+        - [base64_encoding_decoding](example/core/encoding/test_base64_enc_dec.cpp) : 기본 문자열 인코딩 / 디코딩 테스트
+        - [rfc_4648_encoding_decoding](example/core/encoding/test_rfc_4648.cpp) : RFC 4648 표준 테스트 벡터 및 패딩
         - [base64_error](example/core/encoding/test_base64_error.cpp) : 잘못된 형식의 Base64 입력 시 예외/에러 처리 검증
         - [base64_binary](example/core/encoding/test_base64_binary.cpp) : Base64 바이너리 데이터 테스트
     - `Hex`
@@ -718,7 +718,7 @@ $ eza --tree mino
 
 #### 🌰 실행 프로그램 프로젝트 구성
 
-- mino를 적용할 실행 프로그램 <sub>(또는 라이브러리)</sub> 의 `CMakeListds.txt` 구성 방법
+- mino를 적용할 실행 프로그램 <sub>(또는 라이브러리)</sub> 의 `CMakeLists.txt` 구성 방법
 ```cmake
 cmake_minimum_required(VERSION 3.24)
 
