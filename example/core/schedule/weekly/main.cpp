@@ -77,8 +77,8 @@ int main() {
     // [TEST 3] to_xml() Output:
     // <?xml version="1.0" encoding="UTF-8"?>
     // <WeeklySchedule>
-    //   <Range start_day="Mon" start_h="9" start_m="0" end_day="Mon" end_h="18" end_m="0" />
-    //   <Range start_day="Fri" start_h="22" start_m="0" end_day="Sat" end_h="4" end_m="0" />
+    //   <Range start_day="Mon" start_h="9"  start_m="0" end_day="Mon" end_h="18" end_m="0" />
+    //   <Range start_day="Fri" start_h="22" start_m="0" end_day="Sat" end_h="4"  end_m="0" />
     // </WeeklySchedule>
 
     // ----------------------------------------------------
