@@ -4,5 +4,5 @@ project(core_schedule_example_project)
 
 add_subdirectory(task)
 add_subdirectory(weekly)
-
+add_subdirectory(monthly)
 

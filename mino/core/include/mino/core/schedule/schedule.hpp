@@ -2,4 +2,5 @@
 
 #include "mino/core/schedule/task/task.hpp"
 #include "mino/core/schedule/weekly/weekly.hpp"
+#include "mino/core/schedule/monthly/monthly.hpp"
 
