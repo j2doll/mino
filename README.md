@@ -73,7 +73,7 @@
 - 🏛️ [convert](example/core/convert/main.cpp)
     - 문자열 ↔ 숫자(정수,실수) 변환
 - 🏛️ [crypt](example/core/crypt/main.cpp)
-    - 암복호화 (키 사용/미사용 방식)
+    - 암복호화(키 사용/미사용), 바이트 배열 <-> 16진수 문자열, `PKCS#7` 패딩 추가/제거
 - 🏛️ [csv](example/core/csv/main.cpp)
     - `.csv` 파일 입출력 및 파싱. 엑셀용 `.csv` 파일 생성
 - 🏛️ [daemon](example/core/daemon/main.cpp)
