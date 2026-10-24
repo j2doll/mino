@@ -106,6 +106,11 @@ int main() {
     assert(exec_hol->first == (mcsm::date_ymd{ 2026, 1, 2 })); // 2026-01-02로 롤링되어야 함
     assert(exec_hol->second == (mcsm::time_hms{ 10, 0, 0 })); // 시간은 그대로 10:00:00
 
+    s.add_rule(r_hol); // 스케줄러(s)에 규칙(r_hol) 추가
+
+    s.set_now(mcsm::date_ymd{ 2026, 1, 2 }, mcsm::time_hms{ 10, 0, 0 }); // 2026-01-02 10:00:00
+    assert(s.is_active_now(true) == true); // 2026-01-02 10:00:00은 실행되어야 함
+
     std::cout << "[Pass 4] Holiday roll to next business day verified.\n";
 
     // -------------------------------------------------------------
@@ -174,7 +179,12 @@ int main() {
     r4.execution_time = mcsm::time_hms{ 20, 0, 0 }; // [6-2] 실행 시간 
 
     assert(!s.get_execution_date_time(r4, 2026, 1).has_value()); // 2026년 1월 시간 계산
-    // 2026-01-10 20:00:00은 업무시간 윈도우(09:00~18:00)를 벗어나므로, false 
+    // 2026-01-10 20:00:00은 업무시간 윈도우(09:00~18:00)를 벗어나므로, false
+
+    s.add_rule(r4); // 스케줄러(s)에 규칙(r4) 추가
+
+    s.set_now(mcsm::date_ymd{ 2026, 1, 10 }, mcsm::time_hms{ 20, 0, 0 }); // 2026-01-10 20:00:00
+    assert(s.is_active_now(true) == false); // 업무시간 윈도우를 벗어나므로 활성 상태가 아님
  
     std::cout << "[Pass 6] Active time window filter (business hours) verified.\n";
 
@@ -202,11 +212,53 @@ int main() {
     s.add_rule(cur_rule); // 스케줄러(s)에 현재 시각과 일치하는 규칙 추가
 
     // date_time의 time_point를 scheduler의 time_provider로 연결
-    s.set_now_provider([current_dt]() {
+    s.set_now_provider([current_dt]() { // 콜백 함수를 등록하면 동적으로 현재 시간을 제공할 수 있음
         return std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_dt.to_time_point());
     });
 
     assert(s.is_active_now(true) == true); // 현재 시각과 정확히 일치하므로 활성 상태여야 함
+
+    //------------------------------------------------
+    // 현재 시간을 scheduler에 직접 설정하는 방법 예시
+    //------------------------------------------------
+    // 방법 1: time_point로 직접 설정 (권장)
+    // mdtu::date_time dt = mdtu::date_time::current_date_time();
+    // s.set_now(dt.to_time_point());
+    //------------------------------------------------
+    // 방법 2: 연/월/일/시/분/초로 분해하여 설정
+    // mdtu::date_time dt = mdtu::date_time::current_date_time();
+    // // dt.spec();   // time_zone::utc 또는 time_zone::local_time 반환
+    // // dt.is_utc(); // true면 UTC, false면 local_time
+    // std::tm tmv = dt.to_tm(); // std::tm 구조체로 변환. timezone 기준으로 변환된 값이 들어있음.
+    // s.set_now(
+    //     mcsm::date_ymd{ tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday },
+    //     mcsm::time_hms{ tmv.tm_hour, tmv.tm_min, tmv.tm_sec }
+    // );
+    //------------------------------------------------
+
+    //------------------------------------------------
+    // 현재 시간이 계속 변하는 경우,
+    // scheduler에 현재 시간을 주기적으로 업데이트하는 방법 
+    //------------------------------------------------
+    // (1) 시스템이 계속 실행되는 경우
+    // mdtu::date_time dt = mdtu::date_time::current_date_time();
+    // s.set_now(dt.to_time_point());
+    // 
+    // // 필요할 때만 검사
+    // if (s.is_active_now(true)) {
+    //     // 스케줄된 작업 실행
+    // }
+    //------------------------------------------------
+    // (2) 폴링 루프 (예: 1초마다)
+    // while (running) {
+    //     mdtu::date_time current = mdtu::date_time::current_date_time();
+    //     s.set_now(current.to_time_point());
+    //     if (s.is_active_now(true)) {
+    //         // 작업 실행. 또는 외부 쓰레드에 트리거를 전달.
+    //     }
+    //     std::this_thread::sleep_for(std::chrono::seconds(1));
+    // }
+    //------------------------------------------------
 
     std::cout << "[Pass 7] Real-time date_time injection match verified (is_active_now = true).\n";
 
