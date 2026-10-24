@@ -263,7 +263,43 @@ int main() {
     std::cout << "[Pass 7] Real-time date_time injection match verified (is_active_now = true).\n";
 
     // -------------------------------------------------------------
-    // [검증 8] JSON & XML 직렬화 및 역직렬화 (반복 공휴일 포함)
+        // [검증 8] 매월 말일 스케줄 실행 검증 (last_day_of_month)
+        // -------------------------------------------------------------
+    mcsm::monthly_rule r_last;
+
+    r_last.id = "Monthly_Last_Day";
+    r_last.pattern = mcsm::pattern_type::last_day_of_month; // 매월 말일 패턴
+    r_last.execution_time = mcsm::time_hms{ 18, 30, 0 }; // 18:30:00
+
+    // 1월 (31일)
+    auto dt_jan = s.get_execution_date_time(r_last, 2026, 1);
+    assert(dt_jan.has_value() && dt_jan->first == (mcsm::date_ymd{ 2026, 1, 31 }));
+
+    // 2026년 2월 (평년 28일)
+    auto dt_feb_2026 = s.get_execution_date_time(r_last, 2026, 2);
+    assert(dt_feb_2026.has_value() && dt_feb_2026->first == (mcsm::date_ymd{ 2026, 2, 28 }));
+
+    // 2028년 2월 (윤년 29일)
+    auto dt_feb_2028 = s.get_execution_date_time(r_last, 2028, 2);
+    assert(dt_feb_2028.has_value() && dt_feb_2028->first == (mcsm::date_ymd{ 2028, 2, 29 }));
+
+    // 4월 (30일)
+    auto dt_apr = s.get_execution_date_time(r_last, 2026, 4);
+    assert(dt_apr.has_value() && dt_apr->first == (mcsm::date_ymd{ 2026, 4, 30 }));
+
+    // 활성화 여부 테스트
+    s.add_rule(r_last); // 스케줄러(s)에 규칙(r_last) 추가
+
+    s.set_now(mcsm::date_ymd{ 2026, 2, 28 }, mcsm::time_hms{ 18, 30, 0 });
+    assert(s.is_active_now(true) == true);
+
+    s.set_now(mcsm::date_ymd{ 2026, 2, 27 }, mcsm::time_hms{ 18, 30, 0 });
+    assert(s.is_active_now(true) == false);
+
+    std::cout << "[Pass 8] Last day of month schedule (28/29/30/31 days) verified.\n";
+
+    // -------------------------------------------------------------
+    // [검증 9] JSON & XML 직렬화 및 역직렬화 (반복 공휴일 포함)
     // -------------------------------------------------------------
     
     // JSON 직렬화 / 역직렬화 검증
@@ -286,7 +322,7 @@ int main() {
     assert(s_xml.calendar().holidays().size() == 1); // 단발성 공휴일 1개 확인
     assert(s_xml.rules().size() == s.rules().size()); // 규칙 수 일치 확인
 
-    std::cout << "[Pass 8] JSON & XML round-trip serialization verified.\n";
+    std::cout << "[Pass 9] JSON & XML round-trip serialization verified.\n";
 
     // 덤프 출력 확인
     std::cout << "\n---------- All Configured Rules Dump ----------\n";

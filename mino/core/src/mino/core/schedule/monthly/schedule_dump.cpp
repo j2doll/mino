@@ -12,7 +12,10 @@ namespace mino::core::schedule::monthly {
         for (const auto& r : rules) {
             oss << "[" << (r.id.empty() ? "Rule" : r.id) << "] ";
 
-            if (r.pattern == pattern_type::day_of_month) {
+            if (r.pattern == pattern_type::last_day_of_month) {
+                oss << "Last day of month";
+            }
+            else if (r.pattern == pattern_type::day_of_month) {
                 oss << "Day " << r.day_of_month << " of month";
             }
             else {

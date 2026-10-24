@@ -1,4 +1,5 @@
 #include <ctime>
+#include <algorithm>
 #include "mino/core/datetime/util/datetime_convert.hpp"
 #include "mino/core/schedule/monthly/scheduler.hpp"
 #include "mino/core/schedule/monthly/schedule_json.hpp"
@@ -39,6 +40,10 @@ namespace mino::core::schedule::monthly {
 
     date_ymd scheduler::calculate_pattern_date(const monthly_rule& rule, int year, int month) const {
         int max_day = days_in_month(year, month);
+
+        if (rule.pattern == pattern_type::last_day_of_month) {
+            return date_ymd{ year, month, max_day };
+        }
 
         if (rule.pattern == pattern_type::day_of_month) {
             int d = std::min(rule.day_of_month, max_day);

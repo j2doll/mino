@@ -32,6 +32,20 @@ namespace mino::core::schedule::monthly {
         return holiday_policy::exact;
     }
 
+    static const char* pattern_to_str(pattern_type pt) {
+        switch (pt) {
+        case pattern_type::ordinal_weekday:   return "ordinal_weekday";
+        case pattern_type::last_day_of_month: return "last_day_of_month";
+        case pattern_type::day_of_month: default: return "day_of_month";
+        }
+    }
+
+    static pattern_type pattern_from_str(const std::string& s) {
+        if (s == "ordinal_weekday")   return pattern_type::ordinal_weekday;
+        if (s == "last_day_of_month") return pattern_type::last_day_of_month;
+        return pattern_type::day_of_month;
+    }
+
     static std::optional<std::pair<holiday_calendar, std::vector<monthly_rule>>> parse_json_value(const mino::core::json::value& root) {
         using namespace mino::core::json;
 
@@ -93,9 +107,7 @@ namespace mino::core::schedule::monthly {
             monthly_rule rule;
             if (obj.count("id") && obj.at("id").is_string()) rule.id = obj.at("id").get_string();
             if (obj.count("pattern") && obj.at("pattern").is_string()) {
-                rule.pattern = (obj.at("pattern").get_string() == "ordinal_weekday")
-                    ? pattern_type::ordinal_weekday
-                    : pattern_type::day_of_month;
+                rule.pattern = pattern_from_str(obj.at("pattern").get_string());
             }
             if (obj.count("day_of_month") && obj.at("day_of_month").is_number()) rule.day_of_month = static_cast<int>(obj.at("day_of_month").get_number());
             if (obj.count("target_weekday") && obj.at("target_weekday").is_string()) {
@@ -207,7 +219,7 @@ namespace mino::core::schedule::monthly {
         for (const auto& r : rules) {
             object_t obj;
             obj["id"] = value(r.id);
-            obj["pattern"] = value(r.pattern == pattern_type::day_of_month ? "day_of_month" : "ordinal_weekday");
+            obj["pattern"] = value(pattern_to_str(r.pattern));
             obj["day_of_month"] = value(r.day_of_month);
             obj["target_weekday"] = value(std::string(weekday_to_str(r.target_weekday)));
             obj["target_ordinal"] = value(static_cast<int>(r.target_ordinal));

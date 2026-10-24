@@ -36,6 +36,20 @@ namespace mino::core::schedule::monthly {
         return holiday_policy::exact;
     }
 
+    static const char* pattern_to_str(pattern_type pt) {
+        switch (pt) {
+        case pattern_type::ordinal_weekday:   return "ordinal_weekday";
+        case pattern_type::last_day_of_month: return "last_day_of_month";
+        case pattern_type::day_of_month: default: return "day_of_month";
+        }
+    }
+
+    static pattern_type pattern_from_str(const std::string& s) {
+        if (s == "ordinal_weekday")   return pattern_type::ordinal_weekday;
+        if (s == "last_day_of_month") return pattern_type::last_day_of_month;
+        return pattern_type::day_of_month;
+    }
+
     static std::unique_ptr<mino::core::xml::xml_node> build_xml_tree(
         const holiday_calendar& cal, const std::vector<monthly_rule>& rules) {
 
@@ -85,7 +99,7 @@ namespace mino::core::schedule::monthly {
             r_node->name = "Rule";
 
             r_node->attributes.push_back({ "id", r.id, "", "" });
-            r_node->attributes.push_back({ "pattern", r.pattern == pattern_type::day_of_month ? "day_of_month" : "ordinal_weekday", "", "" });
+            r_node->attributes.push_back({ "pattern", pattern_to_str(r.pattern), "", "" });
             r_node->attributes.push_back({ "day_of_month", std::to_string(r.day_of_month), "", "" });
             r_node->attributes.push_back({ "target_weekday", weekday_to_str(r.target_weekday), "", "" });
             r_node->attributes.push_back({ "target_ordinal", std::to_string(static_cast<int>(r.target_ordinal)), "", "" });
@@ -220,7 +234,7 @@ namespace mino::core::schedule::monthly {
                 monthly_rule r;
                 if (auto* a = r_node->find_attribute("id")) r.id = a->value;
                 if (auto* a = r_node->find_attribute("pattern")) {
-                    r.pattern = (a->value == "ordinal_weekday") ? pattern_type::ordinal_weekday : pattern_type::day_of_month;
+                    r.pattern = pattern_from_str(a->value);
                 }
                 if (auto* a = r_node->find_attribute("day_of_month")) r.day_of_month = std::stoi(a->value);
                 if (auto* a = r_node->find_attribute("target_weekday")) {

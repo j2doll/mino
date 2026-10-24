@@ -81,8 +81,9 @@ namespace mino::core::schedule::monthly {
 
     // 스케줄 반복 모드
     enum class pattern_type : uint8_t {
-        day_of_month,    // 특정 일자 (예: 매월 10일)
-        ordinal_weekday  // 특정 요일/주차 (예: 2주째 목요일)
+        day_of_month,       // 특정 일자 (예: 매월 10일)
+        ordinal_weekday,    // 특정 요일/주차 (예: 2주째 목요일)
+        last_day_of_month   // 매월 말일 (28/29/30/31일 자동 산출)
     };
 
     // 공휴일 충돌 시 실행 정책
