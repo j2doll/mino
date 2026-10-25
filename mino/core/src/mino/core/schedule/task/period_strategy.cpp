@@ -64,27 +64,75 @@ namespace mino::core::schedule::task {
             tm_info.tm_sec
         };
     }
-
+     
     // Monthly
+    int monthly_strategy::get_last_day_of_month(int year, int month) const {
+        if (month == 2) {
+            // 윤년 확인
+            bool is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+            return is_leap ? 29 : 28;
+        }
+        static const int days_in_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+        return days_in_month[month - 1];
+    }
+
+    void monthly_strategy::set_target_day(int day) {
+        // -1: 매월 말일, 1-31: 특정 날짜
+        if ((day >= 1 && day <= 31) || day == -1) {
+            target_day_ = day;
+        }
+    }
+
+    int monthly_strategy::get_target_day() const {
+        return target_day_;
+    }
+
     monthly_strategy::monthly_strategy(int day, int hour, int minute)
         : target_day_(day), target_hour_(hour), target_minute_(minute) {
     }
 
     std::chrono::system_clock::time_point monthly_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
         auto parts = date_time_parts::from_time_point(current_time);
+
+        // 현재 월에서 시도
+        int year = parts.year;
+        int month = parts.month;
+        int day_to_use = (target_day_ == -1)
+            ? get_last_day_of_month(year, month)
+            : target_day_;
+
         std::tm target_tm{};
-        target_tm.tm_year = parts.year - 1900;
-        target_tm.tm_mon = parts.month - 1;
-        target_tm.tm_mday = target_day_;
+        target_tm.tm_year = year - 1900;
+        target_tm.tm_mon = month - 1;
+        target_tm.tm_mday = day_to_use;
         target_tm.tm_hour = target_hour_;
         target_tm.tm_min = target_minute_;
         target_tm.tm_sec = 0;
+        target_tm.tm_isdst = -1;
 
         std::time_t target_t = std::mktime(&target_tm);
         auto target_tp = std::chrono::system_clock::from_time_t(target_t);
 
+        // 현재 시간보다 과거면 다음 달로 이동
         if (target_tp <= current_time) {
-            target_tm.tm_mon += 1;
+            month++;
+            if (month > 12) {
+                month = 1;
+                year++;
+            }
+
+            day_to_use = (target_day_ == -1)
+                ? get_last_day_of_month(year, month)
+                : target_day_;
+
+            target_tm.tm_year = year - 1900;
+            target_tm.tm_mon = month - 1;
+            target_tm.tm_mday = day_to_use;
+            target_tm.tm_hour = target_hour_;
+            target_tm.tm_min = target_minute_;
+            target_tm.tm_sec = 0;
+            target_tm.tm_isdst = -1;
+
             target_t = std::mktime(&target_tm);
             target_tp = std::chrono::system_clock::from_time_t(target_t);
         }

@@ -73,17 +73,25 @@ namespace mino::core::schedule::task {
         virtual ~period_strategy() = default;
         virtual std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) = 0;
     };
-
+     
     // 매월 특정 일/시/분 전략
     class monthly_strategy : public period_strategy {
     public:
+        // 특정 날짜로 설정 (1-31, -1은 매월 말일)
         monthly_strategy(int day, int hour, int minute);
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
 
+        // Setter: 특정 날짜 또는 마지막 날
+        void set_target_day(int day);  // 1-31 또는 -1 (말일)
+        int get_target_day() const;
+
     private:
-        int target_day_;
+        int target_day_;      // 1-31 또는 -1 (매월 말일)
         int target_hour_;
         int target_minute_;
+
+        // Helper: 주어진 월의 마지막 날을 반환
+        int get_last_day_of_month(int year, int month) const;
     };
 
     // 매일 특정 시/분/초 전략
