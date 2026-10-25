@@ -1,145 +1,198 @@
+#include "mino/core/schedule/task/task_scheduler.hpp"
+#include "mino/core/schedule/task/task_scheduler_json.hpp"
+#include "mino/core/schedule/task/period_strategy.hpp"
+#include "mino/core/string/to_console_encoding.hpp"
 #include <iostream>
-#include <memory>
 #include <chrono>
 #include <thread>
-#include <string>
+#include <vector>
+#include <ctime>
+#include <iomanip>
+#include <filesystem>
 
-#include "mino/core/schedule/schedule.hpp"
-#include "mino/core/datetime/datetime.hpp"
-#include "mino/core/string/string.hpp"
-#include "mino/core/enum/enum.hpp"
+using namespace mino::core::schedule::task;
 
-namespace {
-    namespace mdtu = mino::core::datetime::util;
-    using time_zone_mode = mdtu::time_zone_mode;
+// 콘솔 인코딩 헬퍼
+const auto& tce = mino::core::string::to_console_encoding;
 
-    // 공통 날짜/시간 포맷 상수 (초 단위)
-    constexpr const char* DATETIME_FORMAT = "YYYY-MM-DD hh:mm:ss";
-
-    // 자주 쓰는 타임존(local_time)과 포맷을 기본값으로 바인딩한 auto 람다
-    auto fdt = [](const auto& tp, time_zone_mode tz = time_zone_mode::local_time, const std::string& fmt = DATETIME_FORMAT) {
-        return mdtu::format_datetime(tp, tz, fmt);
-        };
+// 한글 문자열을 콘솔에 출력하기 위한 헬퍼
+void print_task_info(const task_scheduler::task_info& task) {
+    std::cout << tce("  작업 ID: ") << task.task_id << "\n";
+    std::cout << tce("  설명: ") << (task.description ? tce(*task.description) : tce("(없음)")) << "\n";
+    
+    auto time_t = std::chrono::system_clock::to_time_t(task.next_run_time);
+    auto tm = *std::localtime(&time_t);
+    std::cout << tce("  다음 실행: ") << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "\n";
+    
+    std::cout << tce("  전략 유형: ") << task.strategy_type << "\n";
+    std::cout << tce("  전략 파라미터: ") << task.strategy_params_json << "\n";
 }
 
-namespace {
-    auto print = [](const auto&... args) { (std::cout << ... << args) << std::endl; };
-    auto eprint = [](const auto&... args) { (std::cerr << ... << args) << std::endl; };
-    std::ostream& (*endl)(std::ostream&) = std::endl;
-    auto tce = mino::core::string::to_console_encoding;
-    auto tcev = [](std::string_view sv) { return mino::core::string::to_console_encoding(std::string(sv)); };
-}
-
-
-// 2. 실시간 스케줄러 및 워커 스레드 동작 테스트
+// 외부 호출을 위한 함수 - main.cpp에서 호출됨
 void test_scheduler_execution() {
-    namespace mcst = mino::core::schedule::task;
-    namespace mdtu = mino::core::datetime::util;
+    std::cout << tce("=== 작업 스케줄러 테스트 (UTC/Localtime 설정) ===") << "\n\n";
 
-    using task_scheduler = mcst::task_scheduler;
-    using date_time_parts = mcst::date_time_parts;
+    // 작업 디렉토리 출력
+    std::cerr << "[INFO] Current working directory: " << std::filesystem::current_path() << "\n";
 
-    using monthly_strategy = mcst::monthly_strategy; // 매월 특정 일/시/분 전략
-    using daily_strategy = mcst::daily_strategy; // 매일 특정 시/분/초 전략
-    using weekly_strategy = mcst::weekly_strategy; // 매주 특정 요일/시/분/초 전략
-    using hourly_strategy = mcst::hourly_strategy; // 매 시간 특정 분/초 전략
-    using minutely_strategy = mcst::minutely_strategy; // 매 분 특정 초 전략
+    // --- Test 1: Localtime 기준 스케줄러 생성
+    std::cout << tce("*** Test 1: Localtime 기준 스케줄러 ***") << "\n";
+    task_scheduler scheduler_local(time_base::localtime);
+    std::cout << tce("생성된 스케줄러 시간 기준: ");
+    std::cout << (scheduler_local.get_time_basis() == time_base::utc ? "UTC" : "Localtime") << "\n\n";
 
-    print(tce("========================================"));
-    print(tce("[Test 2] Task Scheduler 실시간 동작 테스트"));
-    print(tce("========================================"));
-
-    task_scheduler scheduler;
-
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    date_time_parts parts = date_time_parts::from_time_point(now);
-
-    int target_sec_1 = (parts.second + 2) % 60;
-    int target_sec_2 = (parts.second + 4) % 60;
-
-    print(tce("현재 초: "), parts.second, tce("초"));
-    print(tce("Task 1 예정: "), target_sec_1, tce("초 (매 분마다 반복)"));
-    print(tce("Task 2 예정: "), target_sec_2, tce("초 (중간에 취소될 예정)"), endl);
-
-    // Task 1 등록
-    uint64_t task1_id = scheduler.add_task(
-        std::make_unique<minutely_strategy>(target_sec_1), // 매 분마다 target_sec_1 초에 실행
-        []() {
-            auto tce = mino::core::string::to_console_encoding;
-            std::chrono::system_clock::time_point current = std::chrono::system_clock::now();
-            std::cout
-                << tce(">>> [실행] Task 1 작업 완료! (")
-                << tce(fdt(current))
-                << tce(")")
-                << std::endl;
-        },
-        "태스크 1 (반복 실행)"
+    // 작업 추가
+    int exec_count_1 = 0;
+    int target_sec_1 = 29;
+    std::string desc1 = "Task 1: 매 분 " + std::to_string(target_sec_1) + "초";
+    
+    scheduler_local.add_task(
+        std::make_unique<minutely_strategy>(target_sec_1),
+        [&exec_count_1]() { ++exec_count_1; },
+        desc1
     );
 
-    // Task 2 등록 (삭제 테스트용)
-    uint64_t task2_id = scheduler.add_task(
-        std::make_unique<minutely_strategy>(target_sec_2), // 매 분마다 target_sec_2 초에 실행
-        []() {
-            auto tce = mino::core::string::to_console_encoding;
-            std::chrono::system_clock::time_point current = std::chrono::system_clock::now();
-            std::cout
-                << tce(">>> [실행] Task 2 작업 완료! (")
-                << tce(fdt(current))
-                << tce(")")
-                << std::endl;
-        },
-        "태스크 2 (취소 대상)"
+    int exec_count_2 = 0;
+    int target_min_2 = 15, target_sec_2 = 45;
+    std::string desc2 = "Task 2: 매 시간 " + std::to_string(target_min_2) + "분 " + std::to_string(target_sec_2) + "초";
+    
+    scheduler_local.add_task(
+        std::make_unique<hourly_strategy>(target_min_2, target_sec_2),
+        [&exec_count_2]() { ++exec_count_2; },
+        desc2
     );
 
-    scheduler.start(); // 스케줄러 시작
-    print(tce(">> 스케줄러가 시작되었습니다."), endl);
+    int exec_count_3 = 0;
+    int target_hour_3 = 10, target_min_3 = 30, target_sec_3 = 0;
+    std::string desc3 = "Task 3: 매일 " + std::to_string(target_hour_3) + "시 " + std::to_string(target_min_3) + "분";
+    
+    scheduler_local.add_task(
+        std::make_unique<daily_strategy>(target_hour_3, target_min_3, target_sec_3),
+        [&exec_count_3]() { ++exec_count_3; },
+        desc3
+    );
 
-    // 목록 조회
-    {
-        auto tasks = scheduler.list_tasks(); // 현재 등록된 task 목록 조회
-        std::cout << "\nRegistered tasks: " << tasks.size() << "\n";
-        for (const auto& t : tasks) {
-            std::cout
-                << "  ID: "
-                << t.task_id
-                << ", desc: "
-                << (t.description ? tce(*t.description) : "(none)")
-                << ", next_run: "
-                << fdt(t.next_run_time)
-                << "\n";
-        }
-        std::cout << std::endl;
+    int exec_count_4 = 0;
+    int target_weekday_4 = static_cast<int>(weekday::friday);
+    int target_hour_4 = 14, target_min_4 = 0, target_sec_4 = 0;
+    std::string desc4 = "Task 4: 매주 금요일 " + std::to_string(target_hour_4) + "시";
+    
+    scheduler_local.add_task(
+        std::make_unique<weekly_strategy>(
+            static_cast<weekday>(target_weekday_4),
+            target_hour_4, target_min_4, target_sec_4),
+        [&exec_count_4]() { ++exec_count_4; },
+        desc4
+    );
+
+    int exec_count_5 = 0;
+    int target_day_5 = 1;
+    int target_hour_5 = 9, target_min_5 = 0;
+    std::string desc5 = "Task 5: 매월 " + std::to_string(target_day_5) + "일 " + std::to_string(target_hour_5) + "시";
+    
+    scheduler_local.add_task(
+        std::make_unique<monthly_strategy>(target_day_5, target_hour_5, target_min_5),
+        [&exec_count_5]() { ++exec_count_5; },
+        desc5
+    );
+
+    std::cout << tce("추가된 작업 목록:") << "\n";
+    for (const auto& task : scheduler_local.list_tasks()) {
+        print_task_info(task);
+        std::cout << "\n";
     }
 
-    // Task 2 삭제 테스트
-    print(tce(">> Task 2(ID: "), task2_id, tce(")를 제거합니다."));
-    scheduler.remove_task(task2_id); // task2_id 삭제
+    // --- Test 2: UTC 기준으로 변경
+    std::cout << tce("*** Test 2: UTC로 시간 기준 변경 ***") << "\n";
+    scheduler_local.set_time_basis(time_base::utc);
+    std::cout << tce("변경된 시간 기준: ");
+    std::cout << (scheduler_local.get_time_basis() == time_base::utc ? "UTC" : "Localtime") << "\n\n";
 
-    // 목록 조회 (Task 2 제거 후)
-    {
-        auto tasks = scheduler.list_tasks(); // 현재 등록된 task 목록 조회
-        std::cout << "\nRegistered tasks: " << tasks.size() << "\n";
-        for (const auto& t : tasks) {
-            std::cout
-                << "  ID: "
-                << t.task_id
-                << ", desc: "
-                << (t.description ? tce(*t.description) : "(none)")
-                << ", next_run: "
-                << fdt(t.next_run_time)
-                << "\n";
+    // --- Test 3: UTC 기준 스케줄러로 생성
+    std::cout << tce("*** Test 3: UTC 기준 스케줄러 직접 생성 ***") << "\n";
+    task_scheduler scheduler_utc(time_base::utc);
+    
+    int utc_exec_count = 0;
+    scheduler_utc.add_task(
+        std::make_unique<daily_strategy>(12, 0, 0),
+        [&utc_exec_count]() { ++utc_exec_count; },
+        "UTC Task: 매일 12시 (UTC)"
+    );
+
+    std::cout << tce("UTC 스케줄러 시간 기준: ");
+    std::cout << (scheduler_utc.get_time_basis() == time_base::utc ? "UTC" : "Localtime") << "\n";
+    std::cout << tce("추가된 작업:") << "\n";
+    for (const auto& task : scheduler_utc.list_tasks()) {
+        print_task_info(task);
+    }
+    std::cout << "\n";
+
+    // --- Test 4: JSON 직렬화 (시간 기준 포함)
+    std::cout << tce("*** Test 4: JSON 직렬화 (시간 기준 포함) ***") << "\n";
+    std::string json_output = task_scheduler_json::to_json_string(scheduler_local, 2);
+    std::cout << tce("JSON 출력:") << "\n" << json_output << "\n\n";
+
+    // JSON 파일에 저장 - 절대 경로 사용
+    std::filesystem::path json_file_path = std::filesystem::current_path() / "scheduler_config.json";
+    std::string json_file = json_file_path.string();
+    
+    std::cerr << "[INFO] Attempting to save JSON to: " << json_file << "\n";
+    
+    if (task_scheduler_json::to_json_file(scheduler_local, json_file, 2)) {
+        std::cout << tce("JSON 파일에 저장됨: ") << json_file << "\n\n";
+        
+        // 파일 존재 확인
+        if (std::filesystem::exists(json_file_path)) {
+            std::cerr << "[INFO] File exists! Size: " << std::filesystem::file_size(json_file_path) << " bytes\n";
+        } else {
+            std::cerr << "[ERROR] File does not exist after saving!\n";
         }
-        std::cout << std::endl;
+    } else {
+        std::cerr << "[ERROR] Failed to save JSON file!\n";
+        std::cout << tce("JSON 파일 저장 실패!") << "\n\n";
+        return;
     }
 
-    // Task 1 관찰 대기
-    print(tce(">> 약 5초 동안 스케줄러를 관찰합니다..."));
-    std::this_thread::sleep_for(std::chrono::seconds(5)); // Task 1이 여러 번 실행되는 것을 관찰
+    // --- Test 5: JSON에서 복원 (시간 기준 포함)
+    std::cout << tce("*** Test 5: JSON에서 스케줄러 복원 ***") << "\n";
+    
+    // 파일이 실제로 존재하는지 다시 확인
+    if (!std::filesystem::exists(json_file_path)) {
+        std::cerr << "[ERROR] JSON file not found before restore: " << json_file << "\n";
+        std::cout << tce("JSON 파일을 찾을 수 없습니다!") << "\n";
+        return;
+    }
+    
+    std::cerr << "[INFO] JSON file confirmed to exist\n";
+    
+    task_scheduler restored_scheduler(time_base::localtime);
+    
+    auto work_factory = [](uint64_t id, const std::string& strategy_type) {
+        return [id, strategy_type]() {
+            std::cout << tce("  작업 실행 (ID: ") << id << tce(", 전략: ") << strategy_type << ")\n";
+        };
+    };
 
-    print(endl, tce(">> 스케줄러를 종료합니다."));
-    scheduler.stop(); // 스케줄러 종료
-    print(tce("========================================"));
-    print(tce("테스트가 성공적으로 완료되었습니다."));
+    std::cerr << "[INFO] Calling restore_tasks_to_scheduler...\n";
+    std::cout.flush();
+    std::cerr.flush();
+
+    if (task_scheduler_json::restore_tasks_to_scheduler(
+        restored_scheduler, json_file, work_factory)) {
+        
+        std::cout << tce("복원된 스케줄러 시간 기준: ");
+        std::cout << (restored_scheduler.get_time_basis() == time_base::utc ? "UTC" : "Localtime") << "\n";
+        std::cout << tce("복원된 작업 목록:") << "\n";
+        for (const auto& task : restored_scheduler.list_tasks()) {
+            print_task_info(task);
+            std::cout << "\n";
+        }
+    } else {
+        std::cerr << "[ERROR] restore_tasks_to_scheduler returned false\n";
+        std::cout << tce("스케줄러 복원 실패!") << "\n";
+    }
+
+    std::cout << tce("=== 테스트 완료 ===") << "\n";
 }
 
 

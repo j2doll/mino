@@ -81,9 +81,13 @@ namespace mino::core::schedule::task {
         monthly_strategy(int day, int hour, int minute);
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
 
+        // Getter: 설정값 조회
+        int get_target_day() const;
+        int get_target_hour() const;
+        int get_target_minute() const;
+
         // Setter: 특정 날짜 또는 마지막 날
         void set_target_day(int day);  // 1-31 또는 -1 (말일)
-        int get_target_day() const;
 
     private:
         int target_day_;      // 1-31 또는 -1 (매월 말일)
@@ -100,6 +104,11 @@ namespace mino::core::schedule::task {
         daily_strategy(int hour, int minute, int second);
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
 
+        // Getter: 설정값 조회
+        int get_target_hour() const;
+        int get_target_minute() const;
+        int get_target_second() const;
+
     private:
         int target_hour_;
         int target_minute_;
@@ -114,6 +123,12 @@ namespace mino::core::schedule::task {
 
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
 
+        // Getter: 설정값 조회
+        weekday get_target_weekday() const;
+        int get_target_hour() const;
+        int get_target_minute() const;
+        int get_target_second() const;
+
     private:
         weekday target_weekday_;
         int target_hour_;
@@ -127,6 +142,10 @@ namespace mino::core::schedule::task {
         hourly_strategy(int minute, int second);
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
 
+        // Getter: 설정값 조회
+        int get_target_minute() const;
+        int get_target_second() const;
+
     private:
         int target_minute_;
         int target_second_;
@@ -137,6 +156,9 @@ namespace mino::core::schedule::task {
     public:
         explicit minutely_strategy(int second);
         std::chrono::system_clock::time_point get_next_run_time(std::chrono::system_clock::time_point current_time) override;
+
+        // Getter: 설정값 조회
+        int get_target_second() const;
 
     private:
         int target_second_;

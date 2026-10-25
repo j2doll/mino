@@ -87,6 +87,15 @@ namespace mino::core::schedule::task {
         return target_day_;
     }
 
+    // ========== monthly_strategy getter methods ==========
+    int monthly_strategy::get_target_hour() const {
+        return target_hour_;
+    }
+
+    int monthly_strategy::get_target_minute() const {
+        return target_minute_;
+    }
+
     monthly_strategy::monthly_strategy(int day, int hour, int minute)
         : target_day_(day), target_hour_(hour), target_minute_(minute) {
     }
@@ -144,6 +153,19 @@ namespace mino::core::schedule::task {
         : target_hour_(hour), target_minute_(minute), target_second_(second) {
     }
 
+    // ========== daily_strategy getter methods ==========
+    int daily_strategy::get_target_hour() const {
+        return target_hour_;
+    }
+
+    int daily_strategy::get_target_minute() const {
+        return target_minute_;
+    }
+
+    int daily_strategy::get_target_second() const {
+        return target_second_;
+    }
+
     std::chrono::system_clock::time_point daily_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
         auto parts = date_time_parts::from_time_point(current_time);
         std::tm target_tm{};
@@ -172,6 +194,23 @@ namespace mino::core::schedule::task {
         : weekly_strategy(static_cast<task::weekday>(weekday_val), hour, minute, second) {
     }
 
+    // ========== weekly_strategy getter methods ==========
+    weekday weekly_strategy::get_target_weekday() const {
+        return target_weekday_;
+    }
+
+    int weekly_strategy::get_target_hour() const {
+        return target_hour_;
+    }
+
+    int weekly_strategy::get_target_minute() const {
+        return target_minute_;
+    }
+
+    int weekly_strategy::get_target_second() const {
+        return target_second_;
+    }
+
     std::chrono::system_clock::time_point weekly_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
         auto parts = date_time_parts::from_time_point(current_time);
         std::tm target_tm{};
@@ -198,6 +237,15 @@ namespace mino::core::schedule::task {
         : target_minute_(minute), target_second_(second) {
     }
 
+    // ========== hourly_strategy getter methods ==========
+    int hourly_strategy::get_target_minute() const {
+        return target_minute_;
+    }
+
+    int hourly_strategy::get_target_second() const {
+        return target_second_;
+    }
+
     std::chrono::system_clock::time_point hourly_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
         auto parts = date_time_parts::from_time_point(current_time);
         std::tm target_tm{};
@@ -219,6 +267,11 @@ namespace mino::core::schedule::task {
 
     // Minutely
     minutely_strategy::minutely_strategy(int second) : target_second_(second) {}
+
+    // ========== minutely_strategy getter methods ==========
+    int minutely_strategy::get_target_second() const {
+        return target_second_;
+    }
 
     std::chrono::system_clock::time_point minutely_strategy::get_next_run_time(std::chrono::system_clock::time_point current_time) {
         auto parts = date_time_parts::from_time_point(current_time);
