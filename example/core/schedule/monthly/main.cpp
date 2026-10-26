@@ -51,17 +51,18 @@ int main() {
 
     r1.id = "Annual_Jan_10";
     r1.pattern = mcsm::pattern_type::day_of_month; // 특정 일자 패턴
-    r1.day_of_month = 10; // 10일
     r1.target_months = { 1 }; // 매년 1월
+    r1.day_of_month = 10; // 10일
     r1.execution_time = mcsm::time_hms{ 2, 10, 0 }; // 02:10:00
 
     s.add_rule(r1); // 스케줄러(s)에 규칙(r1) 추가
 
     s.set_now(mcsm::date_ymd{ 2026, 1, 10 }, mcsm::time_hms{ 2, 10, 0 }); // 2026년 1월 10일 02:10:00
-    assert(s.is_active_now(true) == true); 
+    bool match_seconds = true; // 초 단위까지 정확히 일치해야 함
+    assert(s.is_active_now(match_seconds) == true);
 
     s.set_now(mcsm::date_ymd{ 2026, 2, 10 }, mcsm::time_hms{ 2, 10, 0 }); // 2026년 2월 10일 02:10:00에는 false
-    assert(s.is_active_now(true) == false);
+    assert(s.is_active_now(match_seconds) == false);
 
     std::cout << "[Pass 2] Annual schedule (Every year Jan 10 02:10:00) verified.\n";
 
@@ -80,10 +81,10 @@ int main() {
     s.add_rule(r2); // 스케줄러(s)에 규칙(r2) 추가
 
     s.set_now(mcsm::date_ymd{ 2026, 1, 8 }, mcsm::time_hms{ 10, 0, 0 }); // 2026-01-08은 1월의 2주차 목요일
-    assert(s.is_active_now(true) == true);
+    assert(s.is_active_now(match_seconds) == true);
 
     s.set_now(mcsm::date_ymd{ 2026, 1, 15 }, mcsm::time_hms{ 10, 0, 0 }); // 3주차 목요일은 false
-    assert(s.is_active_now(true) == false);
+    assert(s.is_active_now(match_seconds) == false);
 
     std::cout << "[Pass 3] Ordinal weekday schedule (2nd Thursday) verified.\n";
 
@@ -109,7 +110,7 @@ int main() {
     s.add_rule(r_hol); // 스케줄러(s)에 규칙(r_hol) 추가
 
     s.set_now(mcsm::date_ymd{ 2026, 1, 2 }, mcsm::time_hms{ 10, 0, 0 }); // 2026-01-02 10:00:00
-    assert(s.is_active_now(true) == true); // 2026-01-02 10:00:00은 실행되어야 함
+    assert(s.is_active_now(match_seconds) == true); // 2026-01-02 10:00:00은 실행되어야 함
 
     std::cout << "[Pass 4] Holiday roll to next business day verified.\n";
 
@@ -184,7 +185,7 @@ int main() {
     s.add_rule(r4); // 스케줄러(s)에 규칙(r4) 추가
 
     s.set_now(mcsm::date_ymd{ 2026, 1, 10 }, mcsm::time_hms{ 20, 0, 0 }); // 2026-01-10 20:00:00
-    assert(s.is_active_now(true) == false); // 업무시간 윈도우를 벗어나므로 활성 상태가 아님
+    assert(s.is_active_now(match_seconds) == false); // 업무시간 윈도우를 벗어나므로 활성 상태가 아님
  
     std::cout << "[Pass 6] Active time window filter (business hours) verified.\n";
 
@@ -216,7 +217,7 @@ int main() {
         return std::chrono::time_point_cast<std::chrono::system_clock::duration>(current_dt.to_time_point());
     });
 
-    assert(s.is_active_now(true) == true); // 현재 시각과 정확히 일치하므로 활성 상태여야 함
+    assert(s.is_active_now(match_seconds) == true); // 현재 시각과 정확히 일치하므로 활성 상태여야 함
 
     //------------------------------------------------
     // 현재 시간을 scheduler에 직접 설정하는 방법 예시
@@ -291,10 +292,10 @@ int main() {
     s.add_rule(r_last); // 스케줄러(s)에 규칙(r_last) 추가
 
     s.set_now(mcsm::date_ymd{ 2026, 2, 28 }, mcsm::time_hms{ 18, 30, 0 });
-    assert(s.is_active_now(true) == true);
+    assert(s.is_active_now(match_seconds) == true);
 
     s.set_now(mcsm::date_ymd{ 2026, 2, 27 }, mcsm::time_hms{ 18, 30, 0 });
-    assert(s.is_active_now(true) == false);
+    assert(s.is_active_now(match_seconds) == false);
 
     std::cout << "[Pass 8] Last day of month schedule (28/29/30/31 days) verified.\n";
 

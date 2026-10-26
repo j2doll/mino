@@ -2,6 +2,7 @@
 #include "mino/core/log/tinylog/tinylog.hpp"
 #include <chrono>
 #include <iomanip>
+#include <algorithm>
 
 namespace mino::core::schedule::task {
 
@@ -25,12 +26,212 @@ namespace mino::core::schedule::task {
         std::lock_guard<std::mutex> lock(scheduler_mutex_);
         time_basis_ = basis;
         log_info(std::string("Time basis changed to: ") +
-            (basis == time_base::utc ? "UTC" : "localtime"));
+            std::string(mino::core::enums::enum_name(basis)));
     }
 
     time_base task_scheduler::get_time_basis() const {
         std::lock_guard<std::mutex> lock(scheduler_mutex_);
         return time_basis_;
+    }
+
+    // --- 공휴일 관리 구현 ---
+
+    bool task_scheduler::load_holiday_file(const std::string& file_path) {
+        auto cal_opt = holiday_calendar::from_json_file(file_path);
+        if (!cal_opt) {
+            log_error("Failed to load holiday JSON from file: " + file_path);
+            return false;
+        }
+        set_holiday_calendar(std::move(*cal_opt));
+        return true;
+    }
+
+    bool task_scheduler::load_holiday_json(std::string_view json_str) {
+        auto cal_opt = holiday_calendar::from_json_string(json_str);
+        if (!cal_opt) {
+            log_error("Failed to parse holiday JSON string");
+            return false;
+        }
+        set_holiday_calendar(std::move(*cal_opt));
+        return true;
+    }
+
+    void task_scheduler::set_holiday_calendar(holiday_calendar cal) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        holiday_calendar_ = std::move(cal);
+        refresh_all_tasks_next_run_time_locked();
+        log_info("Holiday calendar applied to scheduler");
+    }
+
+    void task_scheduler::clear_holiday_calendar() {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        holiday_calendar_.reset();
+        refresh_all_tasks_next_run_time_locked();
+        log_info("Holiday calendar cleared");
+    }
+
+    bool task_scheduler::has_holiday_calendar() const {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        return holiday_calendar_.has_value();
+    }
+
+    bool task_scheduler::export_holiday_file(const std::string& file_path, int indent) const {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) return false;
+        return holiday_calendar_->to_json_file(file_path, indent);
+    }
+
+    std::string task_scheduler::export_holiday_json(int indent) const {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) return "{}";
+        return holiday_calendar_->to_json_string(indent);
+    }
+
+    void task_scheduler::add_recurring_holiday(int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->add_recurring_holiday(month, day);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::remove_recurring_holiday(int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (holiday_calendar_) {
+            holiday_calendar_->remove_recurring_holiday(month, day);
+            refresh_all_tasks_next_run_time_locked();
+        }
+    }
+
+    void task_scheduler::add_specific_holiday(int year, int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->add_specific_holiday(year, month, day);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::remove_specific_holiday(int year, int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (holiday_calendar_) {
+            holiday_calendar_->remove_specific_holiday(year, month, day);
+            refresh_all_tasks_next_run_time_locked();
+        }
+    }
+
+    void task_scheduler::add_recurring_exclusion(int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->add_recurring_exclusion(month, day);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::remove_recurring_exclusion(int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (holiday_calendar_) {
+            holiday_calendar_->remove_recurring_exclusion(month, day);
+            refresh_all_tasks_next_run_time_locked();
+        }
+    }
+
+    void task_scheduler::add_specific_exclusion(int year, int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->add_specific_exclusion(year, month, day);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::remove_specific_exclusion(int year, int month, int day) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (holiday_calendar_) {
+            holiday_calendar_->remove_specific_exclusion(year, month, day);
+            refresh_all_tasks_next_run_time_locked();
+        }
+    }
+
+    void task_scheduler::set_weekend_holiday(weekday wd, bool is_holiday) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->set_weekend_holiday(wd, is_holiday);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::set_holiday_policy(holiday_policy policy) {
+        std::lock_guard<std::mutex> lock(scheduler_mutex_);
+        if (!holiday_calendar_) holiday_calendar_.emplace(time_basis_);
+        holiday_calendar_->set_policy(policy);
+        refresh_all_tasks_next_run_time_locked();
+    }
+
+    void task_scheduler::refresh_all_tasks_next_run_time_locked() {
+        auto now = std::chrono::system_clock::now();
+        for (auto& task : tasks_) {
+            task.next_run_time = compute_next_run_time_with_holidays(task.strategy.get(), now);
+        }
+    }
+
+    std::chrono::system_clock::time_point task_scheduler::compute_next_run_time_with_holidays(
+        const period_strategy* strategy,
+        std::chrono::system_clock::time_point current_time) const {
+
+        if (!strategy) return current_time;
+
+        if (!holiday_calendar_) {
+            return const_cast<period_strategy*>(strategy)->get_next_run_time(current_time);
+        }
+
+        const auto& cal = *holiday_calendar_;
+        bool is_date_based = (dynamic_cast<const monthly_strategy*>(strategy) != nullptr ||
+            dynamic_cast<const weekly_strategy*>(strategy) != nullptr);
+
+        if (!is_date_based) {
+            // (15-1) 시:분:초 기반 전략 (daily, hourly, minutely) -> 공휴일 당일 실행 없이 Skip
+            auto candidate = const_cast<period_strategy*>(strategy)->get_next_run_time(current_time);
+            int loop_guard = 0;
+            while (cal.is_holiday(candidate) && loop_guard++ < 366 * 24) {
+                candidate = const_cast<period_strategy*>(strategy)->get_next_run_time(candidate);
+            }
+            return candidate;
+        }
+
+        // (15-2) 날짜 기반 전략 (monthly, weekly) -> 6번 옵션 정책 적용
+        auto base_current = current_time;
+        int max_cycles = 120; // 10년 주기 방어
+
+        while (max_cycles-- > 0) {
+            auto target = const_cast<period_strategy*>(strategy)->get_next_run_time(base_current);
+
+            if (!cal.is_holiday(target)) {
+                return target;
+            }
+
+            switch (cal.get_policy()) {
+            case holiday_policy::skip: {
+                base_current = target;
+                break;
+            }
+            case holiday_policy::shift_to_previous: {
+                auto shifted = target;
+                int shift_guard = 0;
+                while (cal.is_holiday(shifted) && shift_guard++ < 365) {
+                    shifted -= std::chrono::hours(24);
+                }
+                if (shifted > current_time) {
+                    return shifted;
+                }
+                base_current = target;
+                break;
+            }
+            case holiday_policy::shift_to_next: {
+                auto shifted = target;
+                int shift_guard = 0;
+                while (cal.is_holiday(shifted) && shift_guard++ < 365) {
+                    shifted += std::chrono::hours(24);
+                }
+                return shifted;
+            }
+            }
+        }
+
+        return const_cast<period_strategy*>(strategy)->get_next_run_time(current_time);
     }
 
     uint64_t task_scheduler::add_task(std::unique_ptr<period_strategy> strategy,
@@ -45,7 +246,7 @@ namespace mino::core::schedule::task {
         std::lock_guard<std::mutex> lock(scheduler_mutex_);
 
         auto current_time = std::chrono::system_clock::now();
-        auto next_run_time = strategy->get_next_run_time(current_time);
+        auto next_run_time = compute_next_run_time_with_holidays(strategy.get(), current_time);
 
         scheduled_task task{
             next_id_,
@@ -141,7 +342,7 @@ namespace mino::core::schedule::task {
                 for (auto& task : tasks_) {
                     if (current_time >= task.next_run_time) {
                         task_queue_.push(task.work);
-                        task.next_run_time = task.strategy->get_next_run_time(current_time);
+                        task.next_run_time = compute_next_run_time_with_holidays(task.strategy.get(), current_time);
                     }
                 }
             }
@@ -186,21 +387,11 @@ namespace mino::core::schedule::task {
     }
 
     std::string task_scheduler::get_strategy_type_name(const period_strategy* strategy) const {
-        if (dynamic_cast<const minutely_strategy*>(strategy)) {
-            return "minutely";
-        }
-        if (dynamic_cast<const hourly_strategy*>(strategy)) {
-            return "hourly";
-        }
-        if (dynamic_cast<const daily_strategy*>(strategy)) {
-            return "daily";
-        }
-        if (dynamic_cast<const weekly_strategy*>(strategy)) {
-            return "weekly";
-        }
-        if (dynamic_cast<const monthly_strategy*>(strategy)) {
-            return "monthly";
-        }
+        if (dynamic_cast<const minutely_strategy*>(strategy)) return "minutely";
+        if (dynamic_cast<const hourly_strategy*>(strategy)) return "hourly";
+        if (dynamic_cast<const daily_strategy*>(strategy)) return "daily";
+        if (dynamic_cast<const weekly_strategy*>(strategy)) return "weekly";
+        if (dynamic_cast<const monthly_strategy*>(strategy)) return "monthly";
         return "unknown";
     }
 
@@ -231,4 +422,4 @@ namespace mino::core::schedule::task {
         return "{}";
     }
 
-}
+} // namespace mino::core::schedule::task

@@ -169,6 +169,7 @@
     - `task`
        - [test_strategy_calculations](example/core/schedule/task/test_strategy_calculations.cpp) : 주기 전략 계산 검증 
        - [test_scheduler_execution](example/core/schedule/task/test_scheduler_execution.cpp) : 스케줄러 실행
+       - [test_holiday](example/core/schedule/task/test_holiday.cpp) : 휴일 관리
     - [weekly](example/core/schedule/weekly/main.cpp) : 주 단위 반복 작업 스케줄
     - [monthly](example/core/schedule/monthly/main.cpp) : 월 단위 반복 작업 스케줄
 - 🏛️ [scope](example/core/scope/main.cpp)
