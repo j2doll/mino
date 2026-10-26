@@ -1,6 +1,5 @@
 #include "mino/core/schedule/task/task_scheduler.hpp"
 #include "mino/core/log/tinylog/tinylog.hpp"
-#include <iostream>
 #include <chrono>
 #include <iomanip>
 
@@ -25,8 +24,8 @@ namespace mino::core::schedule::task {
     void task_scheduler::set_time_basis(time_base basis) {
         std::lock_guard<std::mutex> lock(scheduler_mutex_);
         time_basis_ = basis;
-        log_info(std::string("Time basis changed to: ") + 
-                 (basis == time_base::utc ? "UTC" : "localtime"));
+        log_info(std::string("Time basis changed to: ") +
+            (basis == time_base::utc ? "UTC" : "localtime"));
     }
 
     time_base task_scheduler::get_time_basis() const {
@@ -37,7 +36,7 @@ namespace mino::core::schedule::task {
     uint64_t task_scheduler::add_task(std::unique_ptr<period_strategy> strategy,
         std::function<void()> work,
         std::optional<std::string> description) {
-        
+
         if (!strategy || !work) {
             log_error("Invalid strategy or work function");
             return 0;
@@ -126,7 +125,7 @@ namespace mino::core::schedule::task {
                 task.next_run_time,
                 get_strategy_type_name(task.strategy.get()),
                 get_strategy_parameters_json(task.strategy.get())
-            });
+                });
         }
 
         return result;
@@ -178,17 +177,11 @@ namespace mino::core::schedule::task {
         if (logger_) {
             logger_->info(msg);
         }
-        else {
-            std::cout << "[INFO] " << msg << std::endl;
-        }
     }
 
     void task_scheduler::log_error(const std::string& msg) {
         if (logger_) {
             logger_->error(msg);
-        }
-        else {
-            std::cerr << "[ERROR] " << msg << std::endl;
         }
     }
 
@@ -217,23 +210,23 @@ namespace mino::core::schedule::task {
         }
         if (auto* s = dynamic_cast<const hourly_strategy*>(strategy)) {
             return std::string("{\"target_minute\":") + std::to_string(s->get_target_minute()) +
-                   ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
+                ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
         }
         if (auto* s = dynamic_cast<const daily_strategy*>(strategy)) {
             return std::string("{\"target_hour\":") + std::to_string(s->get_target_hour()) +
-                   ",\"target_minute\":" + std::to_string(s->get_target_minute()) +
-                   ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
+                ",\"target_minute\":" + std::to_string(s->get_target_minute()) +
+                ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
         }
         if (auto* s = dynamic_cast<const weekly_strategy*>(strategy)) {
             return std::string("{\"target_weekday\":") + std::to_string(static_cast<int>(s->get_target_weekday())) +
-                   ",\"target_hour\":" + std::to_string(s->get_target_hour()) +
-                   ",\"target_minute\":" + std::to_string(s->get_target_minute()) +
-                   ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
+                ",\"target_hour\":" + std::to_string(s->get_target_hour()) +
+                ",\"target_minute\":" + std::to_string(s->get_target_minute()) +
+                ",\"target_second\":" + std::to_string(s->get_target_second()) + "}";
         }
         if (auto* s = dynamic_cast<const monthly_strategy*>(strategy)) {
             return std::string("{\"target_day\":") + std::to_string(s->get_target_day()) +
-                   ",\"target_hour\":" + std::to_string(s->get_target_hour()) +
-                   ",\"target_minute\":" + std::to_string(s->get_target_minute()) + "}";
+                ",\"target_hour\":" + std::to_string(s->get_target_hour()) +
+                ",\"target_minute\":" + std::to_string(s->get_target_minute()) + "}";
         }
         return "{}";
     }

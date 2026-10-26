@@ -4,7 +4,6 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <iostream>
 
 namespace mino::core::schedule::task {
 
@@ -37,29 +36,37 @@ namespace mino::core::schedule::task {
         std::string escape_json_string(const std::string& str) {
             std::string result;
             result.push_back('"');
-            
+
             for (unsigned char c : str) {
                 if (c == '"') {
                     result += "\\\"";
-                } else if (c == '\\') {
+                }
+                else if (c == '\\') {
                     result += "\\\\";
-                } else if (c == '\b') {
+                }
+                else if (c == '\b') {
                     result += "\\b";
-                } else if (c == '\f') {
+                }
+                else if (c == '\f') {
                     result += "\\f";
-                } else if (c == '\n') {
+                }
+                else if (c == '\n') {
                     result += "\\n";
-                } else if (c == '\r') {
+                }
+                else if (c == '\r') {
                     result += "\\r";
-                } else if (c == '\t') {
+                }
+                else if (c == '\t') {
                     result += "\\t";
-                } else if (c < 0x20) {
+                }
+                else if (c < 0x20) {
                     result.push_back(c);
-                } else {
+                }
+                else {
                     result.push_back(c);
                 }
             }
-            
+
             result.push_back('"');
             return result;
         }
@@ -69,26 +76,17 @@ namespace mino::core::schedule::task {
         const task_scheduler& scheduler,
         const std::string& file_path,
         int indent) {
-        
+
         std::string json_str = to_json_string(scheduler, indent);
-        
-        std::cerr << "[DEBUG] Writing JSON to file: " << file_path << "\n";
-        std::cerr << "[DEBUG] JSON size: " << json_str.length() << " bytes\n";
-        std::cerr.flush();
-        
+
         std::ofstream file(file_path, std::ios::binary);
         if (!file.is_open()) {
-            std::cerr << "[ERROR] Failed to open file for writing: " << file_path << "\n";
-            std::cerr.flush();
             return false;
         }
-        
+
         file.write(json_str.data(), json_str.length());
         file.close();
-        
-        std::cerr << "[DEBUG] JSON file written successfully\n";
-        std::cerr.flush();
-        
+
         return true;
     }
 
@@ -97,254 +95,161 @@ namespace mino::core::schedule::task {
         int indent) {
         auto tasks = scheduler.list_tasks();
         auto time_basis = scheduler.get_time_basis();
-        
-        std::cerr << "[DEBUG] to_json_string: Processing " << tasks.size() << " tasks\n";
-        std::cerr.flush();
-        
+
         // 수동으로 JSON 생성
         std::ostringstream json_stream;
-        
+
         json_stream << "{\n";
         json_stream << "  \"time_basis\": \"" << time_base_to_string(time_basis) << "\",\n";
         json_stream << "  \"tasks\": [\n";
-        
+
         for (size_t i = 0; i < tasks.size(); ++i) {
             const auto& task = tasks[i];
-            
-            std::cerr << "[DEBUG] Task " << i << ": ID=" << task.task_id 
-                     << ", strategy_type=" << task.strategy_type 
-                     << ", strategy_params_json=" << task.strategy_params_json << "\n";
-            std::cerr.flush();
-            
+
             json_stream << "    {\n";
             json_stream << "      \"task_id\": " << task.task_id << ",\n";
-            
+
             // description 필드
             std::string desc = task.description ? *task.description : "";
             json_stream << "      \"description\": " << escape_json_string(desc) << ",\n";
-            
+
             json_stream << "      \"strategy_type\": \"" << task.strategy_type << "\",\n";
-            
+
             // strategy_params_json은 이미 JSON 형식이므로 그대로 삽입
-            // 단, 비어있지 않음을 확인
             std::string params = task.strategy_params_json;
             if (params.empty()) {
-                std::cerr << "[WARNING] Task " << i << " has empty strategy_params_json!\n";
-                std::cerr.flush();
                 params = "{}";
             }
             json_stream << "      \"strategy_params_json\": " << params << "\n";
-            
+
             json_stream << "    }";
             if (i < tasks.size() - 1) {
                 json_stream << ",";
             }
             json_stream << "\n";
         }
-        
+
         json_stream << "  ]\n";
         json_stream << "}\n";
-        
+
         return json_stream.str();
     }
 
     std::vector<task_config> task_scheduler_json::from_json_file(const std::string& file_path) {
-        std::cerr << "[DEBUG] from_json_file: Opening file: " << file_path << "\n";
-        std::cerr.flush();
-        
         std::string json_str;
         std::ifstream file(file_path, std::ios::binary);
-        
+
         if (!file.is_open()) {
-            std::cerr << "[ERROR] Failed to open file: " << file_path << "\n";
-            std::cerr.flush();
             return {};
         }
-        
-        std::cerr << "[DEBUG] File opened successfully\n";
-        std::cerr.flush();
-        
+
         // 파일 크기 얻기
         file.seekg(0, std::ios::end);
         std::streamsize file_size = file.tellg();
         file.seekg(0, std::ios::beg);
-        
-        std::cerr << "[DEBUG] File size: " << file_size << " bytes\n";
-        std::cerr.flush();
-        
+
         if (file_size == 0) {
-            std::cerr << "[ERROR] File is empty\n";
-            std::cerr.flush();
             file.close();
             return {};
         }
-        
+
         json_str.resize(static_cast<size_t>(file_size));
         file.read(&json_str[0], file_size);
-        
-        std::cerr << "[DEBUG] Total read: " << json_str.length() << " bytes\n";
-        std::cerr.flush();
-        
         file.close();
-        
-        std::cerr << "[DEBUG] File closed, calling from_json_string...\n";
-        std::cerr.flush();
-        
+
         return from_json_string(json_str);
     }
 
     std::vector<task_config> task_scheduler_json::from_json_string(const std::string& json_str) {
         std::vector<task_config> result;
-        
-        std::cerr << "[DEBUG] from_json_string: JSON length = " << json_str.length() << "\n";
-        std::cerr.flush();
-        
+
         if (json_str.empty()) {
-            std::cerr << "[ERROR] JSON string is empty\n";
-            std::cerr.flush();
             return result;
         }
-        
-        std::cerr << "[DEBUG] Parsing JSON...\n";
-        std::cerr.flush();
-        
+
         auto parsed = mino::core::json::parser::parse(json_str);
-        
-        std::cerr << "[DEBUG] Parsing complete\n";
-        std::cerr.flush();
-        
         if (!parsed.is_object()) {
-            std::cerr << "[ERROR] Parsed JSON is not an object\n";
-            std::cerr.flush();
             return result;
         }
-        
-        std::cerr << "[DEBUG] JSON is valid object\n";
-        std::cerr.flush();
-        
+
         const auto& root_obj = parsed.get_object();
-        
-        std::cerr << "[DEBUG] Root object has " << root_obj.size() << " keys\n";
-        std::cerr.flush();
-        
+
         // time_basis 추출
         time_base root_time_basis = time_base::localtime;
         auto tb_it = root_obj.find("time_basis");
         if (tb_it != root_obj.end() && tb_it->second.is_string()) {
             root_time_basis = string_to_time_base(tb_it->second.get_string());
-            std::cerr << "[DEBUG] Found time_basis: " 
-                     << (root_time_basis == time_base::utc ? "UTC" : "localtime") << "\n";
-            std::cerr.flush();
         }
-        
+
         // tasks 배열 추출
         auto tasks_it = root_obj.find("tasks");
         if (tasks_it == root_obj.end() || !tasks_it->second.is_array()) {
-            std::cerr << "[ERROR] tasks array not found in JSON\n";
-            std::cerr.flush();
             return result;
         }
-        
-        std::cerr << "[DEBUG] Found tasks array\n";
-        std::cerr.flush();
-        
+
         const auto& tasks_array = tasks_it->second.get_array();
-        std::cerr << "[DEBUG] Found " << tasks_array.size() << " tasks in JSON\n";
-        std::cerr.flush();
-        
+
         for (size_t i = 0; i < tasks_array.size(); ++i) {
-            std::cerr << "[DEBUG] Processing task " << i << "\n";
-            std::cerr.flush();
-            
             const auto& task_val = tasks_array[i];
             if (!task_val.is_object()) {
-                std::cerr << "[WARNING] Task " << i << " is not an object, skipping\n";
-                std::cerr.flush();
                 continue;
             }
-            
+
             const auto& task_obj = task_val.get_object();
-            
+
             task_config config;
             config.time_basis = root_time_basis;
-            
+
             // task_id
             auto id_it = task_obj.find("task_id");
             if (id_it != task_obj.end()) {
                 config.task_id = static_cast<uint64_t>(id_it->second.get_number());
-                std::cerr << "[DEBUG]   task_id = " << config.task_id << "\n";
-                std::cerr.flush();
             }
-            
+
             // description
             auto desc_it = task_obj.find("description");
             if (desc_it != task_obj.end()) {
                 const auto& desc_str = desc_it->second.get_string();
                 config.description = desc_str.empty() ? std::nullopt : std::make_optional(desc_str);
             }
-            
+
             // strategy_type
             auto st_it = task_obj.find("strategy_type");
             if (st_it != task_obj.end()) {
                 config.strategy_type = st_it->second.get_string();
-                std::cerr << "[DEBUG]   strategy_type = " << config.strategy_type << "\n";
-                std::cerr.flush();
             }
-            
-            // strategy_params_json - JSON 값을 그대로 문자열로 직렬화
+
+            // strategy_params_json
             auto sp_it = task_obj.find("strategy_params_json");
             if (sp_it != task_obj.end()) {
-                // JSON value를 다시 문자열로 직렬화
                 config.strategy_params_json = mino::core::json::serializer::serialize(sp_it->second, -1);
                 config.strategy_params = sp_it->second;
-                
-                std::cerr << "[DEBUG]   strategy_params_json = " << config.strategy_params_json << "\n";
-                std::cerr.flush();
-            } else {
-                std::cerr << "[WARNING] strategy_params_json not found in task " << i << "\n";
-                std::cerr.flush();
+            }
+            else {
                 config.strategy_params_json = "{}";
                 config.strategy_params = mino::core::json::value();
             }
-            
-            std::cerr << "[DEBUG] Loaded config: ID=" << config.task_id 
-                     << ", Type=" << config.strategy_type 
-                     << ", Params=" << config.strategy_params_json << "\n";
-            std::cerr.flush();
-            
+
             result.push_back(config);
         }
-        
-        std::cerr << "[DEBUG] from_json_string completed. Loaded " << result.size() << " configs\n";
-        std::cerr.flush();
-        
+
         return result;
     }
 
     std::unique_ptr<period_strategy> task_scheduler_json::strategy_from_config(
         const task_config& config) {
-        
+
         const auto& params = config.strategy_params;
-        
-        std::cerr << "[DEBUG] strategy_from_config: type=" << config.strategy_type 
-                 << ", is_object=" << params.is_object() << "\n";
-        std::cerr.flush();
-        
         if (!params.is_object()) {
-            std::cerr << "[ERROR] Strategy params is not an object for type: " << config.strategy_type 
-                     << ", value type: " << static_cast<int>(params.get_type()) << "\n";
-            std::cerr.flush();
             return nullptr;
         }
-        
+
         const auto& params_obj = params.get_object();
-        
+
         if (config.strategy_type == "minutely") {
             auto it = params_obj.find("target_second");
             if (it != params_obj.end()) {
                 int target_second = static_cast<int>(it->second.get_number());
-                std::cerr << "[DEBUG] Creating minutely_strategy with target_second=" << target_second << "\n";
-                std::cerr.flush();
                 return std::make_unique<minutely_strategy>(target_second);
             }
         }
@@ -354,8 +259,6 @@ namespace mino::core::schedule::task {
             if (min_it != params_obj.end() && sec_it != params_obj.end()) {
                 int target_minute = static_cast<int>(min_it->second.get_number());
                 int target_second = static_cast<int>(sec_it->second.get_number());
-                std::cerr << "[DEBUG] Creating hourly_strategy\n";
-                std::cerr.flush();
                 return std::make_unique<hourly_strategy>(target_minute, target_second);
             }
         }
@@ -367,8 +270,6 @@ namespace mino::core::schedule::task {
                 int target_hour = static_cast<int>(h_it->second.get_number());
                 int target_minute = static_cast<int>(m_it->second.get_number());
                 int target_second = static_cast<int>(s_it->second.get_number());
-                std::cerr << "[DEBUG] Creating daily_strategy\n";
-                std::cerr.flush();
                 return std::make_unique<daily_strategy>(target_hour, target_minute, target_second);
             }
         }
@@ -377,14 +278,12 @@ namespace mino::core::schedule::task {
             auto h_it = params_obj.find("target_hour");
             auto m_it = params_obj.find("target_minute");
             auto s_it = params_obj.find("target_second");
-            if (wd_it != params_obj.end() && h_it != params_obj.end() && 
+            if (wd_it != params_obj.end() && h_it != params_obj.end() &&
                 m_it != params_obj.end() && s_it != params_obj.end()) {
                 int target_weekday = static_cast<int>(wd_it->second.get_number());
                 int target_hour = static_cast<int>(h_it->second.get_number());
                 int target_minute = static_cast<int>(m_it->second.get_number());
                 int target_second = static_cast<int>(s_it->second.get_number());
-                std::cerr << "[DEBUG] Creating weekly_strategy\n";
-                std::cerr.flush();
                 return std::make_unique<weekly_strategy>(
                     static_cast<weekday>(target_weekday),
                     target_hour, target_minute, target_second);
@@ -398,14 +297,10 @@ namespace mino::core::schedule::task {
                 int target_day = static_cast<int>(d_it->second.get_number());
                 int target_hour = static_cast<int>(h_it->second.get_number());
                 int target_minute = static_cast<int>(m_it->second.get_number());
-                std::cerr << "[DEBUG] Creating monthly_strategy\n";
-                std::cerr.flush();
                 return std::make_unique<monthly_strategy>(target_day, target_hour, target_minute);
             }
         }
-        
-        std::cerr << "[ERROR] Failed to create strategy from config. Type: " << config.strategy_type << "\n";
-        std::cerr.flush();
+
         return nullptr;
     }
 
@@ -413,77 +308,46 @@ namespace mino::core::schedule::task {
         task_scheduler& scheduler,
         const std::string& file_path,
         std::function<std::function<void()>(uint64_t, const std::string&)> work_factory) {
-        
-        std::cerr << "[DEBUG] Restoring tasks from file: " << file_path << "\n";
-        std::cerr.flush();
-        
+
         auto configs = from_json_file(file_path);
-        
-        std::cerr << "[DEBUG] from_json_file returned\n";
-        std::cerr.flush();
-        
         if (configs.empty()) {
-            std::cerr << "[ERROR] No configs loaded from file\n";
-            std::cerr.flush();
             return false;
         }
-        
-        std::cerr << "[DEBUG] Loaded " << configs.size() << " configs\n";
-        std::cerr.flush();
-        
-        // Set time basis from first config
+
         if (!configs.empty()) {
             scheduler.set_time_basis(configs[0].time_basis);
-            std::cerr << "[DEBUG] Set time basis to: " 
-                     << (configs[0].time_basis == time_base::utc ? "UTC" : "localtime") << "\n";
-            std::cerr.flush();
         }
-        
+
         int added_count = 0;
         for (const auto& config : configs) {
-            std::cerr << "[DEBUG] Processing config for task ID: " << config.task_id << "\n";
-            std::cerr.flush();
-            
             auto strategy = strategy_from_config(config);
             if (!strategy) {
-                std::cerr << "[ERROR] Failed to create strategy for task ID: " << config.task_id << "\n";
-                std::cerr.flush();
                 continue;
             }
-            
-            std::cerr << "[DEBUG] Created strategy successfully\n";
-            std::cerr.flush();
-            
+
             auto work = work_factory(config.task_id, config.strategy_type);
             uint64_t new_task_id = scheduler.add_task(std::move(strategy), work, config.description);
-            
+
             if (new_task_id > 0) {
-                std::cerr << "[DEBUG] Successfully added task with ID: " << new_task_id << "\n";
-                std::cerr.flush();
                 ++added_count;
-            } else {
-                std::cerr << "[ERROR] Failed to add task to scheduler\n";
-                std::cerr.flush();
             }
         }
-        
-        std::cerr << "[DEBUG] Total tasks added: " << added_count << " out of " << configs.size() << "\n";
-        std::cerr.flush();
+
         return added_count > 0;
     }
 
     std::unique_ptr<task_config> task_scheduler_json::restore_task_by_id(
         const std::string& file_path,
         uint64_t task_id) {
-        
+
         auto configs = from_json_file(file_path);
-        
+
         for (const auto& config : configs) {
             if (config.task_id == task_id) {
                 return std::make_unique<task_config>(config);
             }
         }
-        
+
         return nullptr;
     }
 
