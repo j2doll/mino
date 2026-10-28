@@ -1,7 +1,5 @@
 #include "mino/core/bit/bit.hpp"
-
 #include "catch_amalgamated.hpp"
-
 #include <vector>
 #include <cstdint>
 

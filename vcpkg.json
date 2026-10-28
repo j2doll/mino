@@ -7,11 +7,8 @@
     {
       "name": "curl",
       "features": [
-        "non-http",
         "openssl",
-        "ssh",
-        "ssl",
-        "sspi"
+        "ssh"
       ]
     },
     {
