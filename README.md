@@ -90,6 +90,8 @@
     - [any_event_dispatcher](example/core/dispatch/test_any_event_dispatcher.cpp) : <sub> 동적 바이너리 페이로드(`vector<uint8_t>`) 포함 </sub>
     - [static_dispatcher](example/core/dispatch/test_static_dispatcher.cpp) : <sub> 힙 할당이 전혀 발생하지 않는 스택 기반 데이터 구조 </sub>
     - [collecting_event_dispatcher](example/core/dispatch/test_collecting_event_dispatcher.cpp) : <sub> 다중 보안 검증 파이프라인에서 핸들러들의 개별 검증 결과(`bool`)를 취합하기 위한 요청 데이터 </sub>
+- 🏛️ `directory`
+    - [directory](example/core/directory/main.cpp) : 다기능 디렉토리 생성기
 - 🏛️ `encoding`
     - `Base64` 인코딩/디코딩
         - [base64_encoding_decoding](example/core/encoding/test_base64_enc_dec.cpp) : 기본 문자열 인코딩 / 디코딩 테스트
