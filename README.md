@@ -443,7 +443,7 @@
 
 ##### 프리셋 목록
 
-<table style="font-size: 9px;">
+<table style="font-size: 6px;">
   <thead>
     <tr>
       <th>구분</th>
