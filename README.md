@@ -443,22 +443,6 @@
 
 ##### 프리셋 목록
 
-<table style="font-size: 6px;">
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>항목 A</td>
-      <td>설명 A</td>
-    </tr>
-  </tbody>
-</table>
-
-
 | 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | 활성화 주요 옵션 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Windows (MSVC)** | 라이브러리 단독 | `windows-msvc-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
