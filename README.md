@@ -735,6 +735,6 @@ cmake --build build -j
         - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License` <sub> static or dynamic library </sub>
         - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`  <sub> static or dynamic library </sub>
         - 🥖 [brotli](https://github.com/google/brotli) : `MIT License`  <sub> static or dynamic library </sub>
-    - `tests` 단위 테스트
+    - 🔍 `tests` 단위 테스트
         - 🧪 [catch2](https://github.com/catchorg/catch2) : `Boost Software License 1.0` <sub> amalgamation </sub>
 
