@@ -11,7 +11,7 @@ add_subdirectory(network_curl)
 add_subdirectory(network_libssh2)
 add_subdirectory(network_openssl)
 
-add_subdirectory(template) # example template for mino core/external/network library
+add_subdirectory(template) 
 
 
 

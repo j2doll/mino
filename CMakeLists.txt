@@ -2,7 +2,20 @@ cmake_minimum_required(VERSION 3.24)
 
 project(mino_super_project)
 
-add_subdirectory(mino) # mino library
-add_subdirectory(example) # example project
-add_subdirectory(tests) # test project
+# mino library
+add_subdirectory(mino) 
+
+# example project
+option(ENABLE_EXAMPLES "Build example subprojects" OFF)
+if(ENABLE_EXAMPLES)
+   add_subdirectory(example)
+endif()
+
+# test project
+option(ENABLE_TESTS    "Build test subprojects"    OFF)
+if(ENABLE_TESTS)
+   add_subdirectory(tests) 
+endif()
+
+
 

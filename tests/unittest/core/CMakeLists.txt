@@ -15,11 +15,11 @@ endif()
 # set(MINO_DIR "C:/opt/mino")  
 
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB CATCH_SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../catch_amalgamated/catch_amalgamated.cpp")
+file(GLOB CATCH_SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../catch/*.cpp")
 add_executable(${EXE_NAME} ${SRC_FILES} ${CATCH_SRC_FILES})
 
 target_include_directories(${EXE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(${EXE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../catch_amalgamated")
+target_include_directories(${EXE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../catch")
 target_compile_definitions(${EXE_NAME} PRIVATE CATCH_AMALGAMATED_CUSTOM_MAIN)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake-module")

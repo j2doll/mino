@@ -56,7 +56,7 @@
     - [d_ary_heap](example/core/container/test_d_ary_heap.cpp) : `D`진(進) 힙
     - [fibonacci_heap](example/core/container/test_fibonacci_heap.cpp) : 피보나치 힙
     - [flat_map](example/core/container/test_flat_map.cpp) : 정렬 맵
-    - [flat_multimap](example/core/container/test_flat_multimap.cpp) : 정령 다중키 맵
+    - [flat_multimap](example/core/container/test_flat_multimap.cpp) : 정렬 다중키 맵
     - [flat_multiset](example/core/container/test_flat_multiset.cpp) : 정렬 다중키 셋
     - [flat_set](example/core/container/test_flat_set.cpp) : 정렬 셋
     - [multi_array](example/core/container/test_multi_array.cpp) : `N`차원 배열
@@ -79,7 +79,7 @@
 - 🏛️ [daemon](example/core/daemon/main.cpp)
     - 상주형 데몬 
 - 🏛️ `datetime` : 날짜·시간 처리 
-    - [unit](example/core/datetime/unit/main.cpp) : 날자/시간 처리 단위 클래스
+    - [unit](example/core/datetime/unit/main.cpp) : 날짜/시간 처리 단위 클래스
     - `util`
        - [conversion_functions](example/core/datetime/util/test_conversion_functions.cpp) : 시간 단위 변환 <sub> `std::tm` <-> `time_t` <-> `time_point` </sub>
        - [formatting_functions](example/core/datetime/util/test_formatting_functions.cpp) : 문자열 포맷팅
@@ -191,7 +191,7 @@
     - [Padding / Repeat / Quotes / Indent](example/core/string/test_padding_quotes.cpp) : 채워넣기, 반복, 따옴표 처리, 들여쓰기
     - [Prefix/Suffix removal](example/core/string/test_affix_removal.cpp) : 접두어. 접미어 제거
     - [Safe Substr & Ellipsize](example/core/string/test_safe_substr_ellipsize.cpp) : 안전한 문자열 추출
-    - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp) : 슷자 여부, 정수/실수 파싱, 와일드카드 패턴
+    - [Parsing & Wildcard](example/core/string/test_parsing_wildcard.cpp) : 숫자 여부, 정수/실수 파싱, 와일드카드 패턴
     - [Korean numeric formatters](example/core/string/test_korean_numeric.cpp) : 한글 숫자로 변환
     - [tokenizer](example/core/string/test_tokenizer.cpp) : 다중 토큰 기반 문자열 분할
     - [to_string](example/core/string/test_to_string.cpp) : 실수 정밀도 적용 문자열 변환
@@ -231,10 +231,9 @@
     - `.yaml` 파싱·직렬화
 - 🏛️ [zip](example/core/zip/main.cpp)
     - `deflate` `.zip` 압축
-	
+    
 <br />
 
-	
 ##### 📦 [external](example/external) <sub> 외부 라이브러리 사용 </sub>
 - 📦 [json](example/external/json/main.cpp) : 📄 `nlohmann::json`확장 기능
     - [json2cpp.py](mino/external/include/mino/external/json/json2cpp.py) : 📄 `nlohmann::json` => `C++` 구조체 변환
@@ -308,7 +307,7 @@
              |   Publisher   |  +---|  Subscriber   |
              |     (pub)     |      |     (sub)     |
              +---------------+      +---------------+
-      			  
+                  
       ``` 
     - [`mqtt_broker.py`](example/network/mqtt/mqtt_broker.py) : `MQTT` 브로커 <sub> `python` </sub>
     - [`pub`](example/network/mqtt/pub/main.cpp) : `MQTT` 발행자 <sub> `tcp` </sub>
@@ -402,125 +401,55 @@
 
 ### 🏗️ 빌드 도구
 
+#### ⚙️ CMake 빌드 옵션
+최상위 `CMakeLists.txt`에서 하위 프로젝트 포함 여부를 개별 옵션으로 제어할 수 있습니다. 예제나 테스트 타깃의 대량 등록으로 인해 IDE(Visual Studio 등)의 시작 프로그램 드롭다운 목록이 초과되는 문제를 방지할 수 있습니다.
+
+| 옵션명 | 설명 | 기본값 |
+| :--- | :--- | :--- |
+| `ENABLE_EXAMPLES` | `example/` 하위 예제 프로젝트 포함 여부 | `OFF` |
+| `ENABLE_TESTS` | `tests/` 하위 단위 테스트 프로젝트 포함 여부 | `OFF` |
+
+- **CLI 옵션 지정 예시:**
+  ```bash
+  # 라이브러리(mino)만 단독 빌드 (기본값)
+  cmake -B build
+
+  # 예제 프로젝트 포함 빌드
+  cmake -B build -DENABLE_EXAMPLES=ON
+
+  # 테스트 프로젝트 포함 빌드
+  cmake -B build -DENABLE_TESTS=ON
+  ```
+
+<br />
+
 #### `CMake` 사용자 프리셋 설정 <sub> `CMakeUserPresets.json` </sub>
 
-- 빌드 환경에 따라 프리셋 정보를 맞춰서 수정하여 사용.
+- 플랫폼(Windows, Linux, macOS) 및 컴파일러(MSVC, GCC, Clang)별로 목적에 맞는 타깃 분리 프리셋을 제공합니다.
+- 각 프리셋은 빌드 결과물이 섞이지 않도록 `presetName` 기반의 독립된 `binaryDir`을 사용합니다.
 
-```json
-{
-  "version": 3,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 24,
-    "patch": 0
-  },
-  "configurePresets": [
-    {
-      "name": "base-common",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    { // Windows Visual Studio preset
-      "name": "windows-vs-base",
-      "hidden": true,
-      "inherits": "base-common",
-      "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": {
-          "type": "FILEPATH",
-          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        }
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "vs-debug",
-      "displayName": "Windows VS 2022 (Debug)",
-      "inherits": "windows-vs-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "vs-release",
-      "displayName": "Windows VS 2022 (Release)",
-      "inherits": "windows-vs-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    { // Linux GCC preset
-      "name": "linux-gcc-base",
-      "hidden": true,
-      "inherits": "base-common",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "installDir": "${sourceDir}/install/${presetName}",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "linux-gcc-debug",
-      "displayName": "Linux GCC (Debug)",
-      "inherits": "linux-gcc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "linux-gcc-release",
-      "displayName": "Linux GCC (Release)",
-      "inherits": "linux-gcc-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "vs-debug",
-      "displayName": "Build VS (Debug)",
-      "configurePreset": "vs-debug",
-      "configuration": "Debug"
-    },
-    {
-      "name": "vs-release",
-      "displayName": "Build VS (Release)",
-      "configurePreset": "vs-release",
-      "configuration": "Release"
-    },
-    {
-      "name": "linux-gcc-debug",
-      "displayName": "Build Linux GCC (Debug)",
-      "configurePreset": "linux-gcc-debug"
-    },
-    {
-      "name": "linux-gcc-release",
-      "displayName": "Build Linux GCC (Release)",
-      "configurePreset": "linux-gcc-release"
-    }
-  ]
-}
-```
+| 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | `ENABLE_EXAMPLES` | `ENABLE_TESTS` |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Windows (MSVC)** | 라이브러리 단독 | `windows-msvc-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
+| | 예제 포함 | `windows-msvc-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
+| | 테스트 포함 | `windows-msvc-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
+| **Linux (GCC)** | 라이브러리 단독 | `linux-gcc-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
+| | 예제 포함 | `linux-gcc-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
+| | 테스트 포함 | `linux-gcc-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
+| **macOS (Clang)** | 라이브러리 단독 | `macos-clang-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
+| | 예제 포함 | `macos-clang-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
+| | 테스트 포함 | `macos-clang-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
+
+- **CLI 프리셋 빌드 예시:**
+  ```bash
+  # Windows에서 Mino 라이브러리만 Debug 빌드
+  cmake --preset windows-msvc-mino-debug
+  cmake --build --preset windows-msvc-mino-debug
+
+  # Linux에서 테스트 포함 Release 빌드
+  cmake --preset linux-gcc-tests-release
+  cmake --build --preset linux-gcc-tests-release
+  ```
 
 <br />
 
@@ -533,7 +462,8 @@
        - `VCPKG_ROOT`는 `PATH` 경로에 추가하여야 함. 
     - :one: `Visual Studio` 인 경우,
        - `vcpkg integrate install` 명령 실행.
-       - 또는 `Tools`/`Options`/`vcpkg Pacakage Manager`에 `VCPKG_ROOT` 경로 설정.
+       - 또는 `Tools`/`Options`/`vcpkg Package Manager`에 `VCPKG_ROOT` 경로 설정.
+       - 상단 구성 드롭다운에서 목적에 맞는 프리셋(예: `MSVC Debug (Mino Only)`)을 선택하여 사용.
     - :two: `VS Code`인 경우 : `.vscode`/`settings.json`를 다음과 같이 설정.
        ```json
         {
@@ -805,5 +735,4 @@ cmake --build build -j
         - 🔑 [libssh2](https://www.libssh2.org/) : `BSD-3 License` <sub> static or dynamic library </sub>
         - 🔒 [openssl](https://www.openssl.org/) : `Apache License 2.0`  <sub> static or dynamic library </sub>
         - 🥖 [brotli](https://github.com/google/brotli) : `MIT License`  <sub> static or dynamic library </sub>
-
 

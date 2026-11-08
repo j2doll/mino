@@ -39,19 +39,63 @@
       }
     },
     {
-      "name": "windows-msvc-debug",
-      "displayName": "MSVC Debug",
+      "name": "windows-msvc-mino-debug",
+      "displayName": "MSVC Debug (Mino Only)",
       "inherits": "windows-msvc-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
       }
     },
     {
-      "name": "windows-msvc-release",
-      "displayName": "MSVC Release",
+      "name": "windows-msvc-mino-release",
+      "displayName": "MSVC Release (Mino Only)",
       "inherits": "windows-msvc-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-examples-debug",
+      "displayName": "MSVC Debug (With Examples)",
+      "inherits": "windows-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-examples-release",
+      "displayName": "MSVC Release (With Examples)",
+      "inherits": "windows-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-tests-debug",
+      "displayName": "MSVC Debug (With Tests)",
+      "inherits": "windows-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-tests-release",
+      "displayName": "MSVC Release (With Tests)",
+      "inherits": "windows-msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
       }
     },
     {
@@ -72,19 +116,63 @@
       }
     },
     {
-      "name": "linux-gcc-debug",
-      "displayName": "GCC Debug",
+      "name": "linux-gcc-mino-debug",
+      "displayName": "GCC Debug (Mino Only)",
       "inherits": "linux-gcc-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
       }
     },
     {
-      "name": "linux-gcc-release",
-      "displayName": "GCC Release",
+      "name": "linux-gcc-mino-release",
+      "displayName": "GCC Release (Mino Only)",
       "inherits": "linux-gcc-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-examples-debug",
+      "displayName": "GCC Debug (With Examples)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-examples-release",
+      "displayName": "GCC Release (With Examples)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gcc-tests-debug",
+      "displayName": "GCC Debug (With Tests)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-tests-release",
+      "displayName": "GCC Release (With Tests)",
+      "inherits": "linux-gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
       }
     },
     {
@@ -105,52 +193,156 @@
       }
     },
     {
-      "name": "macos-clang-debug",
-      "displayName": "Clang Debug",
+      "name": "macos-clang-mino-debug",
+      "displayName": "Clang Debug (Mino Only)",
       "inherits": "macos-clang-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
       }
     },
     {
-      "name": "macos-clang-release",
-      "displayName": "Clang Release",
+      "name": "macos-clang-mino-release",
+      "displayName": "Clang Release (Mino Only)",
       "inherits": "macos-clang-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "macos-clang-examples-debug",
+      "displayName": "Clang Debug (With Examples)",
+      "inherits": "macos-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "macos-clang-examples-release",
+      "displayName": "Clang Release (With Examples)",
+      "inherits": "macos-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "macos-clang-tests-debug",
+      "displayName": "Clang Debug (With Tests)",
+      "inherits": "macos-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "macos-clang-tests-release",
+      "displayName": "Clang Release (With Tests)",
+      "inherits": "macos-clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLES": "OFF",
+        "ENABLE_TESTS": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "windows-msvc-debug",
-      "displayName": "Build MSVC Debug",
-      "configurePreset": "windows-msvc-debug"
+      "name": "windows-msvc-mino-debug",
+      "displayName": "Build MSVC Debug (Mino Only)",
+      "configurePreset": "windows-msvc-mino-debug"
     },
     {
-      "name": "windows-msvc-release",
-      "displayName": "Build MSVC Release",
-      "configurePreset": "windows-msvc-release"
+      "name": "windows-msvc-mino-release",
+      "displayName": "Build MSVC Release (Mino Only)",
+      "configurePreset": "windows-msvc-mino-release"
     },
     {
-      "name": "linux-gcc-debug",
-      "displayName": "Build GCC Debug",
-      "configurePreset": "linux-gcc-debug"
+      "name": "windows-msvc-examples-debug",
+      "displayName": "Build MSVC Debug (With Examples)",
+      "configurePreset": "windows-msvc-examples-debug"
     },
     {
-      "name": "linux-gcc-release",
-      "displayName": "Build GCC Release",
-      "configurePreset": "linux-gcc-release"
+      "name": "windows-msvc-examples-release",
+      "displayName": "Build MSVC Release (With Examples)",
+      "configurePreset": "windows-msvc-examples-release"
     },
     {
-      "name": "macos-clang-debug",
-      "displayName": "Build Clang Debug",
-      "configurePreset": "macos-clang-debug"
+      "name": "windows-msvc-tests-debug",
+      "displayName": "Build MSVC Debug (With Tests)",
+      "configurePreset": "windows-msvc-tests-debug"
     },
     {
-      "name": "macos-clang-release",
-      "displayName": "Build Clang Release",
-      "configurePreset": "macos-clang-release"
+      "name": "windows-msvc-tests-release",
+      "displayName": "Build MSVC Release (With Tests)",
+      "configurePreset": "windows-msvc-tests-release"
+    },
+    {
+      "name": "linux-gcc-mino-debug",
+      "displayName": "Build GCC Debug (Mino Only)",
+      "configurePreset": "linux-gcc-mino-debug"
+    },
+    {
+      "name": "linux-gcc-mino-release",
+      "displayName": "Build GCC Release (Mino Only)",
+      "configurePreset": "linux-gcc-mino-release"
+    },
+    {
+      "name": "linux-gcc-examples-debug",
+      "displayName": "Build GCC Debug (With Examples)",
+      "configurePreset": "linux-gcc-examples-debug"
+    },
+    {
+      "name": "linux-gcc-examples-release",
+      "displayName": "Build GCC Release (With Examples)",
+      "configurePreset": "linux-gcc-examples-release"
+    },
+    {
+      "name": "linux-gcc-tests-debug",
+      "displayName": "Build GCC Debug (With Tests)",
+      "configurePreset": "linux-gcc-tests-debug"
+    },
+    {
+      "name": "linux-gcc-tests-release",
+      "displayName": "Build GCC Release (With Tests)",
+      "configurePreset": "linux-gcc-tests-release"
+    },
+    {
+      "name": "macos-clang-mino-debug",
+      "displayName": "Build Clang Debug (Mino Only)",
+      "configurePreset": "macos-clang-mino-debug"
+    },
+    {
+      "name": "macos-clang-mino-release",
+      "displayName": "Build Clang Release (Mino Only)",
+      "configurePreset": "macos-clang-mino-release"
+    },
+    {
+      "name": "macos-clang-examples-debug",
+      "displayName": "Build Clang Debug (With Examples)",
+      "configurePreset": "macos-clang-examples-debug"
+    },
+    {
+      "name": "macos-clang-examples-release",
+      "displayName": "Build Clang Release (With Examples)",
+      "configurePreset": "macos-clang-examples-release"
+    },
+    {
+      "name": "macos-clang-tests-debug",
+      "displayName": "Build Clang Debug (With Tests)",
+      "configurePreset": "macos-clang-tests-debug"
+    },
+    {
+      "name": "macos-clang-tests-release",
+      "displayName": "Build Clang Release (With Tests)",
+      "configurePreset": "macos-clang-tests-release"
     }
   ]
 }
