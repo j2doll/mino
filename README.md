@@ -443,7 +443,7 @@
 
 ##### 프리셋 목록
 
-<table style="font-size: 10px;">
+<table style="font-size: 9px;">
   <thead>
     <tr>
       <th>구분</th>
@@ -457,6 +457,7 @@
     </tr>
   </tbody>
 </table>
+
 
 | 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | 활성화 주요 옵션 |
 | :--- | :--- | :--- | :--- | :--- |
