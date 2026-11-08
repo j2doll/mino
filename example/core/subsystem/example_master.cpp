@@ -25,10 +25,15 @@ int main(int argc, char* argv[]) {
     auto logger = std::make_shared<mcl::logger>("master");
     logger->add_sink(console);
 
-    std::string worker_bin = "./example_worker";
+    std::string worker_bin;
 #if defined(_WIN32)
-    worker_bin = "example_worker.exe";
+    // worker_bin = "example_worker.exe";
+    worker_bin = std::string(CMAKE_WORKER_EXE) + std::string(".exe");
+#else
+    // worker_bin = "./example_worker";
+    worker_bin = std::string("./") + std::string(CMAKE_WORKER_EXE);
 #endif
+
     if (argc > 1) {
         worker_bin = argv[1];
     }

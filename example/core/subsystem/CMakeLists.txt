@@ -22,6 +22,15 @@ add_executable(${WORKER_EXE} example_worker.cpp)
 set(MASTER_EXE "example_master")
 add_executable(${MASTER_EXE} example_master.cpp)
 
+target_compile_definitions(${WORKER_EXE} PRIVATE
+  CMAKE_WORKER_EXE="${WORKER_EXE}"
+  CMAKE_MASTER_EXE="${MASTER_EXE}"
+)
+target_compile_definitions(${MASTER_EXE} PRIVATE
+  CMAKE_WORKER_EXE="${WORKER_EXE}"
+  CMAKE_MASTER_EXE="${MASTER_EXE}"
+)
+
 # mino CMake 모듈 로드
 if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake-module")
     file(GLOB MINO_CMAKE_FILES "${CMAKE_SOURCE_DIR}/mino/cmake-module/Use*.cmake")
