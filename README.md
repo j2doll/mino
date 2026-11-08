@@ -443,7 +443,7 @@
 
 ##### 프리셋 목록
 
-<small>
+<div style="font-size: 10px;">
 
 | 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | 활성화 주요 옵션 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -464,7 +464,7 @@
 | | 예제 포함 | `macos-clang-examples-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=ON` |
 | | 테스트 포함 | `macos-clang-tests-debug` / `release` | `Debug` / `Release` | `ENABLE_TESTS=ON` |
 
-</small>
+</div>
 
 - **CLI 프리셋 빌드 예시:**
   ```bash
