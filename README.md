@@ -443,6 +443,8 @@
 
 ##### 프리셋 목록
 
+<small>
+
 | 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | 활성화 주요 옵션 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Windows (MSVC)** | 라이브러리 단독 | `windows-msvc-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
@@ -461,6 +463,8 @@
 | **macOS (Clang)** | 라이브러리 단독 | `macos-clang-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
 | | 예제 포함 | `macos-clang-examples-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=ON` |
 | | 테스트 포함 | `macos-clang-tests-debug` / `release` | `Debug` / `Release` | `ENABLE_TESTS=ON` |
+
+</small>
 
 - **CLI 프리셋 빌드 예시:**
   ```bash
