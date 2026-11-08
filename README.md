@@ -406,7 +406,14 @@
 
 | 옵션명 | 설명 | 기본값 |
 | :--- | :--- | :--- |
-| `ENABLE_EXAMPLES` | `example/` 하위 예제 프로젝트 포함 여부 | `OFF` |
+| `ENABLE_EXAMPLES` | `example/` 하위 예제 프로젝트 전체 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_CORE` | `example/core` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_EXTERNAL` | `example/external` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_NETWORK` | `example/network` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_NETWORK_CURL` | `example/network_curl` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_NETWORK_LIBSSH2` | `example/network_libssh2` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_NETWORK_OPENSSL` | `example/network_openssl` 예제 활성화 여부 | `OFF` |
+| `ENABLE_EXAMPLE_TEMPLATE` | `example/template` 예제 활성화 여부 | `OFF` |
 | `ENABLE_TESTS` | `tests/` 하위 단위 테스트 프로젝트 포함 여부 | `OFF` |
 
 - **CLI 옵션 지정 예시:**
@@ -414,8 +421,11 @@
   # 라이브러리(mino)만 단독 빌드 (기본값)
   cmake -B build
 
-  # 예제 프로젝트 포함 빌드
+  # 모든 예제 프로젝트 포함 빌드
   cmake -B build -DENABLE_EXAMPLES=ON
+
+  # 특정 예제만 활성화하여 빌드 (예: core)
+  cmake -B build -DENABLE_EXAMPLES=ON -DENABLE_EXAMPLE_CORE=ON
 
   # 테스트 프로젝트 포함 빌드
   cmake -B build -DENABLE_TESTS=ON
@@ -426,25 +436,41 @@
 #### `CMake` 사용자 프리셋 설정 <sub> `CMakeUserPresets.json` </sub>
 
 - 플랫폼(Windows, Linux, macOS) 및 컴파일러(MSVC, GCC, Clang)별로 목적에 맞는 타깃 분리 프리셋을 제공합니다.
-- 각 프리셋은 빌드 결과물이 섞이지 않도록 `presetName` 기반의 독립된 `binaryDir`을 사용합니다.
+- Windows 환경에서는 전체 예제 빌드뿐만 아니라 관심 모듈별 개별 예제 프리셋(`core`, `network`, `curl` 등)을 추가로 제공합니다.
+- 각 프리셋은 빌드 결과물이 섞이지 않도록 `presetName` 기반의 독립된 디렉터리를 사용합니다.
+  - **Windows:** `out/build/${presetName}`, `out/install/${presetName}`
+  - **Linux / macOS:** `build/${presetName}`, `install/${presetName}`
 
-| 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | `ENABLE_EXAMPLES` | `ENABLE_TESTS` |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Windows (MSVC)** | 라이브러리 단독 | `windows-msvc-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
-| | 예제 포함 | `windows-msvc-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
-| | 테스트 포함 | `windows-msvc-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
-| **Linux (GCC)** | 라이브러리 단독 | `linux-gcc-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
-| | 예제 포함 | `linux-gcc-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
-| | 테스트 포함 | `linux-gcc-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
-| **macOS (Clang)** | 라이브러리 단독 | `macos-clang-mino-debug` / `release` | `Debug` / `Release` | `OFF` | `OFF` |
-| | 예제 포함 | `macos-clang-examples-debug` / `release` | `Debug` / `Release` | `ON` | `OFF` |
-| | 테스트 포함 | `macos-clang-tests-debug` / `release` | `Debug` / `Release` | `OFF` | `ON` |
+##### 프리셋 목록
+
+| 플랫폼/컴파일러 | 대상 분류 | 프리셋 이름 (`configure` / `build`) | `CMAKE_BUILD_TYPE` | 활성화 주요 옵션 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Windows (MSVC)** | 라이브러리 단독 | `windows-msvc-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
+| | 전체 예제 포함 | `windows-msvc-examples-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=ON` (전 하위 예제 ON) |
+| | 테스트 포함 | `windows-msvc-tests-debug` / `release` | `Debug` / `Release` | `ENABLE_TESTS=ON` |
+| | 개별 예제: `core` | `windows-msvc-example-core-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_CORE=ON` |
+| | 개별 예제: `external` | `windows-msvc-example-external-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_EXTERNAL=ON` |
+| | 개별 예제: `network` | `windows-msvc-example-network-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_NETWORK=ON` |
+| | 개별 예제: `network_curl` | `windows-msvc-example-curl-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_NETWORK_CURL=ON` |
+| | 개별 예제: `network_libssh2` | `windows-msvc-example-ssh2-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_NETWORK_LIBSSH2=ON` |
+| | 개별 예제: `network_openssl` | `windows-msvc-example-openssl-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_NETWORK_OPENSSL=ON` |
+| | 개별 예제: `template` | `windows-msvc-example-template-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLE_TEMPLATE=ON` |
+| **Linux (GCC)** | 라이브러리 단독 | `linux-gcc-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
+| | 예제 포함 | `linux-gcc-examples-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=ON` |
+| | 테스트 포함 | `linux-gcc-tests-debug` / `release` | `Debug` / `Release` | `ENABLE_TESTS=ON` |
+| **macOS (Clang)** | 라이브러리 단독 | `macos-clang-mino-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=OFF`, `ENABLE_TESTS=OFF` |
+| | 예제 포함 | `macos-clang-examples-debug` / `release` | `Debug` / `Release` | `ENABLE_EXAMPLES=ON` |
+| | 테스트 포함 | `macos-clang-tests-debug` / `release` | `Debug` / `Release` | `ENABLE_TESTS=ON` |
 
 - **CLI 프리셋 빌드 예시:**
   ```bash
-  # Windows에서 Mino 라이브러리만 Debug 빌드
+  # Windows에서 Mino 라이브러리만 단독 Debug 빌드
   cmake --preset windows-msvc-mino-debug
   cmake --build --preset windows-msvc-mino-debug
+
+  # Windows에서 network_curl 예제만 Release 빌드
+  cmake --preset windows-msvc-example-curl-release
+  cmake --build --preset windows-msvc-example-curl-release
 
   # Linux에서 테스트 포함 Release 빌드
   cmake --preset linux-gcc-tests-release
