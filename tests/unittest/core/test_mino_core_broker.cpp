@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <atomic>
 #include <algorithm>
 
 using mino::core::broker::object_broker;
@@ -32,7 +33,7 @@ TEST_CASE("기본 인스턴스 등록 및 조회 테스트", "[object_broker]") 
         REQUIRE(retrieved != nullptr);
         CHECK(retrieved->id == 1);
         CHECK(retrieved->name == "default_service");
-        CHECK(retrieved == service); // 동일한 shared_ptr 포인터인지 확인
+        CHECK(retrieved == service);
     }
 
     SECTION("등록되지 않은 인스턴스 조회 시 nullptr 반환") {
@@ -117,7 +118,7 @@ TEST_CASE("등록 해제(unregister) 및 초기화(clear) 테스트", "[object_b
 
         CHECK_FALSE(object_broker::contains<TestService>("s1"));
         CHECK(object_broker::get<TestService>("s1") == nullptr);
-        CHECK(object_broker::contains<TestService>("s2")); // 다른 항목은 유지
+        CHECK(object_broker::contains<TestService>("s2"));
     }
 
     SECTION("clear() 호출 시 전체 데이터 삭제") {
@@ -138,7 +139,7 @@ TEST_CASE("조회 및 목록화(Listing) API 테스트", "[object_broker]") {
 
     object_broker::register_instance("alpha", svc1);
     object_broker::register_instance("beta", svc2);
-    object_broker::register_instance("alpha", another); // 중복 이름(다른 타입)
+    object_broker::register_instance("alpha", another);
 
     SECTION("get_all: 특정 타입의 인스턴스 목록 반환") {
         auto list = object_broker::get_all<TestService>();
@@ -168,10 +169,10 @@ TEST_CASE("조회 및 목록화(Listing) API 테스트", "[object_broker]") {
 
     SECTION("list_all_names & list_unique_names 테스트") {
         auto allNames = object_broker::list_all_names();
-        CHECK(allNames.size() == 3); // "alpha", "beta", "alpha"
+        CHECK(allNames.size() == 3);
 
         auto uniqueNames = object_broker::list_unique_names();
-        CHECK(uniqueNames.size() == 2); // 중복 제거되어 2개
+        CHECK(uniqueNames.size() == 2);
     }
 
     SECTION("list_all_entries: (type_index, name) 쌍 목록") {
@@ -185,22 +186,26 @@ TEST_CASE("registration_guard 스코프 자동 해제(RAII) 테스트", "[object
 
     auto service = std::make_shared<TestService>(TestService{ 77, "scoped" });
 
-    {
-        object_broker::registration_guard<TestService> guard("scoped_name", service);
-        CHECK(object_broker::contains<TestService>("scoped_name"));
-        CHECK(object_broker::get<TestService>("scoped_name") == service);
-    }
+    SECTION("별칭 지정 registration_guard 사용") {
+        {
+            object_broker::registration_guard<TestService> guard("scoped_name", service);
+            CHECK(object_broker::contains<TestService>("scoped_name"));
+            CHECK(object_broker::get<TestService>("scoped_name") == service);
+        }
 
-    // 스코프를 벗어난 후 자동으로 unregister 되었는지 확인
-    CHECK_FALSE(object_broker::contains<TestService>("scoped_name"));
-    CHECK(object_broker::get<TestService>("scoped_name") == nullptr);
+        CHECK_FALSE(object_broker::contains<TestService>("scoped_name"));
+        CHECK(object_broker::get<TestService>("scoped_name") == nullptr);
+    }
 
     SECTION("기본 이름으로 registration_guard 사용") {
         {
             object_broker::registration_guard<TestService> guard(service);
             CHECK(object_broker::contains<TestService>());
+            CHECK(object_broker::get<TestService>() == service);
         }
+
         CHECK_FALSE(object_broker::contains<TestService>());
+        CHECK(object_broker::get<TestService>() == nullptr);
     }
 }
 
@@ -212,27 +217,36 @@ TEST_CASE("멀티스레드 동시 접근 스레드 안전성(Thread-Safety) 테�
     std::vector<std::thread> threads;
     threads.reserve(NUM_THREADS);
 
+    std::atomic<bool> all_checks_passed{ true };
+
     for (int t = 0; t < NUM_THREADS; ++t) {
-        // [t] -> [t, ITERATIONS] 로 캡처 추가 (또는 [&] 사용)
-        threads.emplace_back([t, ITERATIONS]() {
+        threads.emplace_back([t, ITERATIONS, &all_checks_passed]() {
             for (int i = 0; i < ITERATIONS; ++i) {
                 std::string name = "thread_" + std::to_string(t) + "_iter_" + std::to_string(i);
-                auto service = std::make_shared<TestService>(TestService{ t * 1000 + i, name });
+                int expected_id = t * 1000 + i;
+                auto service = std::make_shared<TestService>(TestService{ expected_id, name });
 
-                // 등록
+                // 1. 등록
                 object_broker::register_instance(name, service);
 
-                // 조회
+                // 2. 조회 및 값 일치 확인
                 auto ret = object_broker::get<TestService>(name);
-                if (ret) {
-                    CHECK(ret->id == t * 1000 + i);
+                if (!ret || ret->id != expected_id || ret->name != name) {
+                    all_checks_passed.store(false, std::memory_order_relaxed);
                 }
 
-                // 존재 여부 확인
-                CHECK(object_broker::contains<TestService>(name));
+                // 3. 존재 여부 확인
+                if (!object_broker::contains<TestService>(name)) {
+                    all_checks_passed.store(false, std::memory_order_relaxed);
+                }
 
-                // 등록 해제
+                // 4. 등록 해제
                 object_broker::unregister_instance<TestService>(name);
+
+                // 5. 해제 후 미존재 확인
+                if (object_broker::contains<TestService>(name) || object_broker::get<TestService>(name) != nullptr) {
+                    all_checks_passed.store(false, std::memory_order_relaxed);
+                }
             }
             });
     }
@@ -242,4 +256,7 @@ TEST_CASE("멀티스레드 동시 접근 스레드 안전성(Thread-Safety) 테�
             th.join();
         }
     }
+
+    // 메인 스레드에서 단일 assertion 수행
+    CHECK(all_checks_passed.load());
 }

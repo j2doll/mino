@@ -34,6 +34,10 @@ int main(int argc, char* argv[]) {
         return returnCode;
     }
 
-    return session.run();
+    int ret = session.run();
+    if (ret != 0) {
+        std::cerr << "Unit tests failed. Return code: " << ret << std::endl;
+    }
+    return ret;
 }
 

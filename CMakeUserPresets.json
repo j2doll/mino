@@ -60,22 +60,36 @@
     },
     {
       "name": "windows-msvc-examples-debug",
-      "displayName": "MSVC Debug (With Examples)",
+      "displayName": "MSVC Debug (With All Examples)",
       "inherits": "windows-msvc-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "ENABLE_EXAMPLES": "ON",
-        "ENABLE_TESTS": "OFF"
+        "ENABLE_TESTS": "OFF",
+        "ENABLE_EXAMPLE_CORE": "ON",
+        "ENABLE_EXAMPLE_EXTERNAL": "ON",
+        "ENABLE_EXAMPLE_NETWORK": "ON",
+        "ENABLE_EXAMPLE_NETWORK_CURL": "ON",
+        "ENABLE_EXAMPLE_NETWORK_LIBSSH2": "ON",
+        "ENABLE_EXAMPLE_NETWORK_OPENSSL": "ON",
+        "ENABLE_EXAMPLE_TEMPLATE": "ON"
       }
     },
     {
       "name": "windows-msvc-examples-release",
-      "displayName": "MSVC Release (With Examples)",
+      "displayName": "MSVC Release (With All Examples)",
       "inherits": "windows-msvc-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_EXAMPLES": "ON",
-        "ENABLE_TESTS": "OFF"
+        "ENABLE_TESTS": "OFF",
+        "ENABLE_EXAMPLE_CORE": "ON",
+        "ENABLE_EXAMPLE_EXTERNAL": "ON",
+        "ENABLE_EXAMPLE_NETWORK": "ON",
+        "ENABLE_EXAMPLE_NETWORK_CURL": "ON",
+        "ENABLE_EXAMPLE_NETWORK_LIBSSH2": "ON",
+        "ENABLE_EXAMPLE_NETWORK_OPENSSL": "ON",
+        "ENABLE_EXAMPLE_TEMPLATE": "ON"
       }
     },
     {
@@ -96,6 +110,141 @@
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_EXAMPLES": "OFF",
         "ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-examples-base",
+      "hidden": true,
+      "inherits": "windows-msvc-base",
+      "cacheVariables": {
+        "ENABLE_EXAMPLES": "ON",
+        "ENABLE_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-example-core-debug",
+      "displayName": "MSVC Debug (Example: core)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_CORE": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-core-release",
+      "displayName": "MSVC Release (Example: core)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_CORE": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-external-debug",
+      "displayName": "MSVC Debug (Example: external)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_EXTERNAL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-external-release",
+      "displayName": "MSVC Release (Example: external)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_EXTERNAL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-network-debug",
+      "displayName": "MSVC Debug (Example: network)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_NETWORK": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-network-release",
+      "displayName": "MSVC Release (Example: network)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_NETWORK": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-curl-debug",
+      "displayName": "MSVC Debug (Example: network_curl)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_NETWORK_CURL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-curl-release",
+      "displayName": "MSVC Release (Example: network_curl)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_NETWORK_CURL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-ssh2-debug",
+      "displayName": "MSVC Debug (Example: network_libssh2)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_NETWORK_LIBSSH2": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-ssh2-release",
+      "displayName": "MSVC Release (Example: network_libssh2)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_NETWORK_LIBSSH2": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-openssl-debug",
+      "displayName": "MSVC Debug (Example: network_openssl)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_NETWORK_OPENSSL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-openssl-release",
+      "displayName": "MSVC Release (Example: network_openssl)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_NETWORK_OPENSSL": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-template-debug",
+      "displayName": "MSVC Debug (Example: template)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_EXAMPLE_TEMPLATE": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-example-template-release",
+      "displayName": "MSVC Release (Example: template)",
+      "inherits": "windows-msvc-examples-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_EXAMPLE_TEMPLATE": "ON"
       }
     },
     {
@@ -266,12 +415,12 @@
     },
     {
       "name": "windows-msvc-examples-debug",
-      "displayName": "Build MSVC Debug (With Examples)",
+      "displayName": "Build MSVC Debug (With All Examples)",
       "configurePreset": "windows-msvc-examples-debug"
     },
     {
       "name": "windows-msvc-examples-release",
-      "displayName": "Build MSVC Release (With Examples)",
+      "displayName": "Build MSVC Release (With All Examples)",
       "configurePreset": "windows-msvc-examples-release"
     },
     {
@@ -283,6 +432,76 @@
       "name": "windows-msvc-tests-release",
       "displayName": "Build MSVC Release (With Tests)",
       "configurePreset": "windows-msvc-tests-release"
+    },
+    {
+      "name": "windows-msvc-example-core-debug",
+      "displayName": "Build MSVC Debug (Example: core)",
+      "configurePreset": "windows-msvc-example-core-debug"
+    },
+    {
+      "name": "windows-msvc-example-core-release",
+      "displayName": "Build MSVC Release (Example: core)",
+      "configurePreset": "windows-msvc-example-core-release"
+    },
+    {
+      "name": "windows-msvc-example-external-debug",
+      "displayName": "Build MSVC Debug (Example: external)",
+      "configurePreset": "windows-msvc-example-external-debug"
+    },
+    {
+      "name": "windows-msvc-example-external-release",
+      "displayName": "Build MSVC Release (Example: external)",
+      "configurePreset": "windows-msvc-example-external-release"
+    },
+    {
+      "name": "windows-msvc-example-network-debug",
+      "displayName": "Build MSVC Debug (Example: network)",
+      "configurePreset": "windows-msvc-example-network-debug"
+    },
+    {
+      "name": "windows-msvc-example-network-release",
+      "displayName": "Build MSVC Release (Example: network)",
+      "configurePreset": "windows-msvc-example-network-release"
+    },
+    {
+      "name": "windows-msvc-example-curl-debug",
+      "displayName": "Build MSVC Debug (Example: network_curl)",
+      "configurePreset": "windows-msvc-example-curl-debug"
+    },
+    {
+      "name": "windows-msvc-example-curl-release",
+      "displayName": "Build MSVC Release (Example: network_curl)",
+      "configurePreset": "windows-msvc-example-curl-release"
+    },
+    {
+      "name": "windows-msvc-example-ssh2-debug",
+      "displayName": "Build MSVC Debug (Example: network_libssh2)",
+      "configurePreset": "windows-msvc-example-ssh2-debug"
+    },
+    {
+      "name": "windows-msvc-example-ssh2-release",
+      "displayName": "Build MSVC Release (Example: network_libssh2)",
+      "configurePreset": "windows-msvc-example-ssh2-release"
+    },
+    {
+      "name": "windows-msvc-example-openssl-debug",
+      "displayName": "Build MSVC Debug (Example: network_openssl)",
+      "configurePreset": "windows-msvc-example-openssl-debug"
+    },
+    {
+      "name": "windows-msvc-example-openssl-release",
+      "displayName": "Build MSVC Release (Example: network_openssl)",
+      "configurePreset": "windows-msvc-example-openssl-release"
+    },
+    {
+      "name": "windows-msvc-example-template-debug",
+      "displayName": "Build MSVC Debug (Example: template)",
+      "configurePreset": "windows-msvc-example-template-debug"
+    },
+    {
+      "name": "windows-msvc-example-template-release",
+      "displayName": "Build MSVC Release (Example: template)",
+      "configurePreset": "windows-msvc-example-template-release"
     },
     {
       "name": "linux-gcc-mino-debug",
