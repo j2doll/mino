@@ -59,6 +59,7 @@
     - [flat_multimap](example/core/container/test_flat_multimap.cpp) : 정렬 다중키 맵
     - [flat_multiset](example/core/container/test_flat_multiset.cpp) : 정렬 다중키 셋
     - [flat_set](example/core/container/test_flat_set.cpp) : 정렬 셋
+    - [mpmc_queue](example/core/container/test_mpmc_queue.cpp) : 다중 생산자/다중 소비자 큐 <sub>Multi Consumer/Multi Producer Queue</sub>
     - [multi_array](example/core/container/test_multi_array.cpp) : `N`차원 배열
     - [multi_index_container](example/core/container/test_multi_index_container.cpp) : `N`중 인덱스 컨테이너
     - [pairing_heap](example/core/container/test_pairing_heap.cpp) : `N`진 트리 구조

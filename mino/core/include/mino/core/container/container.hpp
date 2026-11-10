@@ -12,6 +12,7 @@
 #include "mino/core/container/flat_multimap.hpp"
 #include "mino/core/container/flat_multiset.hpp"
 #include "mino/core/container/flat_set.hpp"
+#include "mino/core/container/mpmc_queue.hpp" 
 #include "mino/core/container/multi_array.hpp"
 #include "mino/core/container/multi_index_container.hpp"
 #include "mino/core/container/priority_queue.hpp"

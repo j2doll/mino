@@ -15,6 +15,7 @@ extern void test_flat_map_all_public();
 extern void test_flat_multimap_all_public();
 extern void test_flat_multiset_all_public();
 extern void test_flat_set_all_public();
+extern void test_mpmc_queue();
 extern void test_multi_array_all_public();
 extern void test_multi_index_container_all_public();
 extern void test_pairing_heap_all_public();
@@ -47,6 +48,7 @@ int main() {
         test_flat_multimap_all_public();
         test_flat_multiset_all_public();
         test_flat_set_all_public();
+        test_mpmc_queue(); 
         test_multi_array_all_public();
         test_multi_index_container_all_public();
         test_pairing_heap_all_public();
