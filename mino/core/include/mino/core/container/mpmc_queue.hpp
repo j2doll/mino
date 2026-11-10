@@ -40,7 +40,7 @@ namespace mino::core::container {
         }
 
         // 3. 블로킹 없이 데이터를 즉시 추출 시도
-        std::optional<T> try_pop() {
+        std::optional<T> pop() {
             std::lock_guard<std::mutex> lock(mtx_);
             if (data_queue_.empty()) {
                 return std::nullopt;
@@ -60,7 +60,7 @@ namespace mino::core::container {
         }
 
         // 5. 특정 조건을 만족하는 데이터가 있을 때만 안전하게 꺼내오기 (조건부 팝)
-        bool try_pop_if(const std::function<bool(const T&)>& predicate, T& value) {
+        bool pop_if(const std::function<bool(const T&)>& predicate, T& value) {
             std::lock_guard<std::mutex> lock(mtx_);
             if (data_queue_.empty()) {
                 return false;

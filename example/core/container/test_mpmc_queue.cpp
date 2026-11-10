@@ -27,7 +27,7 @@ void test_mpmc_queue() {
         task_queue.push({ 2, 10, "High Priority Task B" }); // 우선순위 높음
         task_queue.push({ 3, 2, "Normal Priority Task C" });
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        });
+    });
 
     // 잠시 대기하여 데이터가 큐에 쌓이도록 함
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -38,12 +38,19 @@ void test_mpmc_queue() {
         if (front_item.has_value()) {
             println(" [Peek] 큐 맨 앞의 작업 ID: {}, 큐 사이즈: {}", front_item->id, task_queue.size());
         }
+
+       // auto front_item2 = task_queue.pop();
+       // if (front_item2.has_value()) {
+       //     println(" [Pop] 큐에서 제거된 작업 ID: {}, 큐 사이즈: {}", front_item2->id, task_queue.size());
+       // }
     }
+    // peek() 은 큐에서 값을 제거하지 않음. 확인만 하는 용도로 사용. size가 변하지 않음.
+    // pop() 은 큐에서 값을 제거하고 반환함. size가 -1 감소함.
 
     // 3. 조건부 팝 테스트: 우선순위가 5 이상인 긴급 작업만 골라서 먼저 처리하기
     std::thread high_priority_consumer([&task_queue]() {
         work_item item;
-        bool success = task_queue.try_pop_if([](const work_item& w) {
+        bool success = task_queue.pop_if([](const work_item& w) {
             return w.priority >= 5;
             }, item);
 
