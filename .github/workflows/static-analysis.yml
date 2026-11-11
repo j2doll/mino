@@ -20,21 +20,26 @@ jobs:
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
 
-        # 2. Clear all previous apt lists and conflicting sources
+        # 2. Clear previous apt lists and conflicting mirror configs
         sudo rm -rf /var/lib/apt/lists/*
         sudo rm -rf /etc/apt/sources.list.d/*
         sudo rm -f /etc/apt/apt-mirrors.txt
 
-        # 3. Write clean official Ubuntu 24.04 (noble) sources.list
-        sudo tee /etc/apt/sources.list << 'EOF'
-        deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
-        deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
-        deb http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+        # 3. Detect current Ubuntu codename dynamically (e.g., resolute, noble)
+        CODENAME=$(lsb_release -cs)
+        echo "Detected Ubuntu codename: ${CODENAME}"
+
+        sudo tee /etc/apt/sources.list << EOF
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME} main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME}-updates main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME}-backports main restricted universe multiverse
+        deb http://security.ubuntu.com/ubuntu/ ${CODENAME}-security main restricted universe multiverse
         EOF
 
         # 4. Update package lists and install required tools with retry logic
+        SUCCESS=0
         for i in {1..3}; do
-          sudo apt-get update && sudo apt-get install -y \
+          if sudo apt-get update && sudo apt-get install -y \
             cmake \
             ninja-build \
             build-essential \
@@ -42,11 +47,19 @@ jobs:
             cppcheck \
             libcurl4-openssl-dev \
             libssh2-1-dev \
-            libssl-dev && break || {
-              echo "Attempt $i failed. Retrying in 5 seconds..."
-              sleep 5
-            }
+            libssl-dev; then
+            SUCCESS=1
+            break
+          else
+            echo "Attempt $i failed. Retrying in 5 seconds..."
+            sleep 5
+          fi
         done
+
+        if [ $SUCCESS -ne 1 ]; then
+          echo "Failed to install required packages after 3 attempts."
+          exit 1
+        fi
 
     - name: Configure CMake with Ninja
       run: |
