@@ -51,7 +51,8 @@ jobs:
         export CMAKE_PREFIX_PATH="/usr"
         cmake -B build \
           -DCMAKE_CXX_STANDARD=17 \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -Dlibssh2_DIR=/usr/lib/x86_64-linux-gnu/cmake/libssh2 # 또는 시스템 경로에 맞춘 패키지 설정 경로
 
     # --- 1. Run Cppcheck and collect results ---
     - name: Run Cppcheck
