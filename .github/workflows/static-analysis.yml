@@ -16,16 +16,13 @@ jobs:
 
     - name: Fix DNS and Reset APT Sources
       run: |
-        # Force reliable DNS servers
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
 
-        # Remove conflicting local mirror files if they exist on the runner
         if [ -f /etc/apt/apt-mirrors.txt ]; then
           sudo rm -f /etc/apt/apt-mirrors.txt
         fi
 
-        # Reset sources.list to standard official Ubuntu mirrors to avoid mirror resolution errors
         sudo tee /etc/apt/sources.list << 'EOF'
         deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
@@ -35,6 +32,7 @@ jobs:
         for i in {1..3}; do
           sudo apt-get update && sudo apt-get install -y \
             cmake \
+            ninja-build \
             build-essential \
             clang-tidy \
             cppcheck \
@@ -46,11 +44,14 @@ jobs:
             }
         done
 
-    - name: Configure CMake
+    - name: Configure CMake with Ninja
       run: |
         cmake -B build \
+          -S . \
+          -G "Ninja" \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX="~/mino" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     # --- 1. Run Cppcheck and collect results ---
@@ -78,10 +79,10 @@ jobs:
           find core network -name "*.cpp" -o -name "*.h" | xargs -r clang-tidy -p build
         } > clang_tidy_results.txt 2>&1 || true
 
-    # --- 3. Run build and collect results ---
+    # --- 3. Run build using Ninja and collect results ---
     - name: Build Project
       run: |
-        cmake --build build --config Debug > build_results.txt 2>&1 || true
+        cmake --build build --config Release > build_results.txt 2>&1 || true
 
     # --- 4. Publish all results to GitHub Actions Summary ---
     - name: Publish Results to GitHub Summary
@@ -111,11 +112,4 @@ jobs:
           exit 1
         fi
         
-        # Uncomment below if you want to fail on Cppcheck errors as well
-        # if grep -q "error:" cppcheck_results.txt; then
-        #   echo "Cppcheck errors detected!"
-        #   exit 1
-        # fi
-        
         echo "Quality check passed successfully!"
-
