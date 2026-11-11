@@ -20,11 +20,12 @@ jobs:
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
 
-        # 2. Remove all existing source list files in sources.list.d to prevent mirror conflicts
+        # 2. Clear all previous apt lists and conflicting sources
+        sudo rm -rf /var/lib/apt/lists/*
         sudo rm -rf /etc/apt/sources.list.d/*
         sudo rm -f /etc/apt/apt-mirrors.txt
 
-        # 3. Write clean official Ubuntu sources.list
+        # 3. Write clean official Ubuntu 24.04 (noble) sources.list
         sudo tee /etc/apt/sources.list << 'EOF'
         deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
