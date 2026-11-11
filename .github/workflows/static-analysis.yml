@@ -48,10 +48,10 @@ jobs:
 
     - name: Configure CMake
       run: |
+        export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
         cmake -B build \
           -DCMAKE_CXX_STANDARD=17 \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCURL_ROOT=/usr
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     # --- 1. Run Cppcheck and collect results ---
     - name: Run Cppcheck
