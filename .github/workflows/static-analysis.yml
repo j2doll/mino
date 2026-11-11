@@ -1,0 +1,87 @@
+name: C++ Comprehensive Analysis & Build Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  analyze-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install required tools (CMake, Build-essential, Clang-Tidy, Cppcheck)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          clang-tidy \
+          cppcheck
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_CXX_STANDARD=17 \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    # --- 1. Run Cppcheck and collect results ---
+    - name: Run Cppcheck
+      run: |
+        cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
+          -i ./mino/external/third-party \
+          -i ./mino/network/mino_network_openssl/third-party \
+          . > cppcheck_results.txt 2>&1 || true
+
+    # --- 2. Run Clang-Tidy and collect results ---
+    - name: Run Clang-Tidy
+      run: |
+        {
+          echo "=== Clang-Tidy Analysis Result ==="
+          find core network -name "*.cpp" -o -name "*.h" | xargs -r clang-tidy -p build
+        } > clang_tidy_results.txt 2>&1 || true
+
+    # --- 3. Run build and collect results ---
+    - name: Build Project
+      run: |
+        cmake --build build --config Debug > build_results.txt 2>&1 || true
+
+    # --- 4. Publish all results to GitHub Actions Summary ---
+    - name: Publish Results to GitHub Summary
+      run: |
+        echo "# C++ Project Analysis & Build Summary" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 1. Cppcheck Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat cppcheck_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 2. Clang-Tidy Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat clang_tidy_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 3. Build Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat build_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+    # --- 5. Final quality gate check (Fail CI if errors exist) ---
+    - name: Final Quality Gate Check
+      run: |
+        if grep -q "error:" build_results.txt; then
+          echo " Build errors detected!"
+          exit 1
+        fi
+        
+        # Uncomment below if you want to fail on Cppcheck errors as well
+        # if grep -q "error:" cppcheck_results.txt; then
+        #   echo " Cppcheck errors detected!"
+        #   exit 1
+        # fi
+        
+        echo " Quality check passed successfully!"
