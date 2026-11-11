@@ -46,6 +46,15 @@ jobs:
         cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
           -i ./mino/external/third-party \
           -i ./mino/network/mino_network_openssl/third-party \
+          -i ./.github \
+          -i ./.vscode \
+          -i ./docs \
+          -i ./example \
+          -i ./tests \
+          -i ./build \
+          -i ./out \
+          -i ./.vs \
+          -i ./.git \
           . > cppcheck_results.txt 2>&1 || true
 
     # --- 2. Run Clang-Tidy and collect results ---
