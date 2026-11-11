@@ -14,17 +14,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install required tools (CMake, Build-essential, Clang-Tidy, Cppcheck)
+    - name: Install required tools (CMake, Build-essential, Clang-Tidy, Cppcheck, Libcurl)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
+        for i in {1..3}; do
+          sudo apt-get update && sudo apt-get install -y \
             cmake \
             build-essential \
             clang-tidy \
             cppcheck \
             libcurl4-openssl-dev \
             libssh2-1-dev \
-            libssl-dev
+            libssl-dev && break || {
+              echo "Attempt $i failed. Retrying in 5 seconds..."
+              sleep 5
+            }
+        done
 
     - name: Configure CMake
       run: |
@@ -77,14 +81,14 @@ jobs:
     - name: Final Quality Gate Check
       run: |
         if grep -q "error:" build_results.txt; then
-          echo " Build errors detected!"
+          echo "Build errors detected!"
           exit 1
         fi
         
         # Uncomment below if you want to fail on Cppcheck errors as well
         # if grep -q "error:" cppcheck_results.txt; then
-        #   echo " Cppcheck errors detected!"
+        #   echo "Cppcheck errors detected!"
         #   exit 1
         # fi
         
-        echo " Quality check passed successfully!"
+        echo "Quality check passed successfully!"
