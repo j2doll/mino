@@ -76,11 +76,16 @@ void test_mpmc_queue() {
 
     // 4. 남은 일반 작업들 처리
     mcsp::println("\n --- 남은 작업 처리 시작 ---");
-    while (!task_queue.empty()) {
+    while (!task_queue.empty()) { // 큐가 비어있지 않으면(size>0) 반복
         work_item item;
-        task_queue.wait_and_pop(item);
+        task_queue.wait_and_pop(item); // 큐가 비어있으면(size=0) 대기하고, 값이 들어오면(size>0) pop 한 다음 item에 저장  
         mcsp::println(" [General Consumer] 처리된 작업 -> ID: {}, 내용: {}", item.id, item.message);
     }
-    
+    // while(true) {
+    //   work_item item;
+    //   task_queue.wait_and_pop(item);
+    //   item을 처리하는 코드
+    // } 를 하면, 큐의 값을 계속 빼서 무한히 처리하는 기능을 수행함.
+
     std::cout << "[Testing mpmc_queue] Completed" << std::endl << std::endl;
 }
