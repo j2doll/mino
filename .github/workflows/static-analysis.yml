@@ -20,17 +20,18 @@ jobs:
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
 
-        # 2. Remove conflicting mirror lists and reset sources.list to official Ubuntu mirrors
+        # 2. Remove all existing source list files in sources.list.d to prevent mirror conflicts
+        sudo rm -rf /etc/apt/sources.list.d/*
         sudo rm -f /etc/apt/apt-mirrors.txt
-        sudo rm -f /etc/apt/sources.list.d/*mirror*
-        
+
+        # 3. Write clean official Ubuntu sources.list
         sudo tee /etc/apt/sources.list << 'EOF'
         deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
         EOF
 
-        # 3. Update and install required packages with retry logic
+        # 4. Update package lists and install required tools with retry logic
         for i in {1..3}; do
           sudo apt-get update && sudo apt-get install -y \
             cmake \
@@ -115,3 +116,4 @@ jobs:
         fi
         
         echo "Quality check passed successfully!"
+
