@@ -14,21 +14,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Fix DNS and Reset APT Sources
+    - name: Clean APT Sources and Install Tools
       run: |
+        # 1. Force reliable Google DNS servers
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
 
-        if [ -f /etc/apt/apt-mirrors.txt ]; then
-          sudo rm -f /etc/apt/apt-mirrors.txt
-        fi
-
+        # 2. Remove conflicting mirror lists and reset sources.list to official Ubuntu mirrors
+        sudo rm -f /etc/apt/apt-mirrors.txt
+        sudo rm -f /etc/apt/sources.list.d/*mirror*
+        
         sudo tee /etc/apt/sources.list << 'EOF'
         deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
         EOF
 
+        # 3. Update and install required packages with retry logic
         for i in {1..3}; do
           sudo apt-get update && sudo apt-get install -y \
             cmake \
