@@ -15,7 +15,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    # Windows에서도 리다이렉션(>) 및 파이프라인 스크립트를 동일하게 처리하기 위해 bash 기본 사용
     defaults:
       run:
         shell: bash
@@ -25,7 +24,7 @@ jobs:
       uses: actions/checkout@v4
 
     # =========================================================================
-    # 1. 환경 구성 및 패키지 설치 (Ubuntu 전용)
+    # 1. Ubuntu 환경 구성 및 패키지 설치
     # =========================================================================
     - name: Clean APT Sources and Install Tools (Ubuntu)
       if: runner.os == 'Linux'
@@ -76,17 +75,19 @@ jobs:
         fi
 
     # =========================================================================
-    # 2. 환경 구성 및 패키지 설치 (Windows 전용 - 필요 시 vcpkg 활성화)
+    # 2. Windows vcpkg 바이너리 캐시 설정 (빌드 시간 단축)
     # =========================================================================
-    - name: Install Dependencies (Windows)
+    - name: Cache vcpkg Archives (Windows)
       if: runner.os == 'Windows'
-      run: |
-        echo "Windows Visual Studio environment ready."
-        # 프로젝트 내부 third-party가 아닌 외부 패키지(curl, libssh2, openssl)를 찾을 경우 아래 주석을 해제하세요.
-        # vcpkg install curl:x64-windows libssh2:x64-windows openssl:x64-windows
+      uses: actions/cache@v4
+      with:
+        path: ~/AppData/Local/vcpkg/archives
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
 
     # =========================================================================
-    # 3. CMake 프로젝트 구성 (Ubuntu: Ninja / Windows: Visual Studio)
+    # 3. CMake 프로젝트 구성 (Ubuntu & Windows 모두 Ninja 사용)
     # =========================================================================
     - name: Configure CMake with Ninja (Ubuntu)
       if: runner.os == 'Linux'
@@ -99,21 +100,26 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="~/mino" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-    - name: Configure CMake with Visual Studio (Windows)
+    - name: Configure CMake with Ninja & vcpkg (Windows)
       if: runner.os == 'Windows'
+      shell: cmd
       run: |
-        # windows-latest의 기본 Visual Studio Generator(MSVC 64비트) 사용 및 UTF-8 인코딩 옵션 적용
-        cmake -B build \
-          -S . \
-          -A x64 \
-          -DCMAKE_CXX_STANDARD=17 \
-          -DCMAKE_CXX_FLAGS="/utf-8" \
-          -DCMAKE_INSTALL_PREFIX="${HOME}/mino"
-        # 위에서 vcpkg를 활성화한 경우 아래 옵션을 cmake 명령어에 추가하세요:
-        # -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+        :: Visual Studio (MSVC x64) 개발자 환경 변수 로드
+        for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
+
+        :: GitHub Actions 기본 vcpkg 경로를 VCPKG_ROOT로 매핑
+        set "VCPKG_ROOT=%VCPKG_INSTALLATION_ROOT%"
+
+        :: 로컬 Windows 빌드와 동일한 CMake 구성 실행 (vcpkg.json 자동 인식)
+        cmake -B build ^
+          -S . ^
+          -G "Ninja" ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -DCMAKE_INSTALL_PREFIX="C:\opt\mino" ^
+          -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
 
     # =========================================================================
-    # 4. 정적 분석 (Cppcheck & Clang-Tidy - Ubuntu에서 수행)
+    # 4. 정적 분석 (Cppcheck & Clang-Tidy - Ubuntu)
     # =========================================================================
     - name: Run Cppcheck (Ubuntu)
       if: runner.os == 'Linux'
@@ -141,14 +147,24 @@ jobs:
         } > clang_tidy_results.txt 2>&1 || true
 
     # =========================================================================
-    # 5. 프로젝트 빌드 (Ubuntu: Ninja / Windows: MSBuild Release)
+    # 5. 프로젝트 빌드 (Ubuntu & Windows)
     # =========================================================================
-    - name: Build Project
+    - name: Build Project (Ubuntu)
+      if: runner.os == 'Linux'
       run: |
         set +e
         cmake --build build --config Release > build_results.txt 2>&1
         echo $? > build_exit_code.txt
         set -e
+
+    - name: Build Project (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
+        cmake --build build --config Release > build_results.txt 2>&1
+        echo %ERRORLEVEL% > build_exit_code.txt
+        exit /b 0
 
     # =========================================================================
     # 6. GitHub Actions Summary 결과 리포트 발행
@@ -175,13 +191,12 @@ jobs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     # =========================================================================
-    # 7. 최종 품질 게이트 확인 (Ubuntu GCC/Clang 및 Windows MSVC 에러 모두 감지)
+    # 7. 최종 품질 게이트 확인
     # =========================================================================
     - name: Final Quality Gate Check
       run: |
-        BUILD_EXIT_CODE=$(cat build_exit_code.txt)
+        BUILD_EXIT_CODE=$(tr -d ' \r\n' < build_exit_code.txt)
 
-        # CMake 빌드 종료 코드가 0이 아니거나, GCC/Clang("error:") 또는 MSVC("error C", "fatal error", "LNK") 에러가 있는 경우 실패 처리
         if [ "$BUILD_EXIT_CODE" -ne 0 ] || grep -E -q "(error:|error C[0-9]+|fatal error|error LNK[0-9]+)" build_results.txt; then
           echo "Build errors detected on ${{ matrix.os }}!"
           cat build_results.txt
@@ -189,4 +204,3 @@ jobs:
         fi
 
         echo "Quality check passed successfully on ${{ matrix.os }}!"
-
