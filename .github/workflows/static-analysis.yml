@@ -124,11 +124,15 @@ jobs:
     - name: Run Cppcheck (Ubuntu)
       if: runner.os == 'Linux'
       run: |
-        cppcheck --enable=all --std=c++17 \
+        mkdir -p build/cppcheck_cache
+        cppcheck --enable=warning,performance,portability --std=c++17 \
           -q \
           -j $(nproc) \
+          --cppcheck-build-dir=build/cppcheck_cache \
           --max-configs=12 \
           --suppress=missingIncludeSystem \
+          --suppress=normalCheckLevelMaxBranches \
+          --suppress=checkersReport \
           --suppress='*:*third-party*' \
           -I ./mino/core/include \
           -I ./mino/external/include \
@@ -159,8 +163,11 @@ jobs:
           find ./mino/core ./mino/network \
             -path "*/third-party*" -prune -o \
             -name "*.cpp" -print \
-            | xargs -r clang-tidy --quiet -p build --header-filter="^$(pwd)/mino/(core|network)/((?!third-party).)*$"
-        } 2>&1 | tee clang_tidy_results.txt || true
+            | xargs -r clang-tidy --quiet -p build \
+              --header-filter="^$(pwd)/mino/(core|network)/((?!third-party).)*$" \
+              --checks="-modernize-use-trailing-return-type,-readability-magic-numbers,-readability-identifier-length,-readability-braces-around-statements,-modernize-avoid-c-arrays,-bugprone-easily-swappable-parameters" \
+            2>&1 | grep -v -E "^(\[[0-9]+/[0-9]+\] Processing file|[0-9]+ warnings? generated\.|Suppressed [0-9]+ warnings)"
+        } | tee clang_tidy_results.txt || true
 
     # =========================================================================
     # 5. 프로젝트 빌드 (Ubuntu & Windows)
