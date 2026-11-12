@@ -125,17 +125,23 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
+          -I ./mino/core/include \
+          -I ./mino/external/include \
+          -I ./mino/network/mino_network/include \
+          -I ./mino/network/mino_network_curl/include \
+          -I ./mino/network/mino_network_libssh2/include \
+          -I ./mino/network/mino_network_openssl/include \
           -i ./mino/external/third-party \
           -i ./mino/network/mino_network_openssl/third-party \
           -i ./.github \
           -i ./.vscode \
+          -i ./.vs \
+          -i ./.git \
+          -i ./build \
           -i ./docs \
           -i ./example \
           -i ./tests \
-          -i ./build \
           -i ./out \
-          -i ./.vs \
-          -i ./.git \
           . > cppcheck_results.txt 2>&1 || true
 
     - name: Run Clang-Tidy (Ubuntu)
