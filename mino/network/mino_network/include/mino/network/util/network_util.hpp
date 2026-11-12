@@ -31,5 +31,5 @@ namespace mino::network::util {
     bool is_valid_ipv6(const std::string& ip_address);
     bool is_multicast_ipv4(const std::string& ip_address);
 
-} 
+} // namespace mino::network::util
 

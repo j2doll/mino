@@ -123,7 +123,16 @@ namespace mino::core::system {
 
             std::array<char, 128> buffer;
             std::string result;
-            std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+            // 기존 코드 (라인 126)
+            // std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+
+            // 수정 코드
+            auto pipe_deleter = [](FILE* f) {
+                if (f) {
+                    pclose(f);
+                }
+                };
+            std::unique_ptr<FILE, decltype(pipe_deleter)> pipe(popen(cmd.c_str(), "r"), pipe_deleter);
 
             if (!pipe) return "";
 

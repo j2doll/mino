@@ -8,13 +8,27 @@ on:
 
 jobs:
   analyze-and-build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+
+    # Windows에서도 리다이렉션(>) 및 파이프라인 스크립트를 동일하게 처리하기 위해 bash 기본 사용
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Clean APT Sources and Install Tools
+    # =========================================================================
+    # 1. 환경 구성 및 패키지 설치 (Ubuntu 전용)
+    # =========================================================================
+    - name: Clean APT Sources and Install Tools (Ubuntu)
+      if: runner.os == 'Linux'
       run: |
         # 1. Force reliable Google DNS servers
         echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
@@ -61,7 +75,21 @@ jobs:
           exit 1
         fi
 
-    - name: Configure CMake with Ninja
+    # =========================================================================
+    # 2. 환경 구성 및 패키지 설치 (Windows 전용 - 필요 시 vcpkg 활성화)
+    # =========================================================================
+    - name: Install Dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "Windows Visual Studio environment ready."
+        # 프로젝트 내부 third-party가 아닌 외부 패키지(curl, libssh2, openssl)를 찾을 경우 아래 주석을 해제하세요.
+        # vcpkg install curl:x64-windows libssh2:x64-windows openssl:x64-windows
+
+    # =========================================================================
+    # 3. CMake 프로젝트 구성 (Ubuntu: Ninja / Windows: Visual Studio)
+    # =========================================================================
+    - name: Configure CMake with Ninja (Ubuntu)
+      if: runner.os == 'Linux'
       run: |
         cmake -B build \
           -S . \
@@ -71,8 +99,24 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="~/mino" \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-    # --- 1. Run Cppcheck and collect results ---
-    - name: Run Cppcheck
+    - name: Configure CMake with Visual Studio (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # windows-latest의 기본 Visual Studio Generator(MSVC 64비트) 사용 및 UTF-8 인코딩 옵션 적용
+        cmake -B build \
+          -S . \
+          -A x64 \
+          -DCMAKE_CXX_STANDARD=17 \
+          -DCMAKE_CXX_FLAGS="/utf-8" \
+          -DCMAKE_INSTALL_PREFIX="${HOME}/mino"
+        # 위에서 vcpkg를 활성화한 경우 아래 옵션을 cmake 명령어에 추가하세요:
+        # -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+    # =========================================================================
+    # 4. 정적 분석 (Cppcheck & Clang-Tidy - Ubuntu에서 수행)
+    # =========================================================================
+    - name: Run Cppcheck (Ubuntu)
+      if: runner.os == 'Linux'
       run: |
         cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
           -i ./mino/external/third-party \
@@ -88,46 +132,61 @@ jobs:
           -i ./.git \
           . > cppcheck_results.txt 2>&1 || true
 
-    # --- 2. Run Clang-Tidy and collect results ---
-    - name: Run Clang-Tidy
+    - name: Run Clang-Tidy (Ubuntu)
+      if: runner.os == 'Linux'
       run: |
         {
           echo "=== Clang-Tidy Analysis Result ==="
           find core network -name "*.cpp" -o -name "*.h" | xargs -r clang-tidy -p build
         } > clang_tidy_results.txt 2>&1 || true
 
-    # --- 3. Run build using Ninja and collect results ---
+    # =========================================================================
+    # 5. 프로젝트 빌드 (Ubuntu: Ninja / Windows: MSBuild Release)
+    # =========================================================================
     - name: Build Project
       run: |
-        cmake --build build --config Release > build_results.txt 2>&1 || true
+        set +e
+        cmake --build build --config Release > build_results.txt 2>&1
+        echo $? > build_exit_code.txt
+        set -e
 
-    # --- 4. Publish all results to GitHub Actions Summary ---
+    # =========================================================================
+    # 6. GitHub Actions Summary 결과 리포트 발행
+    # =========================================================================
     - name: Publish Results to GitHub Summary
       run: |
-        echo "# C++ Project Analysis & Build Summary" >> $GITHUB_STEP_SUMMARY
-        
-        echo "## 1. Cppcheck Results" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-        cat cppcheck_results.txt >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        
-        echo "## 2. Clang-Tidy Results" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-        cat clang_tidy_results.txt >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        
-        echo "## 3. Build Results" >> $GITHUB_STEP_SUMMARY
+        echo "# C++ Project Analysis & Build Summary (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${RUNNER_OS}" == "Linux" ]; then
+          echo "## 1. Cppcheck Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat cppcheck_results.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 2. Clang-Tidy Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat clang_tidy_results.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "## Build Results (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
         cat build_results.txt >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-    # --- 5. Final quality gate check (Fail CI if errors exist) ---
+    # =========================================================================
+    # 7. 최종 품질 게이트 확인 (Ubuntu GCC/Clang 및 Windows MSVC 에러 모두 감지)
+    # =========================================================================
     - name: Final Quality Gate Check
       run: |
-        if grep -q "error:" build_results.txt; then
-          echo "Build errors detected!"
+        BUILD_EXIT_CODE=$(cat build_exit_code.txt)
+
+        # CMake 빌드 종료 코드가 0이 아니거나, GCC/Clang("error:") 또는 MSVC("error C", "fatal error", "LNK") 에러가 있는 경우 실패 처리
+        if [ "$BUILD_EXIT_CODE" -ne 0 ] || grep -E -q "(error:|error C[0-9]+|fatal error|error LNK[0-9]+)" build_results.txt; then
+          echo "Build errors detected on ${{ matrix.os }}!"
+          cat build_results.txt
           exit 1
         fi
-        
-        echo "Quality check passed successfully!"
+
+        echo "Quality check passed successfully on ${{ matrix.os }}!"
 

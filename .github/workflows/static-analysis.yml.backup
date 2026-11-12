@@ -1,82 +1,133 @@
-name: Static Analysis
+name: C++ Comprehensive Analysis & Build Check
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: [ main, master ]
   pull_request:
-    branches: ["main"]
+    branches: [ main, master ]
 
 jobs:
-  static-analysis:
-    runs-on: ubuntu-24.04
+  analyze-and-build:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v5
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Install Dependencies & Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+    - name: Clean APT Sources and Install Tools
+      run: |
+        # 1. Force reliable Google DNS servers
+        echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+        echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+
+        # 2. Clear previous apt lists and conflicting mirror configs
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo rm -rf /etc/apt/sources.list.d/*
+        sudo rm -f /etc/apt/apt-mirrors.txt
+
+        # 3. Detect current Ubuntu codename dynamically (e.g., resolute, noble)
+        CODENAME=$(lsb_release -cs)
+        echo "Detected Ubuntu codename: ${CODENAME}"
+
+        sudo tee /etc/apt/sources.list << EOF
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME} main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME}-updates main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ ${CODENAME}-backports main restricted universe multiverse
+        deb http://security.ubuntu.com/ubuntu/ ${CODENAME}-security main restricted universe multiverse
+        EOF
+
+        # 4. Update package lists and install required tools with retry logic
+        SUCCESS=0
+        for i in {1..3}; do
+          if sudo apt-get update && sudo apt-get install -y \
             cmake \
             ninja-build \
+            build-essential \
             clang-tidy \
             cppcheck \
             libcurl4-openssl-dev \
             libssh2-1-dev \
-            libssl-dev
-
-      - name: Configure CMake (Export Compile Commands)
-        run: |
-          cmake -B build -G Ninja \
-            -DCMAKE_CXX_STANDARD=17 \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-      - name: Build Unit Test Target
-        run: |
-          cmake --build build --target mino_unittest --parallel
-
-      - name: Run Unit Tests (Catch2)
-        run: |
-          TEST_BIN="$(find build -type f -name mino_unittest -perm -111 | head -n 1)"
-          if [ -z "$TEST_BIN" ]; then
-            echo "Error: mino_unittest executable not found."
-            exit 1
+            libssl-dev; then
+            SUCCESS=1
+            break
+          else
+            echo "Attempt $i failed. Retrying in 5 seconds..."
+            sleep 5
           fi
-          echo "Running tests from: $TEST_BIN"
-          "$TEST_BIN"
+        done
 
-      - name: Run Cppcheck
-        continue-on-error: true
-        run: |
-          cppcheck \
-            --project=build/compile_commands.json \
-            --enable=all \
-            --suppress=missingIncludeSystem \
-            --suppress=unmatchedSuppression \
-            --suppress=toomanyconfigs \
-            --inline-suppr \
-            --max-configs=32 \
-            --error-exitcode=0 \
-            -i mino/external/third-party \
-            -i mino/network/mino_network_openssl/third-party \
-            -i tests/unittest/catch_amalgamated.hpp \
-            -i tests/unittest/catch_amalgamated.cpp \
-            --output-file=cppcheck-report.txt
-          cat cppcheck-report.txt
-          if grep -q "error:" cppcheck-report.txt; then
-            exit 1
-          fi
+        if [ $SUCCESS -ne 1 ]; then
+          echo "Failed to install required packages after 3 attempts."
+          exit 1
+        fi
 
-      - name: Run Clang-Tidy
-        continue-on-error: true
-        run: |
-          find mino tests \
-            -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cxx" -o -name "*.h" \) \
-            ! -path "*/mino/external/third-party/*" \
-            ! -path "*/mino/network/mino_network_openssl/third-party/*" \
-            ! -name "catch_amalgamated.hpp" \
-            ! -name "catch_amalgamated.cpp" | \
-            xargs -r clang-tidy -p build 2>&1 | tee clang-tidy-report.txt
-          echo "Clang-Tidy analysis complete."
+    - name: Configure CMake with Ninja
+      run: |
+        cmake -B build \
+          -S . \
+          -G "Ninja" \
+          -DCMAKE_CXX_STANDARD=17 \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX="~/mino" \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    # --- 1. Run Cppcheck and collect results ---
+    - name: Run Cppcheck
+      run: |
+        cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
+          -i ./mino/external/third-party \
+          -i ./mino/network/mino_network_openssl/third-party \
+          -i ./.github \
+          -i ./.vscode \
+          -i ./docs \
+          -i ./example \
+          -i ./tests \
+          -i ./build \
+          -i ./out \
+          -i ./.vs \
+          -i ./.git \
+          . > cppcheck_results.txt 2>&1 || true
+
+    # --- 2. Run Clang-Tidy and collect results ---
+    - name: Run Clang-Tidy
+      run: |
+        {
+          echo "=== Clang-Tidy Analysis Result ==="
+          find core network -name "*.cpp" -o -name "*.h" | xargs -r clang-tidy -p build
+        } > clang_tidy_results.txt 2>&1 || true
+
+    # --- 3. Run build using Ninja and collect results ---
+    - name: Build Project
+      run: |
+        cmake --build build --config Release > build_results.txt 2>&1 || true
+
+    # --- 4. Publish all results to GitHub Actions Summary ---
+    - name: Publish Results to GitHub Summary
+      run: |
+        echo "# C++ Project Analysis & Build Summary" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 1. Cppcheck Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat cppcheck_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 2. Clang-Tidy Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat clang_tidy_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## 3. Build Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+        cat build_results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+    # --- 5. Final quality gate check (Fail CI if errors exist) ---
+    - name: Final Quality Gate Check
+      run: |
+        if grep -q "error:" build_results.txt; then
+          echo "Build errors detected!"
+          exit 1
+        fi
+        
+        echo "Quality check passed successfully!"
 

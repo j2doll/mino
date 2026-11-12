@@ -1,28 +1,29 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
-    #endif
-    #include <winsock2.h>
-    #include <windows.h>
-    #include <iphlpapi.h>
-    #include <ws2tcpip.h>
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
+#   ifndef WIN32_LEAN_AND_MEAN
+#       define WIN32_LEAN_AND_MEAN
+#   endif
+#   include <winsock2.h>
+#   include <windows.h>
+#   include <iphlpapi.h>
+#   include <ws2tcpip.h>
 #else
-    #include <ifaddrs.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <net/if.h>
-    #include <sys/ioctl.h>
-    #include <unistd.h>
-    #ifdef __linux__
-        #include <netpacket/packet.h>
-    #endif
+#   include <ifaddrs.h>
+#   include <netinet/in.h>
+#   include <arpa/inet.h>
+#   include <net/if.h>
+#   include <sys/ioctl.h>
+#   include <unistd.h>
+#   ifdef __linux__
+#       include <netpacket/packet.h>
+#   endif
 #endif
 
 #include "mino/network/util/network_util.hpp"
@@ -66,6 +67,7 @@ namespace mino::network::util {
             wsaStarted = true;
         }
 
+        /*
         ULONG buf_size = 15000;
         IP_ADAPTER_ADDRESSES* adapters = (IP_ADAPTER_ADDRESSES*)malloc(buf_size);
         ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
@@ -81,11 +83,32 @@ namespace mino::network::util {
             if (wsaStarted) WSACleanup();
             return interfaces;
         }
+        //*/
+        ULONG buf_size = 15000;                                                     // [라인 69]
+        std::vector<uint8_t> buffer(buf_size);                                      // [라인 70 수정]
+        ULONG flags = GAA_FLAG_INCLUDE_PREFIX;                                      // [라인 71]
+
+        ULONG rc = GetAdaptersAddresses(AF_UNSPEC, flags, NULL,                     // [라인 73 수정]
+            reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &buf_size);     // [라인 73 수정]
+        if (rc == ERROR_BUFFER_OVERFLOW) {                                          // [라인 74]
+            buffer.resize(buf_size);                                                // [라인 75 수정]
+            rc = GetAdaptersAddresses(AF_UNSPEC, flags, NULL,                       // [라인 76 수정]
+                reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &buf_size); // [라인 76 수정]
+        }                                                                           // [라인 77]
+
+        if (rc != ERROR_SUCCESS) {                                                  // [라인 79 수정]
+            if (wsaStarted) WSACleanup();                                           // [라인 81]
+            return interfaces;                                                      // [라인 82]
+        }                                                                           // [라인 83]
+
+        auto* adapters = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(buffer.data());    // [추가]
+
 
         for (PIP_ADAPTER_ADDRESSES curr = adapters; curr != NULL; curr = curr->Next) {
             network_interface_info info{};
             info.name = curr->AdapterName ? curr->AdapterName : "";
 
+            /*
             if (curr->Description) {
                 char desc[1024] = { 0 };
                 // Use WideCharToMultiByte to safely convert wide string to UTF-8 / ANSI.
@@ -98,8 +121,29 @@ namespace mino::network::util {
                 sprintf_s(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
                     curr->PhysicalAddress[0], curr->PhysicalAddress[1], curr->PhysicalAddress[2],
                     curr->PhysicalAddress[3], curr->PhysicalAddress[4], curr->PhysicalAddress[5]);
-                info.mac_address = mac;
+                std::string mac_str(mac);
+                info.mac_address = mac_str;
             }
+            //*/
+            if (curr->Description) {                                                // [라인 89]
+                int required_len = WideCharToMultiByte(CP_UTF8, 0,                  // [라인 90~93 수정]
+                    curr->Description, -1, nullptr, 0, NULL, NULL);                 // [라인 90~93 수정]
+                if (required_len > 1) {                                             // [라인 90~93 수정]
+                    std::string desc_str(required_len - 1, '\0');                   // [라인 90~93 수정]
+                    WideCharToMultiByte(CP_UTF8, 0, curr->Description, -1,          // [라인 90~93 수정]
+                        desc_str.data(), required_len, NULL, NULL);                 // [라인 90~93 수정]
+                    info.description = std::move(desc_str);                         // [라인 90~93 수정]
+                }                                                                   // [라인 90~93 수정]
+            }                                                                       // [라인 94]
+
+            if (curr->PhysicalAddressLength >= 6) {                                 // [라인 96]
+                char mac[18] = { 0 };                                               // [라인 97 수정]
+                std::snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",    // [라인 98 수정]
+                    curr->PhysicalAddress[0], curr->PhysicalAddress[1],             // [라인 99]
+                    curr->PhysicalAddress[2], curr->PhysicalAddress[3],             // [라인 99~100]
+                    curr->PhysicalAddress[4], curr->PhysicalAddress[5]);            // [라인 100]
+                info.mac_address.assign(mac);                                       // [라인 101 수정]
+            }                                                                       // [라인 102]
 
             for (PIP_ADAPTER_UNICAST_ADDRESS addr = curr->FirstUnicastAddress; addr != NULL; addr = addr->Next) {
                 if (addr->Address.lpSockaddr == nullptr) continue;
@@ -146,8 +190,10 @@ namespace mino::network::util {
             interfaces.push_back(info);
         }
 
-        free(adapters);
-        if (wsaStarted) WSACleanup();
+        // free(adapters);
+
+        if (wsaStarted)
+            WSACleanup();
 #else
         // Linux/Unix implementation using getifaddrs
 

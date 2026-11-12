@@ -599,18 +599,19 @@ namespace mino::core::datetime {
             }
 #endif
 
+            // 버퍼 크기를 넉넉하게 16바이트로 확장하여 -Wformat-truncation 경고 방지
             auto pad2 = [](int v) -> std::string {
-                char buf[3];
+                char buf[16];
                 std::snprintf(buf, sizeof(buf), "%02d", v);
                 return std::string(buf);
                 };
             auto pad3 = [](int v) -> std::string {
-                char buf[4];
+                char buf[16];
                 std::snprintf(buf, sizeof(buf), "%03d", v);
                 return std::string(buf);
                 };
             auto pad4 = [](int v) -> std::string {
-                char buf[5];
+                char buf[16];
                 std::snprintf(buf, sizeof(buf), "%04d", v);
                 return std::string(buf);
                 };

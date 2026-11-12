@@ -30,7 +30,7 @@ namespace mino::network_libssh2::ssh2 {
 
     private:
         platform_network_initializer() {
-            auto ret = ::libssh2_init(0);
+            [[maybe_unused]] auto ret = ::libssh2_init(0);
             assert(ret == 0 && "libssh2 initialization failed");
         }
 
