@@ -205,6 +205,9 @@ namespace mino::core::schedule::task {
             if (id_it != task_obj.end()) {
                 config.task_id = static_cast<uint64_t>(id_it->second.get_number());
             }
+            else {
+                continue; // task_id가 없으면 건너뜀
+            }
 
             // description
             auto desc_it = task_obj.find("description");
@@ -212,11 +215,16 @@ namespace mino::core::schedule::task {
                 const auto& desc_str = desc_it->second.get_string();
                 config.description = desc_str.empty() ? std::nullopt : std::make_optional(desc_str);
             }
+            else {
+                config.description = std::nullopt; // description이 없으면 nullopt
+            }
 
             // strategy_type
             auto st_it = task_obj.find("strategy_type");
             if (st_it != task_obj.end()) {
                 config.strategy_type = st_it->second.get_string();
+            } else {
+                continue; // strategy_type이 없으면 건너뜀
             }
 
             // strategy_params_json

@@ -11,12 +11,12 @@
 namespace mino::core::schedule::task {
 
     struct task_config {
-        uint64_t task_id;
+        uint64_t task_id { 0 };
         std::optional<std::string> description;
         std::string strategy_type;
         mino::core::json::value strategy_params;
         std::string strategy_params_json;
-        time_base time_basis;
+        time_base time_basis{ time_base::localtime };
     };
 
     class task_scheduler_json {

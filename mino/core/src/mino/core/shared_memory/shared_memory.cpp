@@ -21,7 +21,7 @@ namespace mino::core::shared_memory {
 #if defined(OS_WINDOWS)
             size_ = size;
             wname_ = to_wstring(name_);
-#elif defined(OS_LINUX)
+#else  
             size_ = size + sizeof(shm_header);
             clean_shm_name_ = normalize_name(name_, "/shm_");
 #endif
@@ -41,7 +41,7 @@ namespace mino::core::shared_memory {
         wname_ = std::move(other.wname_);
         other.shm_handle_ = nullptr;
         other.mutex_exclusive_ = nullptr;
-#elif defined(OS_LINUX)
+#else  
         shm_fd_ = other.shm_fd_;
         clean_shm_name_ = std::move(other.clean_shm_name_);
         header_ = other.header_;
@@ -64,7 +64,7 @@ namespace mino::core::shared_memory {
                 wname_ = std::move(other.wname_);
                 other.shm_handle_ = nullptr;
                 other.mutex_exclusive_ = nullptr;
-#elif defined(OS_LINUX)
+#else  
                 shm_fd_ = other.shm_fd_;
                 clean_shm_name_ = std::move(other.clean_shm_name_);
                 header_ = other.header_;
@@ -102,7 +102,7 @@ namespace mino::core::shared_memory {
         }
         return true;
 
-#elif defined(OS_LINUX)
+#else  
         shm_fd_ = shm_open(clean_shm_name_.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
         if (shm_fd_ == -1) return false;
 
@@ -143,7 +143,7 @@ namespace mino::core::shared_memory {
         mapped_address_ = MapViewOfFile(shm_handle_, FILE_MAP_ALL_ACCESS, 0, 0, size_);
         return mapped_address_ != nullptr;
 
-#elif defined(OS_LINUX)
+#else  
         shm_fd_ = shm_open(clean_shm_name_.c_str(), O_RDWR, S_IRUSR | S_IWUSR);
         if (shm_fd_ == -1) return false;
 
@@ -158,7 +158,7 @@ namespace mino::core::shared_memory {
         if (mapped_address_) {
 #if defined(OS_WINDOWS)
             UnmapViewOfFile(mapped_address_);
-#elif defined(OS_LINUX)
+#else  
             munmap(mapped_address_, size_);
 #endif
             mapped_address_ = nullptr;
@@ -166,7 +166,7 @@ namespace mino::core::shared_memory {
 #if defined(OS_WINDOWS)
         if (shm_handle_) { CloseHandle(shm_handle_); shm_handle_ = nullptr; }
         if (mutex_exclusive_) { CloseHandle(mutex_exclusive_); mutex_exclusive_ = nullptr; }
-#elif defined(OS_LINUX)
+#else  
         if (shm_fd_ != -1) { ::close(shm_fd_); shm_fd_ = -1; shm_unlink(clean_shm_name_.c_str()); }
 #endif
     }
@@ -175,7 +175,7 @@ namespace mino::core::shared_memory {
 #if defined(OS_WINDOWS)
         if (!mutex_exclusive_) return false;
         return WaitForSingleObject(mutex_exclusive_, INFINITE) == WAIT_OBJECT_0;
-#elif defined(OS_LINUX)
+#else  
         if (!header_) return false;
         return pthread_rwlock_rdlock(&(header_->rwlock)) == 0;
 #endif
@@ -184,7 +184,7 @@ namespace mino::core::shared_memory {
     void shared_memory::unlock_shared() noexcept {
 #if defined(OS_WINDOWS)
         if (mutex_exclusive_) ReleaseMutex(mutex_exclusive_);
-#elif defined(OS_LINUX)
+#else  
         if (header_) pthread_rwlock_unlock(&(header_->rwlock));
 #endif
     }
@@ -193,7 +193,7 @@ namespace mino::core::shared_memory {
 #if defined(OS_WINDOWS)
         if (!mutex_exclusive_) return false;
         return WaitForSingleObject(mutex_exclusive_, INFINITE) == WAIT_OBJECT_0;
-#elif defined(OS_LINUX)
+#else  
         if (!header_) return false;
         return pthread_rwlock_wrlock(&(header_->rwlock)) == 0;
 #endif
@@ -206,7 +206,7 @@ namespace mino::core::shared_memory {
     void* shared_memory::get_address() const noexcept {
 #if defined(OS_WINDOWS)
         return mapped_address_;
-#elif defined(OS_LINUX)
+#else  
         if (!mapped_address_) return nullptr;
         return static_cast<char*>(mapped_address_) + sizeof(shm_header);
 #endif
@@ -237,7 +237,7 @@ namespace mino::core::shared_memory {
             return L"";
         }
     }
-#elif defined(OS_LINUX)
+#else  
     std::string shared_memory::normalize_name(std::string_view str, std::string_view prefix) noexcept {
         try {
             std::string res(prefix);
