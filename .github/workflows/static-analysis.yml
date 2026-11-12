@@ -124,7 +124,11 @@ jobs:
     - name: Run Cppcheck (Ubuntu)
       if: runner.os == 'Linux'
       run: |
-        cppcheck --enable=all --std=c++17 --suppress=missingIncludeSystem \
+        cppcheck --enable=all --std=c++17 \
+          -j $(nproc) \
+          --max-configs=12 \
+          --suppress=missingIncludeSystem \
+          --suppress='*:*third-party*' \
           -I ./mino/core/include \
           -I ./mino/external/include \
           -I ./mino/network/mino_network/include \
@@ -133,6 +137,8 @@ jobs:
           -I ./mino/network/mino_network_openssl/include \
           -I ./mino/external/third-party \
           -I ./mino/network/mino_network_openssl/third-party \
+          -i ./mino/external/third-party \
+          -i ./mino/network/mino_network_openssl/third-party \
           -i ./.github \
           -i ./.vscode \
           -i ./.vs \
@@ -142,16 +148,18 @@ jobs:
           -i ./example \
           -i ./tests \
           -i ./out \
-          --suppress=*:*third-party* \
-          . > cppcheck_results.txt 2>&1 || true
+          . 2>&1 | tee cppcheck_results.txt || true
 
     - name: Run Clang-Tidy (Ubuntu)
       if: runner.os == 'Linux'
       run: |
         {
           echo "=== Clang-Tidy Analysis Result ==="
-          find core network -name "*.cpp" -o -name "*.h" | xargs -r clang-tidy -p build
-        } > clang_tidy_results.txt 2>&1 || true
+          find ./mino/core ./mino/network \
+            -path "*/third-party*" -prune -o \
+            \( -name "*.cpp" -o -name "*.h" \) -print \
+            | xargs -r clang-tidy -p build
+        } 2>&1 | tee clang_tidy_results.txt || true
 
     # =========================================================================
     # 5. 프로젝트 빌드 (Ubuntu & Windows)
