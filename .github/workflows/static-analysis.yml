@@ -125,6 +125,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         cppcheck --enable=all --std=c++17 \
+          -q \
           -j $(nproc) \
           --max-configs=12 \
           --suppress=missingIncludeSystem \
@@ -157,8 +158,8 @@ jobs:
           echo "=== Clang-Tidy Analysis Result ==="
           find ./mino/core ./mino/network \
             -path "*/third-party*" -prune -o \
-            \( -name "*.cpp" -o -name "*.h" \) -print \
-            | xargs -r clang-tidy -p build
+            -name "*.cpp" -print \
+            | xargs -r clang-tidy --quiet -p build --header-filter="^$(pwd)/mino/(core|network)/((?!third-party).)*$"
         } 2>&1 | tee clang_tidy_results.txt || true
 
     # =========================================================================
@@ -182,28 +183,56 @@ jobs:
         exit /b 0
 
     # =========================================================================
-    # 6. GitHub Actions Summary 결과 리포트 발행
+    # 6. GitHub Actions Summary 결과 리포트 발행 (1MB 제한 방어 적용)
     # =========================================================================
     - name: Publish Results to GitHub Summary
       run: |
+        MAX_BYTES=250000
+
+        append_section() {
+          local title="$1"
+          local file="$2"
+
+          echo "## ${title}" >> $GITHUB_STEP_SUMMARY
+          if [ ! -f "$file" ] || [ ! -s "$file" ]; then
+            echo "_출력된 이슈나 로그가 없습니다._" >> $GITHUB_STEP_SUMMARY
+            return
+          fi
+
+          local size=$(wc -c < "$file")
+          echo "<details><summary>로그 펼쳐보기 (${size} bytes)</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          head -c $MAX_BYTES "$file" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$size" -gt "$MAX_BYTES" ]; then
+            echo "> ⚠️ **로그가 너무 길어 상위 250KB까지만 표시되었습니다.** 전체 내용은 하단의 Artifacts(`analysis-and-build-logs-${{ matrix.os }}`)를 다운로드하여 확인하세요." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        }
+
         echo "# C++ Project Analysis & Build Summary (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
 
         if [ "${RUNNER_OS}" == "Linux" ]; then
-          echo "## 1. Cppcheck Results" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-          cat cppcheck_results.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 2. Clang-Tidy Results" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-          cat clang_tidy_results.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          append_section "1. Cppcheck Results" "cppcheck_results.txt"
+          append_section "2. Clang-Tidy Results" "clang_tidy_results.txt"
         fi
 
-        echo "## Build Results (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-        cat build_results.txt >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        append_section "Build Results (${{ matrix.os }})" "build_results.txt"
+
+    - name: Upload Full Logs as Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: analysis-and-build-logs-${{ matrix.os }}
+        path: |
+          cppcheck_results.txt
+          clang_tidy_results.txt
+          build_results.txt
+        if-no-files-found: ignore
 
     # =========================================================================
     # 7. 최종 품질 게이트 확인
