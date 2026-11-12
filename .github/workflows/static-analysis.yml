@@ -131,8 +131,8 @@ jobs:
           -I ./mino/network/mino_network_curl/include \
           -I ./mino/network/mino_network_libssh2/include \
           -I ./mino/network/mino_network_openssl/include \
-          -i ./mino/external/third-party \
-          -i ./mino/network/mino_network_openssl/third-party \
+          -I ./mino/external/third-party \
+          -I ./mino/network/mino_network_openssl/third-party \
           -i ./.github \
           -i ./.vscode \
           -i ./.vs \
@@ -142,6 +142,7 @@ jobs:
           -i ./example \
           -i ./tests \
           -i ./out \
+          --suppress=*:*third-party* \
           . > cppcheck_results.txt 2>&1 || true
 
     - name: Run Clang-Tidy (Ubuntu)
