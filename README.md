@@ -106,6 +106,8 @@
         - [url_encoding](example/core/encoding/test_url_encoding.cpp) : URL 인코딩/디코딩 검증(RFC 3986 및 공백 처리)
         - [url_korean](example/core/encoding/test_url_korean.cpp) : UTF-8 한글 문자열 URL 인코딩/디코딩 통합 검증
         - [test_invalid_url](example/core/encoding/test_invalid_url.cpp) : URL 디코딩 비정상 입력 에러 처리 검증
+- 🏛️ [endian](example/core/endian/main.cpp)
+    - 바이트 순서 변환        
 - 🏛️ [enum](example/core/enum/main.cpp)
     - 열거(`enum`) ↔ 문자열 변환
 - 🏛️ [expected](example/core/expected/main.cpp)
