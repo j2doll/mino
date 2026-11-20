@@ -1,10 +1,7 @@
 name: C++ Comprehensive Analysis & Build Check
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   analyze-and-build:
