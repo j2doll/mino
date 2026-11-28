@@ -15,7 +15,7 @@ endif()
 # set(MINO_DIR "C:/opt/mino") 
 
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-add_executable(${EXE_NAME} ${SRC_FILES})
+add_executable(${EXE_NAME} ${SRC_FILES} "test_naming_style_conversion_url_slug.cpp")
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/mino/cmake-module")
     file(GLOB MINO_CMAKE_FILES "${CMAKE_SOURCE_DIR}/mino/cmake-module/Use*.cmake")

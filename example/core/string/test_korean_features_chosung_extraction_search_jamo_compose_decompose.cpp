@@ -1,11 +1,4 @@
-#include <vector>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <cassert>
-#include <cmath>
-
-#include "mino/core/string/string.hpp"
+#include "test_common.hpp"
 
 void test_korean_features_chosung_extraction_search_jamo_compose_decompose() {
     namespace mcs = mino::core::string;

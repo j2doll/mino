@@ -19,6 +19,7 @@ extern void test_to_string();
 extern void test_mutex_string();
 extern void test_u8string();
 extern void test_encodings();
+extern void test_to_console_encoding();
 extern void test_print();
 extern void test_string_ext();
 extern void test_format();
@@ -49,6 +50,7 @@ int main() {
         test_mutex_string();
         test_u8string();
         test_encodings();
+        test_to_console_encoding(); 
         test_print();
         test_string_ext();
         test_format(); 

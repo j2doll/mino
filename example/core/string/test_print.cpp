@@ -1,12 +1,4 @@
-#include <iostream>
-#include <sstream>
-#include <cassert>
-#include <string>
-#include <string_view>
-#include <map>
-#include <unordered_map>
-
-#include "mino/core/string/string.hpp"
+#include "test_common.hpp"
 
 namespace mcsp = mino::core::string::print;
 using namespace std::string_view_literals;

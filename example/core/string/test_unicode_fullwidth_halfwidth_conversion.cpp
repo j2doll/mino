@@ -1,11 +1,4 @@
-#include <vector>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <cassert>
-#include <cmath>
-
-#include "mino/core/string/string.hpp"
+#include "test_common.hpp"
 
 void test_unicode_fullwidth_halfwidth_conversion() {
     namespace mcs = mino::core::string;

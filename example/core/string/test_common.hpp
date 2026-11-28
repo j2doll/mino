@@ -7,8 +7,20 @@
 #include <cmath>
 #include <stdexcept>
 #include <utility>
+#include <string_view>
+#include <unordered_map>
+#include <array>
+#include <list>
+#include <deque>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <tuple>
+#include <sstream>
+
 
 #include "mino/core/string/string.hpp"
+
 
 // 단언 헬퍼 매크로
 #define TEST_CHECK(expr) \
