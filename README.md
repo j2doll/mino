@@ -203,7 +203,10 @@
     - [mutex_string](example/core/string/test_mutex_string.cpp) : 스레드 안전 문자열
     - [u8string](example/core/string/test_u8string.cpp) : `UTF-8` 문자열 처리
     - [encoding_function, to_console_encoding](example/core/string/test_encodings.cpp) : 한글 인코딩간 변환 <sub> (`UTF-8/16/32`, `wstring`, `CP949`/`EUC-KR`, `ISO-2022-KR`, `JOHAB`, `MacKorean`) </sub> , 콘솔 출력용 인코딩 변환
-    - [string ext](example/core/string/test_string_ext.cpp) : <sub> 한국어 초성 추출/검색, 자모 분해/재조합, 유니코드 및 전각/반각 변환, 네이밍 스타일 변환, URL 슬러그, 문자열 유사도, 퍼지 검색, 제로-할당 string_view 기반 유틸리티, 구조화 데이터 안전 토크나이저 & 포맷팅 치환 </sub>
+    - [string ext](example/core/string/test_string_ext.cpp)
+       - [korean_features](example/core/string/test_korean_features_chosung_extraction_search_jamo_compose_decompose.cpp) : 한국어 특화 기능 (초성 추출 / 초성 검색 / 자모 분해 및 재조합)
+       - [unicode_fullwidth_halfwidth_conversion](example/core/string/test_unicode_fullwidth_halfwidth_conversion.cpp) : 유니코드 및 전각/반각 변환
+    - 네이밍 스타일 변환, URL 슬러그, 문자열 유사도, 퍼지 검색, 제로-할당 string_view 기반 유틸리티, 구조화 데이터 안전 토크나이저 & 포맷팅 치환 
     - [print](example/core/string/test_print.cpp) : `print*`,`eprint*` 계열 콘솔 출력 기능
     - [format](example/core/string/test_format.cpp) : 문자열 포맷팅 기능
 - 🏛️ [subsystem](example/core/subsystem/) 

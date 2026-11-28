@@ -7,68 +7,18 @@
 
 #include "mino/core/string/string.hpp"
 
+extern void test_korean_features_chosung_extraction_search_jamo_compose_decompose();
+extern void test_unicode_fullwidth_halfwidth_conversion();
+
 void test_string_ext() {
     namespace mcs = mino::core::string;
     namespace mcsp = mino::core::string::print;
 
-    // =========================================================================
     // 1. 한국어 특화 기능 (초성 추출 / 초성 검색 / 자모 분해 및 재조합)
-    // =========================================================================
-    mcsp::println("===========================================");
-    mcsp::println("1. 한국어 특화 기능 테스트 (Assert 검증)");
-    mcsp::println("===========================================");
+    test_korean_features_chosung_extraction_search_jamo_compose_decompose();
 
-    // (1) "홍길동" -> "ㅎㄱㄷ" 초성 추출 검증
-    std::string name = "홍길동";
-    std::string chosung = mcs::extract_chosung(name);
-    assert(chosung == "ㅎㄱㄷ");
-    mcsp::println("[PASS] 초성 추출: {} -> {}", name, chosung);
-
-    // 혼합 문자열 초성 추출 검증 (영문/숫자/공백 유지)
-    std::string mixed = "C++17 한글 엔진 v2.0";
-    std::string mixed_chosung = mcs::extract_chosung(mixed);
-    assert(mixed_chosung == "C++17 ㅎㄱ ㅇㅈ v2.0");
-    mcsp::println("[PASS] 혼합 초성 추출: {}", mixed_chosung);
-
-    // 초성 검색 매칭 검증
-    std::string target_doc = "동해물과 백두산이 마르고 닳도록";
-    assert(mcs::matches_chosung(target_doc, "ㅂㄷㅅ") == true); // "백두산"에 매칭
-    assert(mcs::matches_chosung(target_doc, "백ㄷㅅ") == true); // "백두산"에 매칭
-    assert(mcs::matches_chosung(target_doc, "ㅎㄹㅅ") == false); // ㅎㄹㅅ는 없음
-    mcsp::println("[PASS] 초성 패턴 매칭 (ㅂㄷㅅ, 백ㄷㅅ, ㅎㄹㅅ)");
-
-    // 자모 분해 및 재조합 검증
-    std::string word = "한글";
-    std::string decomposed = mcs::decompose_hangul(word); // "한글" => "ㅎㅏㄴㄱㅡㄹ" 자모 분해
-    assert(decomposed == "ㅎㅏㄴㄱㅡㄹ"); // MacOS 및 Linux 환경의 파일명에 호환되는 자모 분해
-    // std::filesystem::path p(decomposed); // 파일명으로 사용 가능 여부 확인
-    // std::filesystem::create_directory(p); // 실제로 디렉토리 생성 가능 여부 확인
-
-    std::string composed = mcs::compose_hangul(decomposed); // "ㅎㅏㄴㄱㅡㄹ" => "한글" 재조합
-    assert(composed == word);
-    mcsp::println("[PASS] 자모 분해({}) -> 재조합({})", decomposed, composed);
-
-
-    // =========================================================================
     // 2. 유니코드 및 전각/반각 변환
-    // =========================================================================
-    mcsp::println("\n===========================================");
-    mcsp::println("2. 유니코드 및 전각/반각 변환 테스트 (Assert 검증)");
-    mcsp::println("===========================================");
-
-    std::string ascii_str = "ABC 123 !?";
-    std::string full_str = mcs::to_full_width(ascii_str); // 전각 "ＡＢＣ　１２３　！？"
-    std::string half_str = mcs::to_half_width(full_str); // 반각 "ABC 123 !?"
-    assert(half_str == ascii_str);
-    mcsp::println("[PASS] 전각 변환 및 반각 복원: [{}] -> [{}]", full_str, half_str);
-
-    // Grapheme 글자 수 및 안전 자르기 검증
-    assert(mcs::utf8_grapheme_count("대한민국") == 4);
-
-    std::string korean_sentence = "대한민국 만세! 무궁화 삼천리";
-    std::string ellipsized = mcs::ellipsize_grapheme_safe(korean_sentence, 6);
-    assert(ellipsized == "대한민국 만...");
-    mcsp::println("[PASS] Grapheme 6글자 안전 자르기: {}", ellipsized);
+    test_unicode_fullwidth_halfwidth_conversion(); 
 
 
     // =========================================================================
