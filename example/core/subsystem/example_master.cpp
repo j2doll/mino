@@ -7,10 +7,10 @@
 #include "mino/core/log/tinylog/tinylog.hpp"
 #include "mino/core/subsystem/subsystem_master_channel.hpp"
 
-namespace mcss = mino::core::subsystem;
-namespace mcl = mino::core::log::tinylog;
-
 int main(int argc, char* argv[]) {
+    namespace mcss = mino::core::subsystem;
+    namespace mcl = mino::core::log::tinylog;
+
     using console_sink_config = mcl::console_sink_config;
 
     console_sink_config cscfg;
@@ -46,9 +46,8 @@ int main(int argc, char* argv[]) {
     channel.set_logger(logger);
 
     // 워커(example_worker) => 마스터(example_master) 콜백 등록
-    channel.on_event([logger](const std::string& event_name, const std::string& payload) {
-        logger->info("<magenta>[워커 자율 푸시 수신] 이벤트: '{}' -> 본문: '{}'</magenta>",
-            event_name, payload);
+    channel.on_event([&logger](const std::string& event_name, const std::string& payload) {
+        logger->info("<magenta>[워커 자율 푸시 수신] 이벤트: '{}' -> 본문: '{}'</magenta>", event_name, payload);
     });
 
     if (!channel.spawn(worker_bin)) { // 워커 프로세스 기동
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
     }
 
     // 편의를 위해 RPC 호출을 람다로 정의
-    auto execute_rpc = [&](const std::string& cmd, const std::string& payload) {
+    auto execute_rpc = [&channel, &logger](const std::string& cmd, const std::string& payload) {
         logger->info("[Master -> Worker] 송신: CMD='{}', DATA='{}'", cmd, payload);
 
         std::string status;
@@ -65,18 +64,16 @@ int main(int argc, char* argv[]) {
         if (channel.call(cmd, payload, status, response)) {
             if (status == "OK") {
                 logger->info("<green>[Worker -> Master] 성공: STATUS='{}', DATA='{}'</green>", status, response);
-            }
-            else {
-                logger->error("<red>[Worker -> Master] 오류: STATUS='{}', 사유='{}'</red>", status, response);
-            }
-        }
-        else {
-            logger->error("<red>워커 프로세스로부터 응답을 읽지 못했습니다.</red>");
-        }
+            } else { logger->error("<red>[Worker -> Master] 오류: STATUS='{}', 사유='{}'</red>", status, response); }
+        } else { logger->error("<red>워커 프로세스로부터 응답을 읽지 못했습니다.</red>"); }
     };
 
     // 1. 세션 초기화
     execute_rpc("INIT", "마스터 컨트롤러 클라이언트 (v1.0)");
+    // 호출된 람다는 하단과 동일한 처리임.
+    // if (channel.call("INIT", "마스터 컨트롤러 클라이언트 (v1.0)", status, response)) {
+    //   /*응답*/  if (status == "OK") { /*성공*/ } else { /*실패*/ }
+    // } else { /*무응답*/ }
 
     // 2. 워커의 백그라운드 이벤트가 도착할 시간을 주기 위해 대기하며 상호작용
     logger->info("--- 워커의 자율 백그라운드 이벤트 수신 대기 중 (1.5초) ---");

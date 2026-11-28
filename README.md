@@ -187,7 +187,7 @@
     - 공유 메모리의 매핑, 동기화(세마포어/뮤텍스), 데이터 일관성 관리
 - 🏛️ [singleton](example/core/singleton/main.cpp)
     - 싱글톤 패턴  
-- 🏛️ [string](example/core/string/main.cpp) : 문자열 유틸리티
+- 🏛️ `string` : 문자열 유틸리티
     - [Trim](example/core/string/test_trim.cpp) : 문자열 정리
     - [Replace](example/core/string/test_replace.cpp) : 문자열 치환
     - [Case, Contains, Starts/Ends With](example/core/string/test_case_contains.cpp) : 대소문자 변환, 포함 여부, 접두/접미사 확인
